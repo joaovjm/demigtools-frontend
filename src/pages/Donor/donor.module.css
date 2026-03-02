@@ -1,0 +1,683 @@
+.containerDonor {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    min-height: calc(100vh - 11.4vh);
+    background-color: #383838;
+    color: #FAF5E9;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.donorContent {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 1200px;
+    gap: 20px;
+}
+
+.donorHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.donorTitle {
+    color: #faa01c;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.donorActions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.workListBadge {
+    color: #faa01c;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 3px 8px;
+    background-color: rgba(250, 160, 28, 0.1);
+    border-radius: 12px;
+    border: 1px solid rgba(250, 160, 28, 0.3);
+}
+
+.donorBtn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    height: 40px;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.donorBtn.primary {
+    background: linear-gradient(135deg, #faa01c 0%, #e89115 100%);
+    color: #1f1d1d;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.donorBtn.primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.donorBtn.primary:hover:not(:disabled)::before {
+    opacity: 1;
+}
+
+.donorBtn.primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #fbb13d 0%, #f19e0f 100%);
+    box-shadow: 0 6px 20px rgba(250, 160, 28, 0.5), 0 2px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+}
+
+.donorBtn.secondary {
+    background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+    color: #faf5e9;
+    border: 2px solid #464a4d;
+}
+
+.donorBtn.secondary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4a4d50 0%, #3a3d40 100%);
+    border-color: #faa01c;
+    box-shadow: 0 4px 12px rgba(70, 74, 77, 0.3);
+    transform: translateY(-2px);
+}
+
+.donorBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.donorBtn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(250, 160, 28, 0.3), 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.donorFormContainer {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+.donorForm {
+    flex: 1;
+    padding: 16px;
+    border: 3px double #363a3d;
+    border-radius: 6px;
+    background-color: #1f1d1d;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+}
+
+.donorSection {
+    background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+    border: 2px solid #464a4d;
+    border-radius: 8px;
+    padding: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+}
+
+.donorSection:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.donorSection h4 {
+    color: #faa01c;
+    margin: 0 0 12px 0;
+    font-size: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.formRow {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(120px, 1fr)) !important;
+    gap: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+    align-items: start;
+    overflow: hidden;
+}
+
+.formRow:last-child {
+    margin-bottom: 0;
+}
+
+.formGroup.fullWidth {
+    grid-column: 1 / -1;
+}
+
+/* Força os componentes a ocuparem o espaço disponível sem largura mínima */
+.donorForm .formRow > * {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 !important;
+}
+
+/* Override completo para FormDonorInput e FormListSelect */
+.donorForm .formRow .inputField,
+.donorForm .formRow .formGroup,
+.donorForm .formRow > div {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+}
+
+/* Override específico para componentes FormDonorInput e FormListSelect */
+.donorForm .formRow > .inputField {
+    min-width: 120px !important;
+    width: 100% !important;
+    max-width: none !important;
+    flex: 1 1 0 !important;
+}
+
+/* Override específico para sobrescrever o App.css */
+.donorForm .inputField {
+    flex: 1 1 0 !important;
+    min-width: 120px !important;
+    max-width: 100% !important;
+}
+
+/* Override para inputs internos dos componentes */
+.donorForm .formRow input,
+.donorForm .formRow select,
+.donorForm .formRow textarea {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Override para labels */
+.donorForm .formRow label {
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.inputField {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.donorForm label {
+    color: #faa01c;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    letter-spacing: 0.2px;
+}
+
+.donorForm input,
+.donorForm textarea,
+.donorForm select {
+    width: 100%;
+    min-width: 0;
+    padding: 8px 10px;
+    background-color: #1f1d1d;
+    border: 2px solid #464a4d;
+    border-radius: 6px;
+    color: #faf5e9;
+    font-size: 13px;
+    font-weight: 500;
+    outline: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+    height: 36px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.inputField input {
+    width: 100%;
+    min-width: 0;
+    padding: 8px 10px;
+    background-color: #1f1d1d;
+    border: 2px solid #464a4d;
+    border-radius: 6px;
+    color: #faf5e9;
+    font-size: 13px;
+    font-weight: 500;
+    outline: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+    height: 36px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.inputField input:focus:not(:disabled) {
+    border-color: #faa01c;
+    background-color: #252323;
+    box-shadow: 0 0 0 3px rgba(250, 160, 28, 0.15), 0 2px 6px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+.inputField input:disabled {
+    opacity: 0.6;
+    background-color: #252323;
+    cursor: not-allowed;
+}
+
+.inputField label {
+    color: #faa01c;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    letter-spacing: 0.2px;
+}
+
+.donorForm input:focus:not(:disabled),
+.donorForm textarea:focus:not(:disabled),
+.donorForm select:focus:not(:disabled) {
+    border-color: #faa01c;
+    background-color: #252323;
+    box-shadow: 0 0 0 3px rgba(250, 160, 28, 0.15), 0 2px 6px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+.donorForm input:disabled,
+.donorForm textarea:disabled,
+.donorForm select:disabled {
+    opacity: 0.6;
+    background-color: #252323;
+    cursor: not-allowed;
+}
+
+.donorForm input::placeholder,
+.donorForm textarea::placeholder {
+    color: #7a7a7a;
+    font-weight: 400;
+}
+
+.donorForm textarea {
+    resize: vertical;
+    font-family: inherit;
+    min-height: 70px;
+    height: auto;
+    padding: 10px 12px;
+    line-height: 1.4;
+}
+
+.donorForm select option {
+    background-color: #1f1d1d;
+    color: #faf5e9;
+    padding: 8px;
+}
+
+/* Mobile first approach - Estilos para dispositivos pequenos */
+@media (max-width: 640px) {
+    .containerDonor {
+        padding: 10px;
+    }
+    
+    .donorHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .donorTitle {
+        font-size: 18px;
+    }
+    
+    .donorActions {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .donorBtn {
+        padding: 8px 12px;
+        font-size: 12px;
+        min-width: 90px;
+        height: 34px;
+    }
+    
+    .donorForm {
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .donorSection {
+        padding: 10px;
+    }
+    
+    .donorSection h4 {
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+    
+    .formRow {
+        grid-template-columns: 1fr !important;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+    
+    .formGroup {
+        gap: 4px;
+    }
+    
+    .inputField {
+        gap: 4px;
+    }
+    
+    .donorForm label,
+    .inputField label {
+        font-size: 11px;
+    }
+    
+    .donorForm input,
+    .donorForm textarea,
+    .donorForm select,
+    .inputField input {
+        font-size: 13px;
+        padding: 8px;
+        height: 34px;
+    }
+    
+    .donorForm textarea {
+        min-height: 60px;
+        padding: 8px;
+    }
+}
+
+/* Tablets e dispositivos médios */
+@media (min-width: 641px) and (max-width: 768px) {
+    .containerDonor {
+        padding: 12px;
+    }
+    
+    .donorTitle {
+        font-size: 20px;
+    }
+    
+    .donorForm {
+        padding: 12px;
+        gap: 10px;
+    }
+    
+    .donorSection {
+        padding: 10px;
+    }
+    
+    .donorSection h4 {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    
+    .formRow {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+    
+    .donorForm input,
+    .donorForm textarea,
+    .donorForm select {
+        height: 32px;
+        padding: 6px 8px;
+    }
+}
+
+/* Dispositivos médios para grandes */
+@media (min-width: 769px) and (max-width: 1199px) {
+    .containerDonor {
+        padding: 14px;
+    }
+    
+    .donorContent {
+        max-width: 1000px;
+    }
+    
+    .donorTitle {
+        font-size: 22px;
+    }
+    
+    .donorForm {
+        padding: 14px;
+        gap: 10px;
+    }
+    
+    .donorSection {
+        padding: 12px;
+    }
+    
+    .formRow {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+}
+
+/* Dispositivos grandes */
+@media (min-width: 1200px) {
+    .containerDonor {
+        padding: 16px;
+    }
+    
+    .donorContent {
+        max-width: 1200px;
+    }
+    
+    .donorTitle {
+        font-size: 24px;
+    }
+    
+    .donorForm {
+        padding: 16px;
+        gap: 12px;
+    }
+    
+    .donorSection {
+        padding: 12px;
+    }
+    
+    .formRow {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+}
+
+/* Ajustes especiais para campos que precisam ocupar mais espaço */
+@media (min-width: 769px) {
+    .donorSection:last-child .formGroup.fullWidth {
+        grid-column: 1 / -1;
+    }
+}
+
+/* Scrollbar personalizada para o form */
+.donorForm::-webkit-scrollbar {
+    width: 6px;
+}
+
+.donorForm::-webkit-scrollbar-track {
+    background-color: #2f2d2d;
+    border-radius: 3px;
+}
+
+.donorForm::-webkit-scrollbar-thumb {
+    background-color: #464a4d;
+    border-radius: 3px;
+    transition: background-color 0.3s ease;
+}
+
+.donorForm::-webkit-scrollbar-thumb:hover {
+    background-color: #faa01c;
+}
+
+/* Estilos para inputs de telefone com botão */
+.phoneInputContainer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.phoneInput {
+    flex: 1;
+    min-width: 0;
+}
+
+.phoneButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background-color: #faa01c;
+    color: #1f1d1d;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.phoneButton:hover {
+    background-color: #e8901a;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(250, 160, 28, 0.4);
+}
+
+.phoneButton:active {
+    transform: translateY(0);
+}
+
+/* Estilos para popup de chamada */
+.callPopupOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.callPopup {
+    background-color: #1f1d1d;
+    border: 2px solid #363a3d;
+    border-radius: 8px;
+    padding: 20px;
+    min-width: 300px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.callPopupHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #363a3d;
+}
+
+.callPopupHeader h3 {
+    color: #faa01c;
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.callPopupClose {
+    background: none;
+    border: none;
+    color: #faf5e9;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.callPopupClose:hover {
+    background-color: #363a3d;
+    color: #faa01c;
+}
+
+.callPopupContent {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.callPopupPhone {
+    color: #faf5e9;
+    font-size: 14px;
+    margin: 0;
+    padding: 8px;
+    background-color: #363a3d;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.callPopupContent > div {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+

@@ -1,0 +1,333 @@
+/* Operator Work Container */
+.operatorWorkContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 8px;
+  background-color: var(--color-bg, #1a1a1a);
+  overflow: hidden;
+}
+
+.operatorWorkContent {
+  flex: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.operatorWorkTitle {
+  color: var(--color-accent, #faa01c);
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid var(--color-surface-2, #2f2d2d);
+  padding-bottom: 8px;
+  flex-shrink: 0;
+}
+
+/* Filters Section */
+.operatorWorkFilters {
+  background-color: var(--color-surface, #1F1D1D);
+  border: 3px double var(--color-surface-2, #2f2d2d);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.operatorWorkForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.formGroup label {
+  color: var(--color-text, #FAF5E9);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.operatorWorkInput,
+.operatorWorkSelect {
+  padding: 8px 12px;
+  border: 2px solid var(--color-surface-2, #2f2d2d);
+  border-radius: 4px;
+  background-color: var(--color-surface-3, #363a3d);
+  color: var(--color-text, #FAF5E9);
+  font-size: 13px;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.operatorWorkInput:focus,
+.operatorWorkSelect:focus {
+  border-color: var(--color-accent, #faa01c);
+  box-shadow: 0 0 0 3px rgba(250, 160, 28, 0.1);
+  background-color: var(--color-surface-4, #404040);
+}
+
+.operatorWorkInput:hover,
+.operatorWorkSelect:hover {
+  border-color: var(--color-surface-5, #4a4a4a);
+  background-color: var(--color-surface-4, #404040);
+}
+
+.operatorWorkInput:disabled,
+.operatorWorkSelect:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--color-surface-2, #2f2d2d);
+}
+
+/* Form Actions */
+.formActions {
+  display: flex;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.operatorWorkBtn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+  min-width: 140px;
+}
+
+.operatorWorkBtn.primary {
+  background-color: var(--color-accent, #faa01c);
+  color: var(--color-bg, #1a1a1a);
+  border: 2px solid var(--color-accent, #faa01c);
+}
+
+.operatorWorkBtn.primary:hover:not(:disabled) {
+  background-color: var(--color-accent-hover, #e8910f);
+  border-color: var(--color-accent-hover, #e8910f);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(250, 160, 28, 0.3);
+}
+
+.operatorWorkBtn.primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(250, 160, 28, 0.3);
+}
+
+.operatorWorkBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Results Section */
+.operatorWorkResults {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+/* Empty State */
+.operatorWorkEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  color: var(--color-muted, #888);
+  text-align: center;
+  background-color: var(--color-surface, #1F1D1D);
+  border: 2px solid var(--color-surface-2, #2f2d2d);
+  border-radius: 6px;
+  margin-top: 8px;
+  flex: 1;
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+
+.operatorWorkEmpty h4 {
+  color: var(--color-accent, #faa01c);
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.operatorWorkEmpty p {
+  color: var(--color-text-muted, #ccc);
+  margin: 0;
+  font-size: 13px;
+  max-width: 400px;
+  line-height: 1.4;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .operatorWorkContainer {
+    padding: 6px;
+  }
+
+  .operatorWorkTitle {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+
+  .operatorWorkFilters {
+    padding: 8px;
+    margin-bottom: 8px;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .operatorWorkInput,
+  .operatorWorkSelect {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .operatorWorkBtn {
+    padding: 6px 16px;
+    font-size: 12px;
+    min-width: 120px;
+  }
+
+  .operatorWorkEmpty {
+    padding: 20px 12px;
+  }
+
+  .emptyIcon {
+    font-size: 36px;
+    margin-bottom: 8px;
+  }
+
+  .operatorWorkEmpty h4 {
+    font-size: 14px;
+  }
+
+  .operatorWorkEmpty p {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .operatorWorkContainer {
+    padding: 4px;
+  }
+
+  .operatorWorkTitle {
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+
+  .operatorWorkFilters {
+    padding: 6px;
+    margin-bottom: 6px;
+  }
+
+  .formGroup label {
+    font-size: 11px;
+  }
+
+  .operatorWorkInput,
+  .operatorWorkSelect {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+
+  .operatorWorkBtn {
+    padding: 5px 12px;
+    font-size: 11px;
+    min-width: 100px;
+  }
+
+  .operatorWorkEmpty {
+    padding: 15px 8px;
+  }
+
+  .emptyIcon {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+
+  .operatorWorkEmpty h4 {
+    font-size: 13px;
+  }
+
+  .operatorWorkEmpty p {
+    font-size: 11px;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .operatorWorkFilters {
+    border: 3px solid var(--color-accent, #faa01c);
+  }
+
+  .operatorWorkInput,
+  .operatorWorkSelect {
+    border: 2px solid var(--color-accent, #faa01c);
+  }
+
+  .operatorWorkBtn.primary {
+    border: 3px solid var(--color-bg, #1a1a1a);
+  }
+}
+
+/* Print styles */
+@media print {
+  .operatorWorkContainer {
+    background-color: white;
+    color: black;
+  }
+
+  .operatorWorkFilters {
+    border: 1px solid #000;
+    background-color: #f5f5f5;
+  }
+
+  .operatorWorkBtn {
+    display: none;
+  }
+
+  .operatorWorkEmpty {
+    border: 1px solid #000;
+    background-color: #f5f5f5;
+  }
+}
+

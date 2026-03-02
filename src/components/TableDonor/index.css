@@ -1,0 +1,503 @@
+/* Donor Table Container */
+.donor-table-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: 20px;
+  text-transform: uppercase;
+}
+
+.donor-table-content {
+  flex: 1;
+  padding: 16px;
+  border: 3px double #363a3d;
+  border-radius: 6px;
+  background-color: #1f1d1d;
+  overflow: hidden;
+}
+
+.donor-table-title {
+  color: #faa01c;
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+/* Table Header with Stats */
+.donor-table-header {
+  background-color: #363a3d;
+  border: 2px solid #2f2d2d;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.donor-table-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.stats-item {
+  color: #faf5e9;
+  font-size: 14px;
+}
+
+.stats-item strong {
+  color: #faa01c;
+  font-weight: 600;
+}
+
+/* Table Wrapper */
+.donor-table-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.donor-table-scroll {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 500px;
+  border: 2px solid #2f2d2d;
+  border-radius: 6px;
+  background-color: #363a3d;
+}
+
+/* Table Styles */
+.donor-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  background-color: transparent;
+}
+
+.donor-table-head-row {
+  background-color: #2f2d2d;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.donor-table-head {
+  padding: 12px 8px;
+  color: #faa01c;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-right: 1px solid #464a4d;
+  border-bottom: 2px solid #464a4d;
+  background-color: #2f2d2d;
+  white-space: nowrap;
+  text-align: left;
+  min-width: 100px;
+}
+
+.donor-table-head:last-child {
+  border-right: none;
+}
+
+.donor-table-row {
+  background-color: #363a3d;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border-bottom: 1px solid #2f2d2d;
+}
+
+.donor-table-row:hover {
+  background-color: #404548;
+  box-shadow: inset 0 0 0 1px #faa01c;
+}
+
+.donor-table-row:nth-child(4n+1),
+.donor-table-row:nth-child(4n+2) {
+  background-color: #3a3e41;
+}
+
+.donor-table-row:nth-child(4n+1):hover,
+.donor-table-row:nth-child(4n+2):hover {
+  background-color: #464a4d;
+}
+
+.donor-table-cell {
+  padding: 10px 8px;
+  color: #faf5e9;
+  border-right: 1px solid #464a4d;
+  vertical-align: top;
+  font-size: 13px;
+  line-height: 1.4;
+  min-width: 100px;
+}
+
+.donor-table-cell:last-child {
+  border-right: none;
+}
+
+/* Cell Content Styles */
+.receipt-number {
+ 
+  background-color: #faa01c;
+  color: #1f1d1d;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.operator-info,
+.collector-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.operator-id,
+.collector-id {
+  color: #faa01c;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.operator-name,
+.collector-name {
+  color: #c0c0c0;
+  font-size: 11px;
+  font-style: italic;
+}
+
+.value-amount,
+.extra-amount {
+  color: #4caf50;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.extra-amount {
+  color: #ff9800;
+}
+
+.date-info {
+  color: #faf5e9;
+  font-size: 11px;
+}
+
+.month-ref {
+  color: #9e9e9e;
+  font-size: 11px;
+  font-style: italic;
+}
+
+/* Status Badges */
+.status-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.status-badge.status-success {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+  border: 1px solid #4caf50;
+}
+
+.status-badge.status-pending {
+  background-color: rgba(255, 152, 0, 0.2);
+  color: #ff9800;
+  border: 1px solid #ff9800;
+}
+
+/* Details Row */
+.donor-table-details-row {
+  background-color: #2f2d2d;
+  border-bottom: 2px solid #464a4d;
+}
+
+.donor-table-details {
+  padding: 8px 12px;
+  color: #c0c0c0;
+  font-size: 11px;
+  border-right: 1px solid #464a4d;
+}
+
+.donor-table-details:last-child {
+  border-right: none;
+}
+
+.details-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.details-label {
+  color: #faa01c;
+  font-weight: 600;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.details-value {
+  color: #faf5e9;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+/* Empty State */
+.donor-table-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #9e9e9e;
+  text-align: center;
+  background-color: #363a3d;
+  border: 2px solid #2f2d2d;
+  border-radius: 6px;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.donor-table-empty h4 {
+  color: #faa01c;
+  margin: 0 0 8px 0;
+  font-size: 16px;
+}
+
+.donor-table-empty p {
+  color: #c0c0c0;
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Scrollbar Styles */
+.donor-table-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.donor-table-scroll::-webkit-scrollbar-track {
+  background-color: #2f2d2d;
+  border-radius: 4px;
+}
+
+.donor-table-scroll::-webkit-scrollbar-thumb {
+  background-color: #464a4d;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.donor-table-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: #faa01c;
+}
+
+.donor-table-scroll::-webkit-scrollbar-corner {
+  background-color: #2f2d2d;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .donor-table-content {
+    padding: 12px;
+  }
+  
+  .donor-table-title {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  
+  .donor-table-header {
+    padding: 8px 12px;
+    margin-bottom: 12px;
+  }
+  
+  .donor-table-stats {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .stats-item {
+    font-size: 13px;
+  }
+  
+  .donor-table-scroll {
+    max-height: 400px;
+  }
+  
+  .donor-table-head,
+  .donor-table-cell {
+    padding: 8px 6px;
+    font-size: 11px;
+    min-width: 80px;
+  }
+  
+  .donor-table-head {
+    font-size: 10px;
+  }
+  
+  .receipt-number {
+    font-size: 10px;
+    padding: 1px 4px;
+  }
+  
+  .status-group {
+    gap: 2px;
+  }
+  
+  .status-badge {
+    font-size: 9px;
+    padding: 1px 4px;
+  }
+  
+  .donor-table-details {
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+  
+  .details-label {
+    font-size: 9px;
+  }
+  
+  .details-value {
+    font-size: 10px;
+  }
+  
+  .donor-table-empty {
+    padding: 30px 15px;
+  }
+  
+  .empty-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+  
+  .donor-table-empty h4 {
+    font-size: 14px;
+  }
+  
+  .donor-table-empty p {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .donor-table-content {
+    padding: 8px;
+  }
+  
+  .donor-table-title {
+    font-size: 14px;
+  }
+  
+  .donor-table-scroll {
+    max-height: 300px;
+  }
+  
+  .donor-table-head,
+  .donor-table-cell {
+    padding: 6px 4px;
+    font-size: 10px;
+    min-width: 70px;
+  }
+  
+  .donor-table-head {
+    font-size: 9px;
+  }
+  
+  .operator-info,
+  .collector-info {
+    gap: 1px;
+  }
+  
+  .operator-name,
+  .collector-name {
+    font-size: 9px;
+  }
+  
+  .value-amount,
+  .extra-amount {
+    font-size: 10px;
+  }
+  
+  .date-info {
+    font-size: 9px;
+  }
+  
+  .donor-table-details {
+    padding: 4px 6px;
+    font-size: 9px;
+  }
+}
+
+/* High contrast mode for better accessibility */
+@media (prefers-contrast: high) {
+  .donor-table-row {
+    border-bottom: 2px solid #faa01c;
+  }
+  
+  .donor-table-cell {
+    border-right: 2px solid #faa01c;
+  }
+  
+  .status-badge.status-success {
+    background-color: #4caf50;
+    color: #000;
+  }
+  
+  .status-badge.status-pending {
+    background-color: #ff9800;
+    color: #000;
+  }
+}
+
+/* Print styles */
+@media print {
+  .donor-table-content {
+    border: 1px solid #000;
+    background-color: #fff;
+  }
+  
+  .donor-table-title {
+    color: #000;
+  }
+  
+  .donor-table-row,
+  .donor-table-cell {
+    background-color: #fff !important;
+    color: #000 !important;
+  }
+  
+  .donor-table-head {
+    background-color: #f0f0f0 !important;
+    color: #000 !important;
+  }
+  
+  .status-badge {
+    border: 1px solid #000;
+    background-color: #f0f0f0;
+    color: #000;
+  }
+}

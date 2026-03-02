@@ -1,0 +1,660 @@
+/* Work History Container */
+.workHistoryContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.workHistoryContent {
+  flex: 1;
+  padding: 16px;
+  border: 3px double #363a3d;
+  border-radius: 6px;
+  background-color: #1f1d1d;
+  overflow: hidden;
+}
+
+.workHistoryTitle {
+  color: #faa01c;
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Form Section */
+.workHistoryFormSection {
+  background-color: #363a3d;
+  border: 2px solid #2f2d2d;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.workHistoryFormSection h4 {
+  color: #faa01c;
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.workHistoryForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.formRowSingle {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.5fr 1.2fr auto;
+  gap: 16px;
+  align-items: end;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formGroup label {
+  color: #faf5e9;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.workHistoryInput,
+.workHistorySelect {
+  padding: 10px 12px;
+  border: 2px solid #464a4d;
+  border-radius: 4px;
+  background-color: #2f2d2d;
+  color: #faf5e9;
+  font-size: 13px;
+  transition: all 0.3s ease;
+}
+
+.workHistoryInput:focus,
+.workHistorySelect:focus {
+  outline: none;
+  border-color: #faa01c;
+  box-shadow: 0 0 0 2px rgba(250, 160, 28, 0.2);
+}
+
+.workHistoryInput::placeholder {
+  color: #9e9e9e;
+}
+
+.workHistorySelect option {
+  background-color: #2f2d2d;
+  color: #faf5e9;
+}
+
+.formActions {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.workHistoryBtn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 140px;
+}
+
+.workHistoryBtn.primary {
+  background-color: #faa01c;
+  color: #1f1d1d;
+}
+
+.workHistoryBtn.primary:hover:not(:disabled) {
+  background-color: #e6910a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(250, 160, 28, 0.3);
+}
+
+.workHistoryBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Results Section */
+.workHistoryResults {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Statistics Header */
+.workHistoryStats {
+  background-color: #363a3d;
+  border: 2px solid #2f2d2d;
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 12px;
+  background-color: #2f2d2d;
+  border-radius: 4px;
+  border: 1px solid #464a4d;
+}
+
+.statLabel {
+  color: #c0c0c0;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.statValue {
+  color: #faa01c;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Comparison Card Variants */
+.statItemComparison {
+  justify-content: center;
+}
+
+.statItemComparison .statValue {
+  font-size: 13px;
+}
+
+.statItemGreater {
+  background-color: rgba(76, 175, 80, 0.25);
+  border-color: #4caf50;
+}
+
+.statItemGreater .statValue {
+  color: #4caf50;
+}
+
+.statItemLesser {
+  background-color: rgba(244, 67, 54, 0.25);
+  border-color: #f44336;
+}
+
+.statItemLesser .statValue {
+  color: #f44336;
+}
+
+/* Table Sections */
+.workHistoryTableSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.workHistoryTableSection h4 {
+  color: #faa01c;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.workHistoryTableWrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.workHistoryTableScroll {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 500px;
+  border: 2px solid #2f2d2d;
+  border-radius: 6px;
+  background-color: #363a3d;
+}
+
+/* Table Styles */
+.workHistoryTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  background-color: transparent;
+}
+
+.workHistoryHeadRow {
+  background-color: #2f2d2d;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.workHistoryHead {
+  padding: 12px 8px;
+  color: #faa01c;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-right: 1px solid #464a4d;
+  border-bottom: 2px solid #464a4d;
+  background-color: #2f2d2d;
+  white-space: nowrap;
+  text-align: left;
+  min-width: 100px;
+}
+
+.workHistoryHead:last-child {
+  border-right: none;
+}
+
+.workHistoryRow {
+  background-color: #363a3d;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #2f2d2d;
+}
+
+.workHistoryRow:hover {
+  background-color: #404548;
+  box-shadow: inset 0 0 0 1px #faa01c;
+}
+
+.workHistoryRow:nth-child(4n+1),
+.workHistoryRow:nth-child(4n+2) {
+  background-color: #3a3e41;
+}
+
+.workHistoryRow:nth-child(4n+1):hover,
+.workHistoryRow:nth-child(4n+2):hover {
+  background-color: #464a4d;
+}
+
+.workHistoryCell {
+  padding: 10px 8px;
+  color: #faf5e9;
+  border-right: 1px solid #464a4d;
+  vertical-align: top;
+  font-size: 13px;
+  line-height: 1.4;
+  min-width: 100px;
+}
+
+.workHistoryCell:last-child {
+  border-right: none;
+}
+
+/* Cell Content Styles */
+.receiptNumber {
+  background-color: #faa01c;
+  color: #1f1d1d;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.valueAmount {
+  color: #4caf50;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.extraAmount {
+  color: #ff9800;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.worklistInfo {
+  color: #faf5e9;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.donorName {
+  color: #faf5e9;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.contactInfo {
+  color: #c0c0c0;
+  font-size: 11px;
+  font-family: monospace;
+}
+
+/* Last Donation Column */
+.lastDonationInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lastDonationDate {
+  color: #c0c0c0;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.lastDonationValue {
+  color: #2196f3;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Status Badges */
+.statusGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.statusSuccess {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+  border: 1px solid #4caf50;
+}
+
+.statusPending {
+  background-color: rgba(255, 152, 0, 0.2);
+  color: #ff9800;
+  border: 1px solid #ff9800;
+}
+
+/* Empty State */
+.workHistoryEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #9e9e9e;
+  text-align: center;
+  background-color: #363a3d;
+  border: 2px solid #2f2d2d;
+  border-radius: 6px;
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.workHistoryEmpty h4 {
+  color: #faa01c;
+  margin: 0 0 8px 0;
+  font-size: 16px;
+}
+
+.workHistoryEmpty p {
+  color: #c0c0c0;
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Scrollbar Styles */
+.workHistoryTableScroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.workHistoryTableScroll::-webkit-scrollbar-track {
+  background-color: #2f2d2d;
+  border-radius: 4px;
+}
+
+.workHistoryTableScroll::-webkit-scrollbar-thumb {
+  background-color: #464a4d;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.workHistoryTableScroll::-webkit-scrollbar-thumb:hover {
+  background-color: #faa01c;
+}
+
+.workHistoryTableScroll::-webkit-scrollbar-corner {
+  background-color: #2f2d2d;
+}
+
+/* Tablet Responsiveness */
+@media (max-width: 1024px) {
+  .formRowSingle {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  
+  .formRowSingle .formGroup:last-child {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+  }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .workHistoryContent {
+    padding: 12px;
+  }
+  
+  .workHistoryTitle {
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .workHistoryFormSection {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .formRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .formRowSingle {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .statItem {
+    padding: 8px;
+  }
+  
+  .statLabel {
+    font-size: 10px;
+  }
+  
+  .statValue {
+    font-size: 14px;
+  }
+  
+  .workHistoryTableScroll {
+    max-height: 400px;
+  }
+  
+  .workHistoryHead,
+  .workHistoryCell {
+    padding: 8px 6px;
+    font-size: 11px;
+    min-width: 80px;
+  }
+  
+  .workHistoryHead {
+    font-size: 10px;
+  }
+  
+  .receiptNumber {
+    font-size: 10px;
+    padding: 1px 4px;
+  }
+  
+  .statusGroup {
+    gap: 2px;
+  }
+  
+  .statusBadge {
+    font-size: 9px;
+    padding: 1px 4px;
+  }
+  
+  .workHistoryEmpty {
+    padding: 30px 15px;
+  }
+  
+  .emptyIcon {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+  
+  .workHistoryEmpty h4 {
+    font-size: 14px;
+  }
+  
+  .workHistoryEmpty p {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .workHistoryContent {
+    padding: 8px;
+  }
+  
+  .workHistoryTitle {
+    font-size: 14px;
+  }
+  
+  .workHistoryFormSection {
+    padding: 8px;
+  }
+  
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .workHistoryTableScroll {
+    max-height: 300px;
+  }
+  
+  .workHistoryHead,
+  .workHistoryCell {
+    padding: 6px 4px;
+    font-size: 10px;
+    min-width: 70px;
+  }
+  
+  .workHistoryHead {
+    font-size: 9px;
+  }
+  
+  .valueAmount,
+  .extraAmount {
+    font-size: 10px;
+  }
+  
+  .contactInfo {
+    font-size: 9px;
+  }
+}
+
+/* High contrast mode for better accessibility */
+@media (prefers-contrast: high) {
+  .workHistoryRow {
+    border-bottom: 2px solid #faa01c;
+  }
+  
+  .workHistoryCell {
+    border-right: 2px solid #faa01c;
+  }
+  
+  .statusSuccess {
+    background-color: #4caf50;
+    color: #000;
+  }
+  
+  .statusPending {
+    background-color: #ff9800;
+    color: #000;
+  }
+}
+
+/* Print styles */
+@media print {
+  .workHistoryContent {
+    border: 1px solid #000;
+    background-color: #fff;
+  }
+  
+  .workHistoryTitle {
+    color: #000;
+  }
+  
+  .workHistoryRow,
+  .workHistoryCell {
+    background-color: #fff !important;
+    color: #000 !important;
+  }
+  
+  .workHistoryHead {
+    background-color: #f0f0f0 !important;
+    color: #000 !important;
+  }
+  
+  .statusBadge {
+    border: 1px solid #000;
+    background-color: #f0f0f0;
+    color: #000;
+  }
+}
+

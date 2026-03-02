@@ -1,0 +1,131 @@
+/* Donor Card Styles */
+.donorCard {
+    background-color: #363a3d;
+    border: 2px solid #2f2d2d;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.donorCard:hover {
+    border-color: #faa01c;
+    box-shadow: 0 8px 24px rgba(250, 160, 28, 0.2);
+    transform: translateY(-4px);
+}
+
+.donorCard::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(250, 160, 28, 0.1),
+        transparent
+    );
+    transition: left 0.5s ease;
+    pointer-events: none;
+}
+
+.donorCard:hover::before {
+    left: 100%;
+}
+
+.cardHeader {
+    background-color: #2f2d2d;
+    padding: 12px;
+    border-bottom: 2px solid #faa01c;
+}
+
+.cardTitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #faf5e9;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.cardIcon {
+    color: #faa01c;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.cardInfo {
+    background-color: #1f1d1d;
+    padding: 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cardInfo p {
+    color: #faf5e9;
+    font-size: 12px;
+    margin: 0;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cardInfo p strong {
+    color: #faa01c;
+    font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .cardHeader {
+        padding: 10px;
+    }
+
+    .cardTitle {
+        font-size: 13px;
+    }
+
+    .cardIcon {
+        font-size: 14px;
+    }
+
+    .cardInfo {
+        padding: 10px;
+        gap: 5px;
+    }
+
+    .cardInfo p {
+        font-size: 11px;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .cardHeader {
+        padding: 11px;
+    }
+
+    .cardTitle {
+        font-size: 13.5px;
+    }
+
+    .cardInfo {
+        padding: 11px;
+    }
+
+    .cardInfo p {
+        font-size: 11.5px;
+    }
+}
+

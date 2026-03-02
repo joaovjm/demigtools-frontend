@@ -1,0 +1,370 @@
+/* Table In Open Container */
+.tableInopenContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.tableInopenContent {
+  flex: 1;
+  border: 3px double #363a3d;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1f1d1d 0%, #2a2828 100%);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.tableInopenTitle {
+  color: #faa01c;
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Header with Stats */
+.tableInopenHeader {
+  background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+  border: 2px solid #464a4d;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tableInopenStats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.statsItem {
+  color: #faf5e9;
+  font-size: 14px;
+}
+
+.statsItem strong {
+  color: #faa01c;
+  font-weight: 600;
+}
+
+/* Wrapper */
+.tableInopenWrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.tableInopenScroll {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 500px;
+  border: 2px solid #464a4d;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Table */
+.tableInopen {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  background-color: transparent;
+}
+
+.tableInopenHeadRow {
+  background-color: #2f2d2d;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tableInopenHead {
+  padding: 12px 8px;
+  color: #faa01c;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-right: 1px solid #464a4d;
+  border-bottom: 2px solid #464a4d;
+  background-color: #2f2d2d;
+  white-space: nowrap;
+  text-align: left;
+  min-width: 120px;
+}
+
+.tableInopenHead:last-child {
+  border-right: none;
+}
+
+.tableInopenHead.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.tableInopenHead.sortable:hover {
+  background: linear-gradient(135deg, #4a4d50 0%, #3a3e41 100%);
+}
+
+.sortArrow {
+  margin-left: 4px;
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.tableInopenRow {
+  background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+  cursor: pointer;
+  border-bottom: 1px solid #464a4d;
+}
+
+.tableInopenRow:hover {
+  background: linear-gradient(135deg, #4a4d50 0%, #3a3e41 100%);
+  box-shadow: inset 0 0 0 2px rgba(250, 160, 28, 0.4);
+}
+
+.tableInopenRow:nth-child(even) {
+  background: linear-gradient(135deg, #3a3e41 0%, #2f2d2d 100%);
+}
+
+.tableInopenRow:nth-child(even):hover {
+  background: linear-gradient(135deg, #4a4d50 0%, #3a3e41 100%);
+}
+
+.tableInopenCell {
+  padding: 10px 8px;
+  color: #faf5e9;
+  border-right: 1px solid #464a4d;
+  vertical-align: top;
+  font-size: 13px;
+  line-height: 1.4;
+  min-width: 120px;
+}
+
+.tableInopenCell:last-child {
+  border-right: none;
+}
+
+/* Content */
+.dateInfo {
+  color: #faf5e9;
+  font-size: 11px;
+}
+
+.donorName {
+  color: #faf5e9;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.valueAmount {
+  color: #4caf50;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.collectorInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.collectorId {
+  color: #17a2b8;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.collectorName {
+  color: #c0c0c0;
+  font-size: 11px;
+}
+
+.receiptNumber {
+  color: #faf5e9;
+  font-size: 13px;
+}
+
+/* Empty State */
+.tableInopenEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #9e9e9e;
+  text-align: center;
+  background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+  border: 2px solid #464a4d;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.tableInopenEmpty h4 {
+  color: #faa01c;
+  margin: 0 0 8px 0;
+  font-size: 16px;
+}
+
+.tableInopenEmpty p {
+  color: #c0c0c0;
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Scrollbar */
+.tableInopenScroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.tableInopenScroll::-webkit-scrollbar-track {
+  background-color: #2f2d2d;
+  border-radius: 4px;
+}
+
+.tableInopenScroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #464a4d 0%, #3a3e41 100%);
+  border-radius: 4px;
+}
+
+.tableInopenScroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #faa01c 0%, #e89115 100%);
+}
+
+.tableInopenScroll::-webkit-scrollbar-corner {
+  background-color: #2f2d2d;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .tableInopenContent {
+    padding: 12px;
+  }
+
+  .tableInopenTitle {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .tableInopenHeader {
+    padding: 8px 12px;
+    margin-bottom: 12px;
+  }
+
+  .tableInopenStats {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .statsItem {
+    font-size: 13px;
+  }
+
+  .tableInopenScroll {
+    max-height: 400px;
+  }
+
+  .tableInopenHead,
+  .tableInopenCell {
+    padding: 8px 6px;
+    font-size: 11px;
+    min-width: 100px;
+  }
+
+  .tableInopenHead {
+    font-size: 10px;
+  }
+
+  .tableInopenEmpty {
+    padding: 30px 15px;
+  }
+
+  .emptyIcon {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+
+  .tableInopenEmpty h4 {
+    font-size: 14px;
+  }
+
+  .tableInopenEmpty p {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tableInopenContent {
+    padding: 8px;
+  }
+
+  .tableInopenTitle {
+    font-size: 14px;
+  }
+
+  .tableInopenScroll {
+    max-height: 300px;
+  }
+
+  .tableInopenHead,
+  .tableInopenCell {
+    padding: 6px 4px;
+    font-size: 10px;
+    min-width: 90px;
+  }
+
+  .valueAmount {
+    font-size: 10px;
+  }
+
+  .dateInfo {
+    font-size: 9px;
+  }
+}
+
+/* High contrast */
+@media (prefers-contrast: high) {
+  .tableInopenRow {
+    border-bottom: 2px solid #faa01c;
+  }
+  .tableInopenCell {
+    border-right: 2px solid #faa01c;
+  }
+}
+
+/* Print */
+@media print {
+  .tableInopenContent {
+    border: 1px solid #000;
+    background-color: #fff;
+  }
+  .tableInopenTitle,
+  .tableInopenHead {
+    color: #000 !important;
+  }
+  .tableInopenRow,
+  .tableInopenCell {
+    background-color: #fff !important;
+    color: #000 !important;
+  }
+  .tableInopenHeadRow {
+    background-color: #f0f0f0 !important;
+  }
+}
+

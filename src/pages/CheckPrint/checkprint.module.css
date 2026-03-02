@@ -1,0 +1,641 @@
+/* CheckPrint Container */
+.checkprintContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-height: calc(100vh - 11.4vh);
+  background-color: #383838;
+  color: #FAF5E9;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.checkprintContent {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1200px;
+  gap: 20px;
+}
+
+/* Header Section */
+.checkprintHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.checkprintTitle {
+  color: #faa01c;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.checkprintActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.checkprintStatsCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background-color: #1f1d1d;
+  border: 2px solid #363a3d;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 180px;
+}
+
+.checkprintStatsCard:hover {
+  background-color: #2a2828;
+  border-color: #faa01c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(250, 160, 28, 0.2);
+}
+
+.statsIcon {
+  font-size: 24px;
+  opacity: 0.8;
+}
+
+.statsContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statsLabel {
+  color: #c0c0c0;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statsValue {
+  color: #faa01c;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Search Section */
+.checkprintSearchSection {
+  width: 100%;
+  background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+  border: 2px solid #464a4d;
+  border-radius: 10px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.checkprintSearchForm {
+  width: 100%;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1.3fr 1.3fr 1fr auto;
+  gap: 16px;
+  align-items: end;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.formGroup label {
+  color: #faa01c;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 2px;
+}
+
+.checkprintInput,
+.checkprintSelect {
+  width: 100%;
+  padding: 11px 14px;
+  background-color: #1f1d1d;
+  border: 2px solid #464a4d;
+  border-radius: 8px;
+  color: #faf5e9;
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+  height: 44px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.checkprintInput:focus,
+.checkprintSelect:focus {
+  border-color: #faa01c;
+  background-color: #252323;
+  box-shadow: 0 0 0 3px rgba(250, 160, 28, 0.15), 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+.checkprintInput:disabled,
+.checkprintSelect:disabled {
+  opacity: 0.6;
+  background-color: #252323;
+  cursor: not-allowed;
+}
+
+.checkprintSelect option {
+  background-color: #1f1d1d;
+  color: #faf5e9;
+  padding: 8px;
+}
+
+.checkprintBtn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 140px;
+  height: 44px;
+  letter-spacing: 0.3px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.checkprintBtn.primary {
+  background: linear-gradient(135deg, #faa01c 0%, #e89115 100%);
+  color: #1f1d1d;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.checkprintBtn.primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.checkprintBtn.primary:hover:not(:disabled)::before {
+  opacity: 1;
+}
+
+.checkprintBtn.primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #fbb13d 0%, #f19e0f 100%);
+  box-shadow: 0 6px 20px rgba(250, 160, 28, 0.5), 0 2px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.checkprintBtn.success {
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  color: #fff;
+}
+
+.checkprintBtn.success:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5cb860 0%, #4caf50 100%);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.5), 0 2px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.checkprintBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.checkprintBtn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(250, 160, 28, 0.3), 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Results Section */
+.checkprintResultsSection {
+  width: 100%;
+  background-color: #1f1d1d;
+  border: 3px double #363a3d;
+  border-radius: 6px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.checkprintResultsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #363a3d;
+}
+
+.resultsStats {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.resultsStats .statsItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.resultsStats .statsLabel {
+  color: #c0c0c0;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.resultsStats .statsValue {
+  color: #faa01c;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.resultsActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.checkprintToggleBtn {
+  background: transparent;
+  border: 2px solid #464a4d;
+  color: #faf5e9;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.checkprintToggleBtn:hover {
+  border-color: #faa01c;
+  color: #faa01c;
+}
+
+.checkprintToggleBtn.open {
+  transform: rotate(90deg);
+  border-color: #faa01c;
+  color: #faa01c;
+}
+
+/* Results Content */
+.checkprintResultsContent {
+  width: 100%;
+}
+
+.checkprintCardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 16px;
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Card Styles */
+.checkprintCard {
+  background-color: #363a3d;
+  border: 2px solid #2f2d2d;
+  border-radius: 6px;
+  padding: 16px;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.checkprintCard:hover {
+  border-color: #faa01c;
+  box-shadow: 0 4px 12px rgba(250, 160, 28, 0.2);
+  transform: translateY(-2px);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #464a4d;
+}
+
+.receiptBadge {
+  background-color: #faa01c;
+  color: #1f1d1d;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.valueAmount {
+  color: #4caf50;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cardSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cardSection h4 {
+  color: #faa01c;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.donorInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.donorName {
+  color: #faf5e9;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.donorAddress,
+.donorNeighborhood {
+  color: #c0c0c0;
+  font-size: 12px;
+}
+
+.donationDescription {
+  color: #faf5e9;
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+  padding: 8px;
+  background-color: #2f2d2d;
+  border-radius: 4px;
+  border-left: 3px solid #faa01c;
+}
+
+/* Scrollbar Styles */
+.checkprintCardsGrid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.checkprintCardsGrid::-webkit-scrollbar-track {
+  background-color: #2f2d2d;
+  border-radius: 4px;
+}
+
+.checkprintCardsGrid::-webkit-scrollbar-thumb {
+  background-color: #464a4d;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.checkprintCardsGrid::-webkit-scrollbar-thumb:hover {
+  background-color: #faa01c;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 1024px) {
+  .formRow {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .formRow .formGroup:last-of-type {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .checkprintContainer {
+    padding: 12px;
+  }
+  
+  .checkprintContent {
+    gap: 16px;
+  }
+  
+  .checkprintHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .checkprintTitle {
+    font-size: 20px;
+  }
+  
+  .checkprintStatsCard {
+    min-width: 160px;
+    padding: 10px 12px;
+  }
+  
+  .statsIcon {
+    font-size: 20px;
+  }
+  
+  .statsValue {
+    font-size: 16px;
+  }
+  
+  .checkprintSearchSection {
+    padding: 16px;
+  }
+  
+  .formRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .formRow .formGroup:last-of-type {
+    grid-column: 1;
+  }
+  
+  .checkprintResultsSection {
+    padding: 16px;
+  }
+  
+  .checkprintResultsHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .resultsActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .checkprintCardsGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    max-height: 400px;
+  }
+  
+  .checkprintCard {
+    padding: 12px;
+  }
+  
+  .cardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .checkprintContainer {
+    padding: 8px;
+  }
+  
+  .checkprintTitle {
+    font-size: 18px;
+  }
+  
+  .checkprintStatsCard {
+    min-width: 140px;
+    padding: 8px 10px;
+  }
+  
+  .statsIcon {
+    font-size: 18px;
+  }
+  
+  .statsValue {
+    font-size: 14px;
+  }
+  
+  .checkprintSearchSection,
+  .checkprintResultsSection {
+    padding: 12px;
+  }
+  
+  .checkprintBtn {
+    min-width: 120px;
+    height: 36px;
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+  
+  .checkprintCardsGrid {
+    max-height: 300px;
+  }
+  
+  .checkprintCard {
+    padding: 10px;
+  }
+  
+  .receiptBadge {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  
+  .valueAmount {
+    font-size: 14px;
+  }
+  
+  .donorName {
+    font-size: 13px;
+  }
+  
+  .donorAddress,
+  .donorNeighborhood {
+    font-size: 11px;
+  }
+  
+  .donationDescription {
+    font-size: 11px;
+    padding: 6px;
+  }
+}
+
+/* High contrast mode for better accessibility */
+@media (prefers-contrast: high) {
+  .checkprintCard {
+    border: 2px solid #faa01c;
+  }
+  
+  .checkprintBtn.primary {
+    background-color: #faa01c;
+    border: 2px solid #000;
+  }
+  
+  .receiptBadge {
+    background-color: #faa01c;
+    color: #000;
+    border: 1px solid #000;
+  }
+}
+
+/* Print styles */
+@media print {
+  .checkprintContainer {
+    background-color: #fff;
+    color: #000;
+  }
+  
+  .checkprintCard {
+    border: 1px solid #000;
+    background-color: #fff;
+    color: #000;
+  }
+  
+  .receiptBadge {
+    background-color: #000;
+    color: #fff;
+  }
+  
+  .valueAmount {
+    color: #000;
+  }
+}

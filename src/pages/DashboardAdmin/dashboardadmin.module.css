@@ -1,0 +1,516 @@
+/* Dashboard Admin Container */
+.mainDashboard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-height: calc(100vh - 11.4vh);
+  background-color: #383838;
+  color: #faf5e9;
+  padding: 20px;
+  box-sizing: border-box;
+  gap: 20px;
+}
+
+/* Header Section */
+.sectionHeader {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 1200px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.sectionHeaderItem {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+  border: 3px double #363a3d;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1f1d1d 0%, #2a2828 100%);
+  gap: 16px;
+  flex-wrap: wrap;
+  min-width: max-content;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Dashboard Cards */
+.divCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 80px;
+  width: 200px;
+  background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+  border: 2px solid #464a4d;
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.divCard:hover {
+  background: linear-gradient(135deg, #4a4d50 0%, #3a3e41 100%);
+  border-color: #faa01c;
+  box-shadow: 0 4px 12px rgba(250, 160, 28, 0.3);
+}
+
+.divCard:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(250, 160, 28, 0.4);
+}
+
+.divCard.active {
+  border: 2px solid #faa01c;
+  background: linear-gradient(135deg, #faa01c 0%, #e89115 100%);
+  color: #1f1d1d;
+  box-shadow: 0 6px 16px rgba(250, 160, 28, 0.5);
+}
+
+.divCard.active .h3Header,
+.divCard.active p {
+  color: #1f1d1d;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.divHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.h3Header {
+  font-size: 12px;
+  font-weight: 600;
+  color: #faf5e9;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.divBody {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.divBody p {
+  font-size: 14px;
+  font-weight: 600;
+  color: #faf5e9;
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Main Content Section */
+.sectionGrafic {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 1200px;
+  background: linear-gradient(135deg, #1f1d1d 0%, #2a2828 100%);
+  border: 3px double #363a3d;
+  border-radius: 12px;
+  padding: 6px;
+  gap: 16px;
+  min-height: 500px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* View Type Selector */
+.viewTypeSelector {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.viewTypeButton {
+  flex: 1;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+  border: 2px solid #464a4d;
+  color: #faf5e9;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.viewTypeButton:hover {
+  background: linear-gradient(135deg, #4a4d50 0%, #3a3e41 100%);
+  border-color: #faa01c;
+  box-shadow: 0 4px 12px rgba(250, 160, 28, 0.3);
+}
+
+.viewTypeButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(250, 160, 28, 0.4);
+}
+
+.viewTypeButton.active {
+  background: linear-gradient(135deg, #faa01c 0%, #e89115 100%);
+  border-color: #fbb13d;
+  color: #1f1d1d;
+  box-shadow: 0 6px 16px rgba(250, 160, 28, 0.5);
+}
+
+.sectionTableAndInfo {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* Operators Section */
+.sectionOperators {
+  display: flex;
+  flex-direction: column;
+  min-width: 250px;
+  max-width: 300px;
+  height: 400px;
+  padding: 16px;
+  gap: 8px;
+  border: 2px solid #464a4d;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.sectionOperators::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sectionOperators::-webkit-scrollbar-track {
+  background-color: #2f2d2d;
+  border-radius: 4px;
+}
+
+.sectionOperators::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #464a4d 0%, #3a3e41 100%);
+  border-radius: 4px;
+}
+
+.sectionOperators::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #faa01c 0%, #e89115 100%);
+}
+
+/* Table Section */
+.sectionTable {
+  display: flex;
+  flex: 1;
+  min-width: 600px;
+  height: 100%;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.sectionTable::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sectionTable::-webkit-scrollbar-track {
+  background-color: #2f2d2d;
+  border-radius: 4px;
+}
+
+.sectionTable::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #464a4d 0%, #3a3e41 100%);
+  border-radius: 4px;
+}
+
+.sectionTable::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #faa01c 0%, #e89115 100%);
+}
+
+/* Operator Cards */
+.sectionOperatorsCard {
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #2f2d2d 0%, #252323 100%);
+  border: 2px solid #464a4d;
+  padding: 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  gap: 10px;
+  font-size: 13px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  min-height: 70px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.sectionOperatorsCard:hover {
+  background: linear-gradient(135deg, #faa01c 0%, #e89115 100%);
+  border-color: #fbb13d;
+  color: #1f1d1d;
+  box-shadow: 0 4px 12px rgba(250, 160, 28, 0.4);
+}
+
+.sectionOperatorsCard:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(250, 160, 28, 0.4);
+}
+
+.sectionOperatorsCard.active {
+  background: linear-gradient(135deg, #faa01c 0%, #e89115 100%);
+  border-color: #fbb13d;
+  color: #1f1d1d;
+  box-shadow: 0 4px 12px rgba(250, 160, 28, 0.5);
+}
+
+.sectionOperatorsCard > div:first-child {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  word-break: break-word;
+  min-height: 20px;
+}
+
+.sectionOperatorsCard label {
+  font-size: 12px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.sectionOperatorsCardValue {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Leads Section */
+.divLeads {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #1f1d1d 0%, #2a2828 100%);
+  border: 3px double #363a3d;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 479px) {
+  .mainDashboard {
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .sectionHeader {
+    overflow-x: auto;
+    padding: 0;
+  }
+
+  .sectionHeaderItem {
+    padding: 12px;
+    gap: 8px;
+    min-width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .divCard {
+    width: 140px;
+    height: 70px;
+    padding: 10px;
+    flex-shrink: 0;
+  }
+
+  .h3Header {
+    font-size: 9px;
+  }
+
+  .divBody p {
+    font-size: 11px;
+  }
+
+  .sectionGrafic {
+    padding: 12px;
+    min-height: 300px;
+  }
+
+  .viewTypeSelector {
+    max-width: 100%;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .viewTypeButton {
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+
+  .sectionTableAndInfo {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .sectionOperators {
+    flex-direction: row;
+    height: 120px;
+    min-width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .sectionOperatorsCard {
+    min-width: 140px;
+    flex-shrink: 0;
+  }
+
+  .sectionTable {
+    min-width: 100%;
+    height: 300px;
+    padding: 12px;
+  }
+
+  .divLeads {
+    padding: 12px;
+  }
+}
+
+@media (min-width: 480px) and (max-width: 768px) {
+  .mainDashboard {
+    padding: 16px;
+    gap: 16px;
+  }
+  
+  .sectionHeaderItem {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .divCard {
+    width: 160px;
+    height: 75px;
+    padding: 12px;
+  }
+
+  .h3Header {
+    font-size: 10px;
+  }
+
+  .divBody p {
+    font-size: 12px;
+  }
+
+  .sectionGrafic {
+    padding: 16px;
+    min-height: 350px;
+  }
+
+  .viewTypeSelector {
+    max-width: 100%;
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .viewTypeButton {
+    padding: 9px 16px;
+    font-size: 12px;
+  }
+
+  .sectionTableAndInfo {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .sectionOperators {
+    flex-direction: row;
+    height: 140px;
+    min-width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .sectionOperatorsCard {
+    min-width: 160px;
+    max-width: 160px;
+    flex-shrink: 0;
+  }
+
+  .sectionTable {
+    min-width: 100%;
+    height: 350px;
+    padding: 16px;
+  }
+
+  .divLeads {
+    padding: 16px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1199px) {
+  .mainDashboard {
+    padding: 18px;
+  }
+  
+  .sectionHeaderItem {
+    gap: 14px;
+  }
+
+  .divCard {
+    width: 180px;
+    height: 80px;
+  }
+
+  .sectionGrafic {
+    min-height: 380px;
+  }
+
+  .sectionOperators {
+    min-width: 220px;
+    max-width: 250px;
+    height: 350px;
+  }
+
+  .sectionTable {
+    min-width: 500px;
+    height: 350px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .mainDashboard {
+    padding: 20px;
+  }
+  
+  .divCard {
+    width: 200px;
+    height: 80px;
+  }
+
+  .sectionGrafic {
+    min-height: 400px;
+  }
+
+  .sectionOperators {
+    min-width: 250px;
+    max-width: 300px;
+    height: 400px;
+  }
+
+  .sectionTable {
+    min-width: 600px;
+    height: 400px;
+  }
+}
+

@@ -1,0 +1,484 @@
+@import url("../tables/base.css");
+
+/* Table Confirmation Container */
+.tableConfirmationContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  text-transform: uppercase;
+}
+
+.tableConfirmationContent {
+  flex: 1;
+  border: 3px double #363a3d;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1f1d1d 0%, #2a2828 100%);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.tableConfirmationTitle {
+  color: #faa01c;
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+/* Table Header with Stats */
+.tableConfirmationHeader {
+  background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+  border: 2px solid #464a4d;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tableConfirmationStats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.statsItem {
+  color: #faf5e9;
+  font-size: 14px;
+}
+
+.statsItem strong {
+  color: #faa01c;
+  font-weight: 600;
+}
+
+/* Table Wrapper */
+.tableConfirmationWrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.tableConfirmationScroll {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 500px;
+  border: 2px solid #464a4d;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Table Styles */
+.tableConfirmation {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  background-color: transparent;
+}
+
+.tableConfirmationHeadRow {
+  background-color: #2f2d2d;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tableConfirmationHead {
+  padding: 12px 8px;
+  color: #faa01c;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-right: 1px solid #464a4d;
+  border-bottom: 2px solid #464a4d;
+  background-color: #2f2d2d;
+  white-space: nowrap;
+  text-align: left;
+  min-width: 100px;
+}
+
+.tableConfirmationHead:last-child {
+  border-right: none;
+}
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sortable:hover {
+  background: linear-gradient(135deg, #4a4d50 0%, #3a3e41 100%);
+}
+
+.sortArrow {
+  margin-left: 4px;
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.tableConfirmationRow {
+  background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+  cursor: pointer;
+  border-bottom: 1px solid #464a4d;
+}
+
+.tableConfirmationRow:hover {
+  background: linear-gradient(135deg, #4a4d50 0%, #3a3e41 100%);
+  box-shadow: inset 0 0 0 2px rgba(250, 160, 28, 0.4);
+}
+
+.tableConfirmationRow:nth-child(even) {
+  background: linear-gradient(135deg, #3a3e41 0%, #2f2d2d 100%);
+}
+
+.tableConfirmationRow:nth-child(even):hover {
+  background: linear-gradient(135deg, #4a4d50 0%, #3a3e41 100%);
+}
+
+.tableConfirmationCell {
+  padding: 10px 8px;
+  color: #faf5e9;
+  border-right: 1px solid #464a4d;
+  vertical-align: top;
+  font-size: 13px;
+  line-height: 1.4;
+  min-width: 100px;
+}
+
+.tableConfirmationCell:last-child {
+  border-right: none;
+}
+
+/* Cell Content Styles */
+.dateInfo {
+  color: #faf5e9;
+  font-size: 11px;
+}
+
+.donorName {
+  color: #faf5e9;
+  font-weight: 500;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.donorNameSub {
+  color: #c0c0c0;
+  font-weight: 400;
+  font-size: 12px;
+}
+
+/* Contador de doações */
+.donationCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background-color: #faa01c;
+  color: #1f1d1d;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 10px;
+  margin-left: 4px;
+}
+
+/* Ícone de expansão */
+.expandIcon {
+  font-size: 10px;
+  color: #faa01c;
+  margin-right: 4px;
+}
+
+/* Linha de grupo (com múltiplas doações) */
+.groupRow {
+  background-color: #3a3e41;
+}
+
+.groupRow:hover {
+  background-color: #454a4d;
+}
+
+.groupRowExpanded {
+  background-color: #454a4d;
+  border-bottom: 2px solid #faa01c;
+}
+
+/* Sub-linha (doações expandidas) */
+.subRow {
+  background-color: #2a2e31 !important;
+  border-left: 3px solid #faa01c;
+}
+
+.subRow:hover {
+  background-color: #353a3d !important;
+}
+
+.subRowIndicator {
+  color: #faa01c;
+  font-size: 14px;
+  margin-right: 8px;
+  opacity: 0.8;
+}
+
+/* Status múltiplas */
+.statusMultiple {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background-color: rgba(250, 160, 28, 0.2);
+  color: #faa01c;
+  border: 1px solid rgba(250, 160, 28, 0.4);
+}
+
+.dayInfo {
+  color: #9e9e9e;
+  font-size: 11px;
+}
+
+.valueAmount {
+  color: #4caf50;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.reasonText {
+  color: #ff9800;
+  font-weight: 500;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statusScheduled {
+  background-color: rgba(23, 162, 184, 0.2);
+  color: #17a2b8;
+  border: 1px solid rgba(23, 162, 184, 0.4);
+}
+
+.statusNotAttended {
+  background-color: rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+  border: 1px solid rgba(220, 53, 69, 0.4);
+}
+
+.statusNone {
+  color: #9e9e9e;
+  font-style: italic;
+}
+
+.scheduleDate {
+  color: #faf5e9;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Empty State */
+.tableConfirmationEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #9e9e9e;
+  text-align: center;
+  background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+  border: 2px solid #464a4d;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.tableConfirmationEmpty h4 {
+  color: #faa01c;
+  margin: 0 0 8px 0;
+  font-size: 16px;
+}
+
+.tableConfirmationEmpty p {
+  color: #c0c0c0;
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Scrollbar Styles */
+.tableConfirmationScroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.tableConfirmationScroll::-webkit-scrollbar-track {
+  background-color: #2f2d2d;
+  border-radius: 4px;
+}
+
+.tableConfirmationScroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #464a4d 0%, #3a3e41 100%);
+  border-radius: 4px;
+}
+
+.tableConfirmationScroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #faa01c 0%, #e89115 100%);
+}
+
+.tableConfirmationScroll::-webkit-scrollbar-corner {
+  background-color: #2f2d2d;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .tableConfirmationContent {
+    padding: 12px;
+  }
+  
+  .tableConfirmationTitle {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  
+  .tableConfirmationHeader {
+    padding: 8px 12px;
+    margin-bottom: 12px;
+  }
+  
+  .tableConfirmationStats {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .statsItem {
+    font-size: 13px;
+  }
+  
+  .tableConfirmationScroll {
+    max-height: 400px;
+  }
+  
+  .tableConfirmationHead,
+  .tableConfirmationCell {
+    padding: 8px 6px;
+    font-size: 11px;
+    min-width: 80px;
+  }
+  
+  .tableConfirmationHead {
+    font-size: 10px;
+  }
+  
+  .tableConfirmationEmpty {
+    padding: 30px 15px;
+  }
+  
+  .emptyIcon {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+  
+  .tableConfirmationEmpty h4 {
+    font-size: 14px;
+  }
+  
+  .tableConfirmationEmpty p {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tableConfirmationContent {
+    padding: 8px;
+  }
+  
+  .tableConfirmationTitle {
+    font-size: 14px;
+  }
+  
+  .tableConfirmationScroll {
+    max-height: 300px;
+  }
+  
+  .tableConfirmationHead,
+  .tableConfirmationCell {
+    padding: 6px 4px;
+    font-size: 10px;
+    min-width: 70px;
+  }
+  
+  .tableConfirmationHead {
+    font-size: 9px;
+  }
+  
+  .valueAmount {
+    font-size: 10px;
+  }
+  
+  .dateInfo {
+    font-size: 9px;
+  }
+  
+  .reasonText {
+    font-size: 10px;
+  }
+}
+
+/* High contrast mode for better accessibility */
+@media (prefers-contrast: high) {
+  .tableConfirmationRow {
+    border-bottom: 2px solid #faa01c;
+  }
+  
+  .tableConfirmationCell {
+    border-right: 2px solid #faa01c;
+  }
+}
+
+/* Print styles */
+@media print {
+  .tableConfirmationContent {
+    border: 1px solid #000;
+    background-color: #fff;
+  }
+  
+  .tableConfirmationTitle {
+    color: #000;
+  }
+  
+  .tableConfirmationRow,
+  .tableConfirmationCell {
+    background-color: #fff !important;
+    color: #000 !important;
+  }
+  
+  .tableConfirmationHead {
+    background-color: #f0f0f0 !important;
+    color: #000 !important;
+  }
+}
+

@@ -1,0 +1,438 @@
+/* ====================================
+   DESIGN SYSTEM - MODAIS MODERNOS
+   ==================================== */
+
+/* Container Principal do Modal - Limpo e elegante */
+.modal-area-container {
+  max-width: 900px;
+  width: 92%;
+  max-height: 88vh;
+  background: linear-gradient(135deg, #1f1d1d 0%, #2f2d2d 100%);
+  border: 2px solid #464a4d;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(250, 160, 28, 0.1);
+  animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header - Cabeçalho limpo com hierarquia clara */
+.modal-area-container-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px;
+  gap: 24px;
+  background: linear-gradient(90deg, rgba(250, 160, 28, 0.08) 0%, transparent 100%);
+  border-bottom: 2px solid rgba(250, 160, 28, 0.2);
+  flex-shrink: 0;
+}
+
+.modal-area-container-header h2,
+.modal-area-container-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #faa01c;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Botões do Header - Estilo moderno */
+.modal-area-container-header button {
+  padding: 10px 20px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(135deg, #5b7bc7 0%, #385bad 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(56, 91, 173, 0.3);
+}
+
+.modal-area-container-header button:hover {
+  background: linear-gradient(135deg, #6d8dd9 0%, #4a6dbf 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(56, 91, 173, 0.5);
+}
+
+/* Botão de Fechar - Destrutivo */
+.modal-area-container-header-button-exit {
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%) !important;
+  border-color: #ef4444 !important;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4) !important;
+}
+
+.modal-area-container-header-button-exit:hover {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%) !important;
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.6) !important;
+}
+
+/* Body - Área de conteúdo com scroll suave */
+.modal-area-container-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  padding: 24px 28px;
+  background: #1f1d1d;
+}
+
+/* Scrollbar Estilizada - Moderna e discreta */
+.modal-area-container-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-area-container-body::-webkit-scrollbar-track {
+  background: #1f1d1d;
+  border-radius: 4px;
+}
+
+.modal-area-container-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #faa01c 0%, #e89115 100%);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+  border: 2px solid #1f1d1d;
+}
+
+.modal-area-container-body::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #fbb13d 0%, #f19e0f 100%);
+}
+
+/* Tabs - Sistema de abas moderno e limpo */
+.modal-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 16px 24px 0;
+  background: linear-gradient(180deg, #2f2d2d 0%, #1f1d1d 100%);
+  border-bottom: 2px solid #464a4d;
+  flex-shrink: 0;
+}
+
+.modal-tab {
+  padding: 12px 24px;
+  background: transparent;
+  color: #9e9e9e;
+  border: none;
+  border-bottom: 3px solid transparent;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.modal-tab::before {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #faa01c;
+  transform: scaleX(0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-tab:hover {
+  background: rgba(250, 160, 28, 0.08);
+  color: #faa01c;
+}
+
+.modal-tab.active {
+  background: rgba(250, 160, 28, 0.12);
+  color: #faa01c;
+}
+
+.modal-tab.active::before {
+  transform: scaleX(1);
+}
+
+/* ====================================
+   DESIGN SYSTEM - CLASSES BASE
+   ==================================== */
+
+/* PRINCÍPIOS DE UX/UI APLICADOS:
+   1. Hierarquia Visual Clara
+   2. Espaçamento Generoso
+   3. Cores com Propósito
+   4. Animações Sutis
+   5. Consistência Total
+*/
+
+/* Input Base - Padrão para todos os inputs */
+.modal-input-base {
+  width: 100%;
+  padding: 11px 14px;
+  background-color: #1f1d1d;
+  border: 2px solid #464a4d;
+  border-radius: 8px;
+  color: #faf5e9;
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.modal-input-base:focus {
+  border-color: #faa01c;
+  background-color: #252323;
+  box-shadow: 0 0 0 3px rgba(250, 160, 28, 0.15), 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+.modal-input-base::placeholder {
+  color: #7a7a7a;
+  font-weight: 400;
+}
+
+.modal-input-base:disabled {
+  opacity: 0.6;
+  background-color: #252323;
+  cursor: not-allowed;
+}
+
+/* Label Base - Padrão para todos os labels */
+.modal-label-base {
+  color: #faa01c;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* SISTEMA DE BOTÕES SIMPLIFICADO */
+
+/* Botão Primário - Ação principal (Laranja) */
+.modal-btn-primary {
+  padding: 12px 24px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #faa01c 0%, #e89115 100%);
+  color: #1f1d1d;
+  box-shadow: 0 4px 12px rgba(250, 160, 28, 0.4);
+  min-width: 120px;
+}
+
+.modal-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #fbb13d 0%, #f19e0f 100%);
+  box-shadow: 0 6px 20px rgba(250, 160, 28, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Botão Secundário - Ação secundária (Cinza) */
+.modal-btn-secondary {
+  padding: 12px 24px;
+  border: 2px solid #464a4d;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+  color: #faf5e9;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  min-width: 120px;
+}
+
+.modal-btn-secondary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4a4d50 0%, #3a3d40 100%);
+  border-color: #565a5d;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* Botão Sucesso - Ação de confirmação (Verde) */
+.modal-btn-success {
+  padding: 12px 24px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  min-width: 120px;
+}
+
+.modal-btn-success:hover:not(:disabled) {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Botão Destrutivo - Ação perigosa (Vermelho) */
+.modal-btn-danger {
+  padding: 12px 24px;
+  border: 2px solid #ef4444;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+  min-width: 120px;
+}
+
+.modal-btn-danger:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.6);
+  transform: translateY(-2px);
+}
+
+/* Estado desabilitado para todos os botões */
+.modal-btn-primary:disabled,
+.modal-btn-secondary:disabled,
+.modal-btn-success:disabled,
+.modal-btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Seção de Formulário Base */
+.modal-section-base {
+  background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+  border: 2px solid #464a4d;
+  border-radius: 10px;
+  padding: 18px 22px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.modal-section-base h4 {
+  color: #faa01c;
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid rgba(250, 160, 28, 0.2);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .modal-area-container {
+    max-width: 95%;
+    width: 95%;
+    max-height: 92vh;
+    border-radius: 10px;
+  }
+
+  .modal-area-container-header {
+    padding: 16px 20px;
+    flex-wrap: wrap;
+  }
+
+  .modal-area-container-header h2,
+  .modal-area-container-header h3 {
+    font-size: 18px;
+  }
+
+  .modal-area-container-body {
+    padding: 20px;
+  }
+
+  .modal-tabs {
+    padding: 12px 16px 0;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .modal-tab {
+    padding: 10px 18px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .modal-input-base {
+    height: 42px;
+  }
+}
+
+@media (max-width: 576px) {
+  .modal-area-container {
+    max-width: 98%;
+    max-height: 95vh;
+  }
+
+  .modal-area-container-header {
+    padding: 14px 16px;
+  }
+
+  .modal-area-container-header h2,
+  .modal-area-container-header h3 {
+    font-size: 16px;
+  }
+
+  .modal-area-container-body {
+    padding: 16px;
+  }
+
+  .modal-tabs {
+    padding: 10px 12px 0;
+  }
+
+  .modal-tab {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  .modal-btn-primary,
+  .modal-btn-secondary {
+    width: 100%;
+  }
+}

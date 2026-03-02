@@ -1,0 +1,421 @@
+/* Container Principal */
+.donationsReceivedContainer {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  padding: 12px;
+}
+
+.donationsReceivedContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Cabeçalho */
+.donationsReceivedHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
+  border-radius: 8px;
+  border: 1px solid #404040;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.donationsReceivedTitle {
+  color: #faa01c;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.donationsReceivedActions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Botões */
+.donationsReceivedBtn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+.donationsReceivedBtn.primary {
+  background: linear-gradient(135deg, #faa01c 0%, #ff8c00 100%);
+  color: #1a1a1a;
+  box-shadow: 0 2px 8px rgba(250, 160, 28, 0.3);
+}
+
+.donationsReceivedBtn.primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ff8c00 0%, #ff7700 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(250, 160, 28, 0.4);
+}
+
+.donationsReceivedBtn.secondary {
+  background: linear-gradient(135deg, #404040 0%, #505050 100%);
+  color: #ffffff;
+  border: 1px solid #606060;
+}
+
+.donationsReceivedBtn.secondary:hover {
+  background: linear-gradient(135deg, #505050 0%, #606060 100%);
+  transform: translateY(-1px);
+}
+
+.donationsReceivedBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Seção de Filtros */
+.donationsReceivedFilters {
+  background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
+  border-radius: 8px;
+  border: 1px solid #404040;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.donationsReceivedFilters h3 {
+  color: #faa01c;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+.filtersForm {
+  width: 100%;
+}
+
+.formRow {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 160px;
+}
+
+.formGroup label {
+  color: #e0e0e0;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.donationsReceivedInput {
+  padding: 8px 12px;
+  border: 1px solid #404040;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: #ffffff;
+  font-size: 12px;
+  transition: all 0.3s ease;
+}
+
+.donationsReceivedInput:focus {
+  outline: none;
+  border-color: #faa01c;
+  box-shadow: 0 0 0 3px rgba(250, 160, 28, 0.1);
+}
+
+.donationsReceivedInput:hover {
+  border-color: #606060;
+}
+
+/* Cards de Resumo */
+.donationsReceivedSummary {
+  margin: 16px 0;
+}
+
+.summaryCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.summaryCard {
+  background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
+  border-radius: 8px;
+  border: 1px solid #404040;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.summaryCard:hover {
+  transform: translateY(-2px);
+}
+
+.summaryCardIcon {
+  font-size: 24px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #faa01c 0%, #ff8c00 100%);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(250, 160, 28, 0.3);
+}
+
+.summaryCardContent {
+  flex: 1;
+}
+
+.summaryCardContent h4 {
+  color: #e0e0e0;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.summaryCardValue {
+  color: #faa01c;
+  font-size: 18px;
+  font-weight: 700;
+  display: block;
+}
+
+/* Seção da Tabela */
+.donationsReceivedTableSection {
+  background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
+  border-radius: 8px;
+  border: 1px solid #404040;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.donationsReceivedTableWrapper h3 {
+  color: #faa01c;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+.tableContainer {
+  overflow-x: auto;
+  border-radius: 6px;
+  border: 1px solid #404040;
+}
+
+.donationsReceivedTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #1a1a1a;
+}
+
+.donationsReceivedTableHeader {
+  background: linear-gradient(135deg, #404040 0%, #505050 100%);
+}
+
+.donationsReceivedTableHeader th {
+  padding: 10px 12px;
+  color: #faa01c;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border-bottom: 1px solid #faa01c;
+}
+
+.donationsReceivedTableHeader th:nth-child(1) {
+  text-align: left;
+  width: 30%;
+}
+
+.donationsReceivedTableHeader th:nth-child(2) {
+  text-align: center;
+  width: 30%;
+}
+
+.donationsReceivedTableHeader th:nth-child(3) {
+  text-align: right;
+  width: 40%;
+}
+
+.donationsReceivedTableRow {
+  transition: background-color 0.3s ease;
+}
+
+.donationsReceivedTableRow:hover {
+  background: #2a2a2a;
+}
+
+.donationsReceivedTableRow td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #404040;
+  color: #e0e0e0;
+  font-size: 14px;
+}
+
+.dateCell {
+  min-width: 120px;
+  width: 30%;
+}
+
+.dateValue {
+  color: #faa01c;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.countCell {
+  text-align: center;
+  min-width: 120px;
+  width: 30%;
+}
+
+.countValue {
+  background: linear-gradient(135deg, #faa01c 0%, #ff8c00 100%);
+  color: #1a1a1a;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.valueCell {
+  text-align: right;
+  min-width: 140px;
+  width: 40%;
+}
+
+.valueAmount {
+  color: #4CAF50;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+
+/* Estado Vazio */
+.donationsReceivedEmpty {
+  text-align: center;
+  padding: 40px 16px;
+  color: #888;
+}
+
+.emptyIcon {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.donationsReceivedEmpty h4 {
+  color: #e0e0e0;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 6px 0;
+}
+
+.donationsReceivedEmpty p {
+  color: #888;
+  font-size: 12px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .donationsReceivedContainer {
+    padding: 8px;
+  }
+  
+  .donationsReceivedHeader {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  
+  .donationsReceivedTitle {
+    font-size: 18px;
+  }
+  
+  .formRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .formGroup {
+    min-width: auto;
+  }
+  
+  .summaryCards {
+    grid-template-columns: 1fr;
+  }
+  
+  .tableContainer {
+    font-size: 10px;
+  }
+  
+  .donationsReceivedTableHeader th,
+  .donationsReceivedTableRow td {
+    padding: 8px 6px;
+  }
+  
+  .donationsReceivedTableRow td {
+    font-size: 12px;
+  }
+  
+  .dateValue,
+  .valueAmount {
+    font-size: 12px;
+  }
+  
+  .countValue {
+    font-size: 10px;
+  }
+  
+  .dateCell,
+  .countCell,
+  .valueCell {
+    min-width: auto;
+    width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .donationsReceivedTitle {
+    font-size: 16px;
+  }
+  
+  .summaryCard {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .summaryCardIcon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+  
+  .summaryCardValue {
+    font-size: 16px;
+  }
+}
+

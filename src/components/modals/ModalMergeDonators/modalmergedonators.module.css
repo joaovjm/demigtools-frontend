@@ -1,0 +1,767 @@
+/* ========================================
+   Modal Principal de Mesclagem
+======================================== */
+.modalMergeDonators {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modalMergeDonatorsContainer {
+  width: 95%;
+  max-width: 1000px;
+  max-height: 90vh;
+  background-color: #1a1a1a;
+  border: 2px solid #faa01c;
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   Header do Modal
+======================================== */
+.modalMergeDonatorsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+  border-bottom: 2px solid #faa01c;
+  border-radius: 10px 10px 0 0;
+}
+
+.modalMergeDonatorsHeaderTitle {
+  color: #faa01c;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modalMergeDonatorsHeaderButtonExit {
+  background-color: #d60b0c;
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.modalMergeDonatorsHeaderButtonExit:hover {
+  background-color: #b80a0b;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(214, 11, 12, 0.4);
+}
+
+/* ========================================
+   Body do Modal
+======================================== */
+.modalMergeDonatorsBody {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ========================================
+   Loading
+======================================== */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  gap: 16px;
+  color: #888;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #333;
+  border-top-color: #faa01c;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.spinnerSmall {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   Mensagens de Status
+======================================== */
+.successMessage {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
+  border: 1px solid #10b981;
+  border-radius: 8px;
+  color: #10b981;
+  font-weight: 600;
+  margin-bottom: 24px;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.noTransferMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: rgba(100, 100, 100, 0.1);
+  border: 1px solid #555;
+  border-radius: 8px;
+  color: #888;
+  margin-top: 24px;
+}
+
+/* ========================================
+   Comparação de Doadores
+======================================== */
+.donorsComparison {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .donorsComparison {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ========================================
+   Cards de Doador
+======================================== */
+.donorCard {
+  background: #242424;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.donorCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.newerDonor {
+  border: 2px solid #10b981;
+}
+
+.olderDonor {
+  border: 2px solid #f59e0b;
+}
+
+.donorCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #2a2a2a;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badgeNewer {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badgeOlder {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badgeExcluso {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.donorId {
+  color: #888;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.donorCardBody {
+  padding: 16px;
+}
+
+/* ========================================
+   Campos de Dados
+======================================== */
+.fieldRow {
+  display: flex;
+  padding: 10px 0;
+  border-bottom: 1px solid #333;
+  gap: 12px;
+  align-items: center;
+}
+
+.fieldRow:last-of-type {
+  border-bottom: none;
+}
+
+.fieldRow label {
+  min-width: 100px;
+  color: #888;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.fieldContent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.fieldContent span {
+  color: #e0e0e0;
+  font-size: 14px;
+  word-break: break-word;
+  flex: 1;
+}
+
+.fieldRow span {
+  color: #e0e0e0;
+  font-size: 14px;
+  word-break: break-word;
+  flex: 1;
+}
+
+.emailField {
+  color: #60a5fa !important;
+}
+
+.observationField {
+  font-style: italic;
+  color: #aaa !important;
+}
+
+/* ========================================
+   Campos Editáveis
+======================================== */
+.fieldInput {
+  flex: 1;
+  background: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: #e0e0e0;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.fieldInput:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.fieldInput::placeholder {
+  color: #555;
+}
+
+.fieldEdited {
+  border-color: #faa01c;
+  background: rgba(250, 160, 28, 0.05);
+}
+
+/* ========================================
+   Botão de Copiar
+======================================== */
+.copyButton {
+  background: #333;
+  border: 1px solid #444;
+  color: #888;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.copyButton:hover {
+  background: #faa01c;
+  border-color: #faa01c;
+  color: #1a1a1a;
+  transform: scale(1.05);
+}
+
+.copyButton:active {
+  transform: scale(0.95);
+}
+
+/* ========================================
+   Seção de Salvar
+======================================== */
+.saveSection {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 2px solid #10b981;
+  animation: slideIn 0.3s ease;
+}
+
+.saveButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saveButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.saveButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ========================================
+   Informações de Doações
+======================================== */
+.donationsInfo {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 2px dashed #333;
+}
+
+.donationsCount {
+  color: #ccc;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.lastDonation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #888;
+  font-size: 13px;
+  background: #1a1a1a;
+  padding: 10px 12px;
+  border-radius: 6px;
+}
+
+.lastDonation svg {
+  color: #faa01c;
+}
+
+.donationValue {
+  color: #10b981 !important;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+/* ========================================
+   Seção de Transferência
+======================================== */
+.transferSection {
+  margin-top: 32px;
+  text-align: center;
+}
+
+.transferButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #faa01c 0%, #e09015 100%);
+  color: #1a1a1a;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.transferButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(250, 160, 28, 0.3);
+}
+
+.transferButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.transferHint {
+  color: #888;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+/* ========================================
+   Modal de Confirmação
+======================================== */
+.confirmModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  animation: fadeIn 0.2s ease;
+}
+
+.confirmModalContainer {
+  width: 95%;
+  max-width: 700px;
+  max-height: 85vh;
+  background-color: #1a1a1a;
+  border: 2px solid #f59e0b;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+}
+
+.confirmModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #3d2e0a 0%, #2a2008 100%);
+  border-bottom: 2px solid #f59e0b;
+  border-radius: 10px 10px 0 0;
+}
+
+.confirmModalHeader h3 {
+  color: #f59e0b;
+  font-size: 18px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.confirmModalClose {
+  background: #444;
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.confirmModalClose:hover:not(:disabled) {
+  background: #555;
+}
+
+.confirmModalClose:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.confirmModalBody {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.confirmText {
+  color: #ccc;
+  font-size: 15px;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.confirmText strong {
+  color: #faa01c;
+}
+
+.confirmWarning {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  color: #ef4444;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.confirmWarning strong {
+  color: #ef4444;
+}
+
+/* ========================================
+   Lista de Doações
+======================================== */
+.donationsList {
+  background: #242424;
+  border-radius: 8px;
+  overflow: hidden;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.donationsListHeader {
+  display: grid;
+  grid-template-columns: 100px 100px 1fr 100px;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #2a2a2a;
+  color: #888;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: sticky;
+  top: 0;
+}
+
+.donationItem {
+  display: grid;
+  grid-template-columns: 100px 100px 1fr 100px;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #333;
+  color: #ccc;
+  font-size: 14px;
+  transition: background 0.2s ease;
+}
+
+.donationItem:hover {
+  background: #2a2a2a;
+}
+
+.donationItem:last-child {
+  border-bottom: none;
+}
+
+.donationDesc {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #888;
+}
+
+.donationStatus {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.donationStatus.received {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.donationStatus.pending {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.totalTransfer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: #2a2a2a;
+  border-radius: 8px;
+  margin-top: 16px;
+  color: #ccc;
+}
+
+.totalTransfer strong {
+  color: #faa01c;
+  font-size: 16px;
+}
+
+/* ========================================
+   Footer do Modal de Confirmação
+======================================== */
+.confirmModalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 20px 24px;
+  background: #1f1f1f;
+  border-top: 1px solid #333;
+  border-radius: 0 0 10px 10px;
+}
+
+.cancelButton {
+  padding: 12px 24px;
+  background: #333;
+  color: #ccc;
+  border: 1px solid #444;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: #444;
+}
+
+.cancelButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.confirmButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.confirmButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.confirmButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ========================================
+   Responsividade
+======================================== */
+@media (max-width: 600px) {
+  .donationsListHeader,
+  .donationItem {
+    grid-template-columns: 80px 80px 1fr;
+  }
+
+  .donationsListHeader span:last-child,
+  .donationItem span:last-child {
+    display: none;
+  }
+
+  .confirmModalFooter {
+    flex-direction: column;
+  }
+
+  .cancelButton,
+  .confirmButton {
+    width: 100%;
+    justify-content: center;
+  }
+}

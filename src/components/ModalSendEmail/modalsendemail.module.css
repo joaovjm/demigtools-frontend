@@ -1,0 +1,333 @@
+/* ====================================
+   MODAL SEND EMAIL - DESIGN MODERNO
+   ==================================== */
+
+.modalSendEmailContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modalSendEmailContent {
+  width: min(92vw, 750px);
+  max-height: 88vh;
+  background: linear-gradient(135deg, #1f1d1d 0%, #2f2d2d 100%);
+  border: 2px solid #464a4d;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(250, 160, 28, 0.1);
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(20px) scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.modalSendEmailHeader {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 28px;
+  background: linear-gradient(90deg, rgba(250, 160, 28, 0.08) 0%, transparent 100%);
+  border-bottom: 2px solid rgba(250, 160, 28, 0.2);
+  flex-shrink: 0;
+}
+
+.modalSendEmailHeader h3 {
+  color: #faa01c;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modalSendEmailHeaderButtonExit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  color: #fff;
+  border: 2px solid #ef4444;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+.modalSendEmailHeaderButtonExit:hover {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  border-color: #f87171;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.6);
+}
+
+.modalSendEmailBody {
+    padding: 24px 28px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    background: #1f1d1d;
+}
+
+/* Scrollbar estilizada */
+.modalSendEmailBody::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modalSendEmailBody::-webkit-scrollbar-track {
+    background: #1f1d1d;
+    border-radius: 4px;
+}
+
+.modalSendEmailBody::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #faa01c 0%, #e89115 100%);
+    border-radius: 4px;
+    border: 2px solid #1f1d1d;
+}
+
+.modalSendEmailBody::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #fbb13d 0%, #f19e0f 100%);
+}
+
+.searchInputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.searchInputGroup label {
+    color: #faa01c;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    margin-bottom: 2px;
+}
+
+.searchInput {
+    width: 100%;
+    padding: 11px 14px;
+    background-color: #1f1d1d;
+    border: 2px solid #464a4d;
+    border-radius: 8px;
+    color: #faf5e9;
+    font-size: 14px;
+    font-weight: 500;
+    outline: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+    height: 44px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.searchInput:focus {
+    border-color: #faa01c;
+    background-color: #252323;
+    box-shadow: 0 0 0 3px rgba(250, 160, 28, 0.15), 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+}
+
+.searchTextarea {
+    width: 100%;
+    padding: 12px 14px;
+    background-color: #1f1d1d;
+    border: 2px solid #464a4d;
+    border-radius: 8px;
+    color: #faf5e9;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+    outline: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    resize: vertical;
+    font-family: inherit;
+    min-height: 80px;
+    text-transform: none;
+}
+
+.searchTextarea:focus {
+    border-color: #5a8fd4;
+}
+
+.buttonGroup {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.sendButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #5a8fd4;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.sendButton:hover:not(:disabled) {
+    background-color: #4a7fc4;
+    transform: translateY(-1px);
+}
+
+.sendButton:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.sendButton:disabled {
+    background-color: #4a5568;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.statusMessage {
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 16px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.statusMessage.success {
+    background-color: rgba(72, 187, 120, 0.2);
+    border: 1px solid #48bb78;
+    color: #48bb78;
+}
+
+.statusMessage.error {
+    background-color: rgba(245, 101, 101, 0.2);
+    border: 1px solid #f56565;
+    color: #f56565;
+}
+
+/* Image Upload Styles */
+.imageUploadContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.imageInput {
+    display: none;
+}
+
+.imageUploadLabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background-color: #363a3d;
+    border: 2px solid #2f2d2d;
+    border-radius: 6px;
+    color: #faf5e9;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: fit-content;
+}
+
+.imageUploadLabel:hover {
+    background-color: #454a4d;
+    border-color: #5a8fd4;
+}
+
+.imagePreviewContainer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    background-color: #363a3d;
+    border: 2px solid #2f2d2d;
+    border-radius: 6px;
+}
+
+.imagePreview {
+    width: 100%;
+    max-width: 300px;
+    max-height: 200px;
+    object-fit: contain;
+    border-radius: 4px;
+    border: 1px solid #2f2d2d;
+}
+
+.removeImageButton {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: #d60b0c;
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.removeImageButton:hover {
+    background-color: #b00a0b;
+    transform: scale(1.05);
+}
+
+.imageName {
+    color: #faf5e9;
+    font-size: 12px;
+    font-weight: 500;
+    word-break: break-all;
+}
+
+/* Video Preview Styles */
+.videoPreview {
+    width: 100%;
+    max-width: 400px;
+    max-height: 250px;
+    border-radius: 4px;
+    border: 1px solid #2f2d2d;
+    background-color: #000;
+}

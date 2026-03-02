@@ -1,0 +1,445 @@
+/* Change Collector Container */
+.changeCollectorContainer {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  min-height: calc(100vh - 11.4vh);
+  background-color: #383838;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.changeCollectorContent {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 800px;
+  background-color: #1f1d1d;
+  border: 3px double #363a3d;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.changeCollectorTitle {
+  color: #faa01c;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  margin: 0;
+  padding: 20px;
+  background-color: #363a3d;
+  border-bottom: 2px solid #2f2d2d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Donation Counter */
+.donationCounter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #2a2828 0%, #363a3d 100%);
+  border-bottom: 2px solid #2f2d2d;
+}
+
+.counterLabel {
+  color: #9e9e9e;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.counterValue {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 12px;
+  background-color: #faa01c;
+  color: #1f1d1d;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px rgba(250, 160, 28, 0.3);
+}
+
+/* Form Styles */
+.changeCollectorForm {
+  padding: 24px;
+  background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+  border-bottom: 2px solid #2f2d2d;
+}
+
+.formInlineContainer {
+  display: grid;
+  grid-template-columns: 2fr 1.3fr 2fr auto;
+  gap: 16px;
+  align-items: end;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formLabel {
+  color: #faa01c;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.formGroupBtn {
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 2px;
+}
+
+/* Input Styles */
+.changeCollectorInput,
+.changeCollectorSelect {
+  width: 100%;
+  padding: 11px 14px;
+  background-color: #1f1d1d;
+  border: 2px solid #464a4d;
+  border-radius: 8px;
+  color: #faf5e9;
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.changeCollectorInput:focus,
+.changeCollectorSelect:focus {
+  border-color: #faa01c;
+  background-color: #252323;
+  box-shadow: 0 0 0 3px rgba(250, 160, 28, 0.15), 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+.changeCollectorInput::placeholder {
+  color: #7a7a7a;
+  font-weight: 400;
+}
+
+.changeCollectorSelect option {
+  background-color: #1f1d1d;
+  color: #faf5e9;
+  padding: 8px;
+}
+
+/* Button Styles */
+.changeCollectorBtn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 120px;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.changeCollectorBtn.primary {
+  background: linear-gradient(135deg, #faa01c 0%, #e89115 100%);
+  color: #1f1d1d;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.changeCollectorBtn.primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.changeCollectorBtn.primary:hover:not(:disabled)::before {
+  opacity: 1;
+}
+
+.changeCollectorBtn.primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #fbb13d 0%, #f19e0f 100%);
+  box-shadow: 0 6px 20px rgba(250, 160, 28, 0.5), 0 2px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.changeCollectorBtn.secondary {
+  background: linear-gradient(135deg, #464a4d 0%, #3a3e41 100%);
+  color: #faf5e9;
+}
+
+.changeCollectorBtn.secondary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #565a5d 0%, #484c4f 100%);
+  box-shadow: 0 6px 16px rgba(70, 74, 77, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.changeCollectorBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.changeCollectorBtn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(250, 160, 28, 0.3), 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Alert Styles */
+.changeCollectorAlert {
+  margin: 0 24px 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+  border: 2px solid #464a4d;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Reason Modal */
+.changeCollectorReason {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.reasonSection {
+  background: linear-gradient(135deg, #1f1d1d 0%, #2f2d2d 100%);
+  border: 2px solid #464a4d;
+  border-radius: 12px;
+  padding: 24px;
+  width: 100%;
+  max-width: 500px;
+  margin: 20px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reasonSection h4 {
+  color: #faa01c;
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.reasonSection label {
+  color: #faa01c;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.reasonActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 2px solid #464a4d;
+}
+
+.donorName {
+  color: #faa01c;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  padding: 12px 16px;
+  background-color: #252323;
+  border: 2px solid #464a4d;
+  border-radius: 8px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .formInlineContainer {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .formGroupBtn {
+    grid-column: span 2;
+  }
+
+  .formGroupBtn button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .changeCollectorContainer {
+    padding: 10px;
+  }
+  
+  .changeCollectorContent {
+    max-width: 100%;
+    border-radius: 8px;
+  }
+  
+  .changeCollectorTitle {
+    font-size: 16px;
+    padding: 16px;
+  }
+  
+  .changeCollectorForm {
+    padding: 16px;
+  }
+
+  .formInlineContainer {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .formGroupBtn {
+    grid-column: 1;
+  }
+
+  .formGroupBtn button {
+    width: 100%;
+  }
+
+  .changeCollectorAlert {
+    margin: 0 16px 16px;
+  }
+  
+  .reasonSection {
+    margin: 10px;
+    padding: 20px;
+  }
+
+  .donationCounter {
+    padding: 10px 16px;
+  }
+
+  .counterValue {
+    font-size: 14px;
+    min-width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .changeCollectorContainer {
+    padding: 8px;
+  }
+  
+  .changeCollectorTitle {
+    font-size: 14px;
+    padding: 12px;
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .changeCollectorForm {
+    padding: 12px;
+  }
+
+  .formInlineContainer {
+    gap: 12px;
+  }
+  
+  .changeCollectorBtn {
+    padding: 11px 20px;
+    font-size: 13px;
+    min-width: auto;
+  }
+
+  .changeCollectorAlert {
+    margin: 0 12px 12px;
+  }
+  
+  .reasonSection {
+    margin: 8px;
+    padding: 16px;
+  }
+
+  .donationCounter {
+    padding: 8px 12px;
+  }
+
+  .counterLabel {
+    font-size: 13px;
+  }
+
+  .counterValue {
+    font-size: 13px;
+    min-width: 28px;
+    height: 28px;
+  }
+}
+

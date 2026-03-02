@@ -1,0 +1,806 @@
+.modalReceiptSendContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80%;
+  height: 96vh;
+  background-color: #1f1d1d;
+  border: none;
+  border-radius: 6px;
+}
+
+.modalReceiptSendHeader {
+  display: flex;
+  width: 95%;
+  align-items: center;
+  justify-content: space-between;
+  border: 3px double #383838;
+  border-radius: 6px;
+  padding: 12px 24px;
+  gap: 32px;
+  margin: 10px 0;
+}
+
+.modalReceiptSendHeader h3 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+  margin: 0;
+}
+
+.modalReceiptSendHeaderButtonExit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #d60b0c;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.modalReceiptSendHeaderButtonExit:hover {
+  background-color: #b80a0b;
+  transform: scale(1.02);
+}
+
+.modalReceiptSendBody {
+  display: flex;
+  width: 95%;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  height: 82vh;
+  gap: 12px;
+  padding: 0 12px;
+}
+
+.modalReceiptSendBody::-webkit-scrollbar {
+  background-color: #1f1d1d;
+  border-radius: 6px;
+  width: 10px;
+}
+
+.modalReceiptSendBody::-webkit-scrollbar-thumb {
+  background-color: #faa01c;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.modalReceiptSendEmpty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #fff;
+  font-size: 16px;
+}
+
+.modalReceiptSendItem {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border: 3px double #383838;
+  border-radius: 6px;
+  padding: 12px;
+  background-color: #2a2828;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.modalReceiptSendItemInfo {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex: 1;
+}
+
+.modalReceiptSendItemInfo .inputField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0; /* Permite truncar texto */
+}
+
+/* Larguras fixas para cada campo */
+.modalReceiptSendItemInfo .inputField:nth-child(1) {
+  /* Recibo */
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.modalReceiptSendItemInfo .inputField:nth-child(2) {
+  /* Nome */
+  width: 200px;
+  flex-shrink: 0;
+}
+
+.modalReceiptSendItemInfo .inputField:nth-child(3) {
+  /* Email */
+  width: 220px;
+  flex-shrink: 0;
+}
+
+.modalReceiptSendItemInfo .inputField:nth-child(4) {
+  /* WhatsApp */
+  width: 140px;
+  flex-shrink: 0;
+}
+
+.modalReceiptSendItemInfo .inputField label {
+  color: #faa01c;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.modalReceiptSendItemInfo .inputField p {
+  color: #fff;
+  margin: 0;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.modalReceiptSendItemInfo .inputField input {
+  background-color: #1f1d1d;
+  border: 1px solid #383838;
+  border-radius: 4px;
+  padding: 6px 10px;
+  color: #fff;
+  font-size: 12px;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.modalReceiptSendItemInfo .inputField input.readonly {
+  background-color: #2a2828;
+  color: #888;
+  cursor: not-allowed;
+  font-size: 12px;
+}
+
+.modalReceiptSendItemInfo .inputField input.editable {
+  background-color: #1f1d1d;
+  border-color: #faa01c;
+  color: #fff;
+  font-size: 12px;
+}
+
+.modalReceiptSendItemInfo .inputField input:focus {
+  outline: none;
+  border-color: #faa01c;
+  box-shadow: 0 0 0 2px rgba(250, 160, 28, 0.2);
+}
+
+.hasEmail {
+  color: #28a745 !important;
+  font-weight: 600;
+  font-size: 12px !important;
+}
+
+.noEmail {
+  color: #dc3545 !important;
+  font-style: italic;
+  font-size: 12px !important;
+}
+
+.modalReceiptSendItemActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.modalReceiptSendActionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.modalReceiptSendActionBtn:hover {
+  transform: scale(1.05);
+}
+
+.modalReceiptSendActionBtn.edit {
+  background-color: #385bad;
+}
+
+.modalReceiptSendActionBtn.edit:hover {
+  background-color: #2d4a96;
+}
+
+.modalReceiptSendActionBtn.save {
+  background-color: #28a745;
+}
+
+.modalReceiptSendActionBtn.save:hover {
+  background-color: #218838;
+}
+
+.modalReceiptSendActionBtn.send {
+  background-color: #faa01c;
+}
+
+.modalReceiptSendActionBtn.send:hover {
+  background-color: #e8910a;
+}
+
+.modalReceiptSendActionBtn.markAsSent {
+  background-color: #28a745;
+}
+
+.modalReceiptSendActionBtn.markAsSent:hover {
+  background-color: #218838;
+}
+
+/* Seção de Email */
+.emailSection {
+  width: 100%;
+  background: linear-gradient(135deg, #2a2828 0%, #1f1d1d 100%);
+  border: 3px double #faa01c;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(250, 160, 28, 0.1);
+}
+
+.emailSectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.emailSectionHeader h4 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #faa01c;
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.toggleEmailBtn {
+  background-color: #385bad;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.toggleEmailBtn:hover {
+  background-color: #2d4a96;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(56, 91, 173, 0.3);
+}
+
+/* Warning Message */
+.warningMessage {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #856404;
+  border: 2px solid #ffc107;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+  color: #fff;
+}
+
+.warningMessage svg {
+  font-size: 24px;
+  color: #ffc107;
+  flex-shrink: 0;
+}
+
+.warningMessage p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.emailConfig {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #383838;
+}
+
+.emailFormGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.emailFormGroup label {
+  color: #faa01c;
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.labelWithInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.infoText {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #888;
+  font-size: 12px;
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.emailInput {
+  background-color: #1f1d1d;
+  border: 2px solid #383838;
+  border-radius: 6px;
+  padding: 12px 16px;
+  color: #fff;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.emailInput:focus {
+  outline: none;
+  border-color: #faa01c;
+  box-shadow: 0 0 0 3px rgba(250, 160, 28, 0.15);
+}
+
+.emailTextarea {
+  background-color: #1f1d1d;
+  border: 2px solid #383838;
+  border-radius: 6px;
+  padding: 12px 16px;
+  color: #fff;
+  font-size: 14px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  resize: vertical;
+  text-transform: none !important;
+  min-height: 150px;
+  transition: all 0.3s ease;
+}
+
+.emailTextarea:focus {
+  outline: none;
+  border-color: #faa01c;
+  box-shadow: 0 0 0 3px rgba(250, 160, 28, 0.15);
+}
+
+.tagsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.tagBtn {
+  background: linear-gradient(135deg, #385bad 0%, #2d4a96 100%);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(56, 91, 173, 0.3);
+}
+
+.tagBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(56, 91, 173, 0.5);
+}
+
+.tagBtn:active {
+  transform: translateY(0);
+}
+
+.recipientControls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  background-color: #2a2828;
+  border-radius: 6px;
+  border: 1px solid #383838;
+}
+
+.selectAllBtn,
+.deselectAllBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.selectAllBtn {
+  background-color: #28a745;
+  color: white;
+}
+
+.selectAllBtn:hover {
+  background-color: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.deselectAllBtn {
+  background-color: #6c757d;
+  color: white;
+}
+
+.deselectAllBtn:hover {
+  background-color: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+}
+
+.selectedCount {
+  margin-left: auto;
+  color: #faa01c;
+  font-weight: bold;
+  font-size: 14px;
+  padding: 8px 16px;
+  background-color: #1f1d1d;
+  border-radius: 20px;
+  border: 2px solid #faa01c;
+}
+
+/* Preview Section */
+.previewSection {
+  background-color: #1f1d1d;
+  border: 2px solid #385bad;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.previewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #383838;
+}
+
+.previewHeader h5 {
+  color: #385bad;
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.closePreviewBtn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.closePreviewBtn:hover {
+  background-color: #5a6268;
+  transform: rotate(90deg);
+}
+
+.previewContent {
+  background-color: #2a2828;
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.previewText {
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.previewText p {
+  margin: 8px 0;
+}
+
+.previewText strong {
+  color: #faa01c;
+}
+
+.previewText hr {
+  border: none;
+  border-top: 1px solid #383838;
+  margin: 12px 0;
+}
+
+.previewText pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #fff;
+  background-color: #1f1d1d;
+  padding: 12px;
+  border-radius: 4px;
+  border-left: 3px solid #385bad;
+}
+
+.attachmentInfo {
+  color: #28a745 !important;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Email Actions */
+.emailActions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.previewBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: #385bad;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.previewBtn:hover {
+  background-color: #2d4a96;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(56, 91, 173, 0.3);
+}
+
+.sendEmailBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #faa01c 0%, #e8910a 100%);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(250, 160, 28, 0.3);
+}
+
+.sendEmailBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(250, 160, 28, 0.5);
+}
+
+.sendEmailBtn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Progress Bar */
+.progressContainer {
+  margin-top: 16px;
+  padding: 16px;
+  background-color: #2a2828;
+  border-radius: 6px;
+  border: 1px solid #383838;
+}
+
+.progressBar {
+  width: 100%;
+  height: 24px;
+  background-color: #1f1d1d;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+  transition: width 0.5s ease;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.progressFill::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.progressText {
+  text-align: center;
+  color: #fff;
+  font-size: 14px;
+  margin: 12px 0 0 0;
+  font-weight: 600;
+}
+
+/* Lista de Comprovantes */
+.receiptsListHeader {
+  width: 100%;
+  padding: 12px 16px;
+  background-color: #2a2828;
+  border-radius: 6px;
+  border: 1px solid #383838;
+  margin-bottom: 16px;
+}
+
+.receiptsListHeader h4 {
+  color: #fff;
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkboxContainer {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+}
+
+.recipientCheckbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #faa01c;
+  border-radius: 4px;
+}
+
+.recipientCheckbox:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.modalReceiptSendItem.selected {
+  border-color: #faa01c;
+  box-shadow: 0 0 0 2px rgba(250, 160, 28, 0.2);
+  background-color: #3a3838;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .modalReceiptSendContainer {
+    width: 95%;
+  }
+  
+  .modalReceiptSendItem {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .modalReceiptSendItemInfo {
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+  
+  .modalReceiptSendItemInfo .inputField {
+    width: 100% !important;
+  }
+  
+  .modalReceiptSendItemInfo .inputField p {
+    max-width: 100%;
+  }
+  
+  .modalReceiptSendItemActions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .emailSectionHeader {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .recipientControls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .selectedCount {
+    margin-left: 0;
+    text-align: center;
+  }
+
+  .tagsContainer {
+    justify-content: center;
+  }
+
+  .previewSection {
+    padding: 16px;
+  }
+
+  .previewText pre {
+    font-size: 12px;
+  }
+
+  .emailActions {
+    width: 100%;
+  }
+
+  .previewBtn,
+  .sendEmailBtn {
+    width: 100%;
+  }
+}
+

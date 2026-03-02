@@ -1,0 +1,75 @@
+.modal-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  z-index: 1000;
+}
+
+body{
+    background-color: #383838;
+    color: #FAF5E9;
+}
+
+.logo-home{
+    width: 100%;
+    height: calc(100vh - 10.8vh);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.main-app-container{
+    width: 100%;
+
+}
+
+.input-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.input-field {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 150px;
+  max-width: 180px;
+}
+
+.input-field label {
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: #FAF5E9;
+}
+
+.input-field input,
+.input-field select,
+.input-field textarea {
+ 
+  border-radius: 6px;
+  border: 1px solid #888;
+  background-color: #2b2b2b;
+  color: #FAF5E9;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.page-in-devepoler{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  background-color: #383838;
+  color: #FAF5E9;
+  padding: 12px;
+  box-sizing: border-box;
+}
+

@@ -1,0 +1,309 @@
+/* Dashboard Container */
+.mainDashboard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-height: calc(100vh - 11.4vh);
+  background-color: #383838;
+  color: #faf5e9;
+  padding: 20px;
+  box-sizing: border-box;
+  gap: 20px;
+}
+
+/* Header Section */
+.sectionHeader {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 1200px;
+  padding: 16px;
+  border: 3px double #363a3d;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1f1d1d 0%, #2a2828 100%);
+  gap: 16px;
+  flex-wrap: wrap;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Dashboard Cards */
+.divCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 80px;
+  width: 200px;
+  background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+  border: 2px solid #464a4d;
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.divCard:hover {
+  background: linear-gradient(135deg, #4a4d50 0%, #3a3e41 100%);
+  border-color: #faa01c;
+  box-shadow: 0 4px 12px rgba(250, 160, 28, 0.3);
+}
+
+.divCard:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(250, 160, 28, 0.4);
+}
+
+.divCard.active {
+  border: 2px solid #faa01c;
+  background: linear-gradient(135deg, #faa01c 0%, #e89115 100%);
+  color: #1f1d1d;
+  box-shadow: 0 6px 16px rgba(250, 160, 28, 0.5);
+}
+
+.divCard.active .h3Header,
+.divCard.active p {
+  color: #1f1d1d;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.divHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.h3Header {
+  font-size: 12px;
+  font-weight: 600;
+  color: #faf5e9;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.divBody {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.divBody p {
+  font-size: 14px;
+  font-weight: 600;
+  color: #faf5e9;
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Motivational Section */
+.motivational {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.motivational-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 800px;
+  height: 250px;
+  border: 3px double #363a3d;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1f1d1d 0%, #2a2828 100%);
+  background-image: url("/src/assets/motivacao-do-empreendedor.png");
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.motivational-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(31, 29, 29, 0.85) 0%, rgba(42, 40, 40, 0.75) 100%);
+  border-radius: 12px;
+}
+
+.phrase {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.phrase h1 {
+  color: #faa01c;
+  font-size: 24px;
+  text-align: center;
+  margin: 0;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.9), 0 0 30px rgba(250, 160, 28, 0.3);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Main Content Section */
+.sectionGrafico {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1200px;
+  background: linear-gradient(135deg, #1f1d1d 0%, #2a2828 100%);
+  border: 3px double #363a3d;
+  border-radius: 12px;
+  padding: 20px;
+  gap: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Scrollbar Styles */
+.sectionGrafico::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sectionGrafico::-webkit-scrollbar-track {
+  background-color: #2f2d2d;
+  border-radius: 4px;
+}
+
+.sectionGrafico::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #464a4d 0%, #3a3e41 100%);
+  border-radius: 4px;
+}
+
+.sectionGrafico::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #faa01c 0%, #e89115 100%);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 479px) {
+  .mainDashboard {
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .sectionHeader {
+    padding: 12px;
+    gap: 8px;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .divCard {
+    width: 100%;
+    height: 70px;
+    padding: 10px;
+  }
+
+  .h3Header {
+    font-size: 10px;
+  }
+
+  .divBody p {
+    font-size: 12px;
+  }
+
+  .motivational-card {
+    height: 200px;
+    margin: 0 12px;
+  }
+
+  .phrase h1 {
+    font-size: 18px;
+  }
+
+  .sectionGrafico {
+    padding: 12px;
+  }
+}
+
+@media (min-width: 480px) and (max-width: 768px) {
+  .mainDashboard {
+    padding: 16px;
+    gap: 16px;
+  }
+  
+  .sectionHeader {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .divCard {
+    width: 160px;
+    height: 75px;
+    padding: 12px;
+  }
+
+  .h3Header {
+    font-size: 11px;
+  }
+
+  .divBody p {
+    font-size: 13px;
+  }
+
+  .motivational-card {
+    height: 220px;
+  }
+
+  .phrase h1 {
+    font-size: 20px;
+  }
+
+  .sectionGrafico {
+    padding: 16px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1199px) {
+  .mainDashboard {
+    padding: 18px;
+  }
+  
+  .sectionHeader {
+    gap: 14px;
+  }
+
+  .divCard {
+    width: 180px;
+    height: 80px;
+  }
+
+  .motivational-card {
+    height: 240px;
+  }
+
+  .phrase h1 {
+    font-size: 22px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .mainDashboard {
+    padding: 20px;
+  }
+  
+  .divCard {
+    width: 200px;
+    height: 80px;
+  }
+
+  .motivational-card {
+    height: 250px;
+  }
+
+  .phrase h1 {
+    font-size: 24px;
+  }
+}

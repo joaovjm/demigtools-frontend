@@ -1,0 +1,419 @@
+/* Modal Container */
+.modalDonationInOpenContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Content */
+.modalDonationInOpen {
+  position: relative;
+  z-index: 1;
+  background-color: #1f1d1d;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideIn 0.3s ease-out;
+  max-width: 100vw;
+  max-height: 98vh;
+  overflow-y: auto;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modalDonationInOpenContent {
+  width: 600px;
+  max-height: 96vh;
+  border: 3px double #383838;
+  border-radius: 12px;
+  padding: 10px;
+  background: linear-gradient(145deg, #1f1d1d 0%, #2a2828 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.modalDonationInOpenHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #383838;
+  flex-shrink: 0;
+}
+
+.modalTitleSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.modalTitle {
+  color: #faf5e9;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.receiptNumber {
+  color: #faa01c;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 4px 12px;
+  background-color: rgba(250, 160, 28, 0.1);
+  border-radius: 20px;
+  border: 1px solid rgba(250, 160, 28, 0.3);
+  align-self: flex-start;
+}
+
+.btnCloseModal {
+  background-color: #c70000;
+  color: #faf5e9;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(199, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.btnCloseModal:hover {
+  background-color: #a60000;
+  transform: scale(1.1);
+}
+
+/* Body */
+.modalDonationInOpenBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 12px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Info Sections */
+.donationInfoSection,
+.donor-info-section {
+  background-color: rgba(56, 91, 173, 0.05);
+  border: 1px solid rgba(56, 91, 173, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.donationInfoSection h3,
+.donorInfoSection h3 {
+  color: #faf5e9;
+  font-size: 16px;
+  margin: 0 0 12px 0;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.donationInfoSection h3::before {
+  content: "💰";
+  font-size: 18px;
+}
+
+.donorInfoSection h3::before {
+  content: "👤";
+  font-size: 18px;
+}
+
+/* Info Grid */
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.infoItemFullWidth {
+  grid-column: span 2;
+}
+
+.infoLabel {
+  color: #faa01c;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.infoValue {
+  color: #faf5e9;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 12px;
+  background-color: rgba(42, 40, 40, 0.8);
+  border: 1px solid #383838;
+  border-radius: 6px;
+  word-break: break-word;
+}
+
+.infoValue.reason {
+  background-color: rgba(199, 0, 0, 0.1);
+  border-color: rgba(199, 0, 0, 0.3);
+  color: #ff6b6b;
+  font-weight: 600;
+}
+
+/* Footer */
+.modalDonationInOpenFooter {
+  display: flex;
+  justify-content: center;
+  padding-top: 12px;
+  border-top: 2px solid #383838;
+  flex-shrink: 0;
+}
+
+/* Button */
+.btnViewDonor {
+  padding: 12px 32px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  height: 48px;
+  min-width: 200px;
+  background-color: #385bad;
+  color: #faf5e9;
+}
+
+.btnViewDonor:hover {
+  background-color: #284487;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(56, 91, 173, 0.4);
+}
+
+.btnViewDonor:disabled {
+  background-color: #666;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modalDonationInOpenContent {
+    width: 90vw;
+    max-height: 95vh;
+    padding: 12px;
+  }
+  
+  .modalTitle {
+    font-size: 18px;
+  }
+  
+  .infoGrid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .infoItem.fullWidth {
+    grid-column: span 1;
+  }
+  
+  .donationInfoSection,
+  .donorInfoSection {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modalDonationInOpenContent {
+    width: 95vw;
+    max-height: 95vh;
+    padding: 8px;
+  }
+  
+  .btnViewDonor {
+    padding: 10px 24px;
+    font-size: 14px;
+    height: 44px;
+    min-width: 180px;
+  }
+  
+  .modalTitle {
+    font-size: 16px;
+  }
+  
+  .receiptNumber {
+    font-size: 12px;
+    padding: 3px 8px;
+  }
+}
+
+/* Scrollbar Styling */
+.modalDonationInOpen::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modalDonationInOpen::-webkit-scrollbar-track {
+  background: #2a2828;
+  border-radius: 4px;
+}
+
+.modalDonationInOpen::-webkit-scrollbar-thumb {
+  background: #faa01c;
+  border-radius: 4px;
+}
+
+.modalDonationInOpen::-webkit-scrollbar-thumb:hover {
+  background: #e8901a;
+}
+
+/* Legacy support for existing classes (for backwards compatibility) */
+.modalConfirmations {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  z-index: 1000;
+}
+
+.modalConfirmationsContent {
+  background-color: #1f1d1d;
+  border-radius: 8px;
+  padding: 20px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalConfirmationsDiv {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modalConfirmationsTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #383838;
+  padding-bottom: 12px;
+}
+
+.modalConfirmationsTitle h2 {
+  color: #faf5e9;
+  margin: 0;
+  font-size: 18px;
+}
+
+.btnClose {
+  background-color: #c70000;
+  color: #faf5e9;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btnClose:hover {
+  background-color: #a60000;
+}
+
+.modalConfirmationsBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modalConfirmationsBody label {
+  color: #faf5e9;
+  font-size: 14px;
+  padding: 4px 0;
+}
+
+.modalConfirmationsBody h4 {
+  color: #faa01c;
+  margin: 8px 0 0 0;
+  font-size: 14px;
+}
+
+.modalConfirmationBody {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+}
+
+.btnOpenDonation {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  background-color: #385bad;
+  color: #faf5e9;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btnOpenDonation:hover {
+  background-color: #284487;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(56, 91, 173, 0.3);
+}

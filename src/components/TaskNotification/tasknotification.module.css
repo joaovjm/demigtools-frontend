@@ -1,0 +1,325 @@
+.notificationContainer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  font-family: inherit;
+}
+
+/* Botão minimizado */
+.minimizedBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #faa01c 0%, #e8901a 100%);
+  color: #1f1d1d;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(250, 160, 28, 0.4);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.minimizedBtn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(250, 160, 28, 0.5);
+}
+
+.minimizedBtn.hasNew {
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
+}
+
+.dot {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  background-color: #c70000;
+  border-radius: 50%;
+  border: 2px solid #1f1d1d;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+/* Notificação expandida */
+.notification {
+  width: 320px;
+  background: linear-gradient(145deg, #1f1d1d 0%, #2a2828 100%);
+  border: 2px solid #383838;
+  border-left: 4px solid #faa01c;
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.notificationHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background-color: rgba(250, 160, 28, 0.1);
+  border-bottom: 1px solid #383838;
+}
+
+.notificationTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #faa01c;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.icon {
+  font-size: 16px;
+}
+
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background-color: transparent;
+  color: #9e9e9e;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.closeBtn:hover {
+  background-color: #c70000;
+  color: #fff;
+}
+
+.notificationBody {
+  padding: 14px;
+}
+
+.taskReason {
+  margin: 0 0 10px 0;
+  color: #faf5e9;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.taskMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.operatorName {
+  color: #9e9e9e;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  background-color: rgba(250, 160, 28, 0.1);
+  border: 1px solid rgba(250, 160, 28, 0.2);
+  border-radius: 12px;
+}
+
+.time {
+  color: #666;
+  font-size: 11px;
+}
+
+.notificationFooter {
+  padding: 10px 14px 14px;
+}
+
+.viewTasksBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #385bad 0%, #2a4a9a 100%);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.viewTasksBtn:hover {
+  background: linear-gradient(135deg, #2a4a9a 0%, #1e3a7a 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(56, 91, 173, 0.4);
+}
+
+/* Estilos para notificações de tarefas concluídas */
+.completedBtn {
+  background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+}
+
+.completedBtn:hover {
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.5);
+}
+
+.dotCompleted {
+  background-color: #28a745;
+}
+
+.notificationCompleted {
+  border-left: 4px solid #28a745;
+}
+
+.headerCompleted {
+  background-color: rgba(40, 167, 69, 0.1);
+}
+
+.titleCompleted {
+  color: #28a745;
+}
+
+.operatorNameCompleted {
+  background-color: rgba(40, 167, 69, 0.1);
+  border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.viewTasksBtnCompleted {
+  background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+}
+
+.viewTasksBtnCompleted:hover {
+  background: linear-gradient(135deg, #1e7e34 0%, #155724 100%);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+.adminReason {
+  margin: 0 0 10px 0;
+  padding: 8px 10px;
+  background-color: rgba(40, 167, 69, 0.08);
+  border-radius: 6px;
+  color: #9e9e9e;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.adminReason strong {
+  color: #28a745;
+}
+
+/* Estilos para notificações de tarefas de desenvolvimento */
+.devBtn {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+}
+
+.devBtn:hover {
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+}
+
+.devCompletedBtn {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  box-shadow: 0 4px 15px rgba(6, 182, 212, 0.4);
+}
+
+.devCompletedBtn:hover {
+  box-shadow: 0 6px 20px rgba(6, 182, 212, 0.5);
+}
+
+.dotDev {
+  background-color: #8b5cf6;
+}
+
+.notificationDev {
+  border-left: 4px solid #8b5cf6;
+}
+
+.headerDev {
+  background-color: rgba(139, 92, 246, 0.1);
+}
+
+.titleDev {
+  color: #8b5cf6;
+}
+
+.operatorNameDev {
+  background-color: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.viewTasksBtnDev {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.viewTasksBtnDev:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.devResponse {
+  margin: 0 0 10px 0;
+  padding: 8px 10px;
+  background-color: rgba(139, 92, 246, 0.08);
+  border-radius: 6px;
+  color: #9e9e9e;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.devResponse strong {
+  color: #8b5cf6;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .notificationContainer {
+    bottom: 10px;
+    right: 10px;
+    left: 10px;
+  }
+
+  .notification {
+    width: 100%;
+  }
+
+  .minimizedBtn {
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
+  }
+}
+

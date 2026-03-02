@@ -1,0 +1,395 @@
+/* New Donor Page Styles - Baseado no design da página Donor */
+
+.containerDonor {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    min-height: calc(100vh - 11.4vh);
+    background-color: #383838;
+    color: #FAF5E9;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.donor-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 1200px;
+    gap: 20px;
+}
+
+/* Header Styles */
+.donor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.donor-title {
+    color: #faa01c;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.donor-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Button Styles */
+.donor-btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    height: 40px;
+    gap: 8px;
+}
+
+.donor-btn.primary {
+    background-color: #faa01c;
+    color: #1f1d1d;
+}
+
+.donor-btn.primary:hover:not(:disabled) {
+    background-color: #e8901a;
+    box-shadow: 0 4px 12px rgba(250, 160, 28, 0.4);
+    transform: translateY(-1px);
+}
+
+.donor-btn.secondary {
+    background-color: #363a3d;
+    color: #faf5e9;
+    border: 2px solid #2f2d2d;
+}
+
+.donor-btn.secondary:hover:not(:disabled) {
+    background-color: #4a4d50;
+    border-color: #faa01c;
+}
+
+.donor-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Form Container */
+.donor-form-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+.donor-form {
+    flex: 1;
+    padding: 16px;
+    border: 3px double #363a3d;
+    border-radius: 6px;
+    background-color: #1f1d1d;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+}
+
+/* Section Styles */
+.donor-section {
+    background-color: #363a3d;
+    border: 2px solid #2f2d2d;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.donor-section h4 {
+    color: #faa01c;
+    margin: 0 0 10px 0;
+    font-size: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Form Row - Grid Layout */
+.form-row {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(120px, 1fr)) !important;
+    gap: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+    align-items: start;
+    overflow: hidden;
+}
+
+.form-row:last-child {
+    margin-bottom: 0;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+/* Input Field Styles */
+.input-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 !important;
+}
+
+.input-field .label {
+    color: #FAF5E9;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 2px;
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.input-field input,
+.input-field select,
+.input-field textarea {
+    padding: 8px 12px;
+    border: 1px solid #2f2d2d;
+    border-radius: 4px;
+    background-color: #1f1d1d;
+    color: #FAF5E9;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    outline: none;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.input-field input:focus,
+.input-field select:focus,
+.input-field textarea:focus {
+    border-color: #faa01c;
+    box-shadow: 0 0 0 2px rgba(250, 160, 28, 0.2);
+}
+
+.input-field textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Error State */
+.input-field.empty {
+    position: relative;
+}
+
+.input-field.empty input,
+.input-field.empty select,
+.input-field.empty textarea {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
+}
+
+.input-field.empty .label {
+    color: #dc3545;
+}
+
+/* Grid overrides to ensure proper layout */
+.donor-form .form-row > * {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 !important;
+}
+
+.donor-form .form-row .input-field,
+.donor-form .form-row .form-group,
+.donor-form .form-row > div {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+}
+
+/* Scrollbar personalizada */
+.donor-form::-webkit-scrollbar {
+    width: 6px;
+}
+
+.donor-form::-webkit-scrollbar-track {
+    background-color: #2f2d2d;
+    border-radius: 3px;
+}
+
+.donor-form::-webkit-scrollbar-thumb {
+    background-color: #464a4d;
+    border-radius: 3px;
+    transition: background-color 0.3s ease;
+}
+
+.donor-form::-webkit-scrollbar-thumb:hover {
+    background-color: #faa01c;
+}
+
+/* Responsividade */
+
+/* Dispositivos pequenos */
+@media (max-width: 768px) {
+    .containerDonor {
+        padding: 12px;
+    }
+    
+    .donor-content {
+        gap: 16px;
+    }
+    
+    .donor-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .donor-title {
+        font-size: 20px;
+        text-align: center;
+    }
+    
+    .donor-actions {
+        justify-content: center;
+    }
+    
+    .donor-btn {
+        min-width: 100px;
+        flex: 1;
+    }
+    
+    .donor-form {
+        padding: 12px;
+        gap: 10px;
+    }
+    
+    .donor-section {
+        padding: 10px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr !important;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+}
+
+/* Dispositivos médios */
+@media (min-width: 769px) and (max-width: 1199px) {
+    .containerDonor {
+        padding: 14px;
+    }
+    
+    .donor-content {
+        max-width: 1000px;
+    }
+    
+    .donor-title {
+        font-size: 22px;
+    }
+    
+    .donor-form {
+        padding: 14px;
+        gap: 10px;
+    }
+    
+    .donor-section {
+        padding: 12px;
+    }
+    
+    .form-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+}
+
+/* Dispositivos grandes */
+@media (min-width: 1200px) {
+    .containerDonor {
+        padding: 16px;
+    }
+    
+    .donor-content {
+        max-width: 1200px;
+    }
+    
+    .donor-title {
+        font-size: 24px;
+    }
+    
+    .donor-form {
+        padding: 16px;
+        gap: 12px;
+    }
+    
+    .donor-section {
+        padding: 12px;
+    }
+    
+    .form-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+}
+
+/* Campo full-width para textareas */
+@media (min-width: 769px) {
+    .donor-section:last-child .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+}
+
+/* Animações suaves */
+.input-field input,
+.input-field select,
+.input-field textarea,
+.donor-btn {
+    transition: all 0.3s ease;
+}
+
+/* Melhorias de UX */
+.input-field input:hover,
+.input-field select:hover,
+.input-field textarea:hover {
+    border-color: #464a4d;
+}
+
+.donor-section {
+    transition: border-color 0.3s ease;
+}
+
+.donor-section:hover {
+    border-color: #464a4d;
+}
