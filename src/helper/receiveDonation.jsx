@@ -1,5 +1,6 @@
 import { useState } from "react";
 import supabase from "./superBaseClient";
+import { REQUEST_STATUS } from "../constants/requestStatus";
 
 
 export const useDonation = () => {
@@ -100,19 +101,45 @@ export const useDonation = () => {
 
       if (updateError) throw updateError;
 
-      // Atualiza o request_status se donation_worklist existir
+      const statusReceived = [REQUEST_STATUS.RECEBIDO];
 
-      if (donation_worklist) {
-        const { error: requestUpdateError } = await supabase
+      const { data: requestsByReceipt, error: requestByReceiptError } =
+        await supabase
           .from("request")
-          .update({
-            request_status: "Recebido"
-          })
-          .eq("request_name", donation_worklist)
-          .eq("donor_id", donor_id);
+          .update({ request_status: statusReceived })
+          .eq("receipt_donation_id", search)
+          .eq("request_active", "True")
+          .select("id");
 
-        if (requestUpdateError) {
-          console.error("Erro ao atualizar request:", requestUpdateError.message);
+      if (requestByReceiptError) {
+        console.error(
+          "Erro ao atualizar request pelo recibo:",
+          requestByReceiptError.message
+        );
+      }
+
+      if (
+        (!requestsByReceipt || requestsByReceipt.length === 0) &&
+        donation_worklist
+      ) {
+        let fallback = supabase
+          .from("request")
+          .update({ request_status: statusReceived })
+          .eq("request_name", donation_worklist)
+          .eq("donor_id", donor_id)
+          .eq("request_active", "True");
+
+        if (operator_code_id != null) {
+          fallback = fallback.eq("operator_code_id", operator_code_id);
+        }
+
+        const { error: requestFallbackError } = await fallback;
+
+        if (requestFallbackError) {
+          console.error(
+            "Erro ao atualizar request (fallback lista/doador):",
+            requestFallbackError.message
+          );
         }
       }
 

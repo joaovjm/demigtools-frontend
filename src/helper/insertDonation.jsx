@@ -1,4 +1,5 @@
 import supabase from "./superBaseClient";
+import { REQUEST_STATUS } from "../constants/requestStatus";
 
 export const insertDonation = async (
   donor_id,
@@ -13,7 +14,8 @@ export const insertDonation = async (
   mesref,
   campain,
   collector,
-  request_name
+  request_name,
+  requestRowId = null
 ) => {
   let print = "";
   let received = "";
@@ -33,21 +35,18 @@ export const insertDonation = async (
   }
 
   try{
-    let requestId = null;
-    
-    // Verificar se existe um request ativo para este donor_id
-    if(request_name === null || request_name === undefined || request_name === ""){
-      const { data: requestData, error: requestError } = await supabase
+    // Nome da lista para donation_worklist quando não veio do contexto do modal
+    if (request_name === null || request_name === undefined || request_name === "") {
+      const { data: requestRows } = await supabase
         .from("request")
-        .select("id, request_name")
+        .select("request_name")
         .eq("donor_id", donor_id)
         .eq("request_active", "True")
-        .limit(1)
-        .single();
+        .order("id", { ascending: false })
+        .limit(1);
 
-      if(!requestError && requestData){
-        request_name_searched = requestData.request_name;
-        requestId = requestData.id;
+      if (requestRows?.[0]?.request_name) {
+        request_name_searched = requestRows[0].request_name;
       }
     }
 
@@ -112,15 +111,51 @@ export const insertDonation = async (
       }
     }
 
-    // Se encontrou um request ativo, atualizar o status para "Sucesso"
-    if(requestId){
-      const { error: updateError } = await supabase
-        .from("request")
-        .update({ request_status: "Sucesso" })
-        .eq("id", requestId);
-      
-      if(updateError){
-        console.log("Erro ao atualizar status do request", updateError.message);
+    // Atualizar linha(s) da worklist: status em JSONB (array) + vínculo com o novo recibo
+    const newReceiptId = data?.[0]?.receipt_donation_id;
+    if (newReceiptId) {
+      const payload = {
+        receipt_donation_id: newReceiptId,
+        request_status: [REQUEST_STATUS.SUCESSO],
+      };
+
+      if (requestRowId != null && requestRowId !== "") {
+        const { error: updateError } = await supabase
+          .from("request")
+          .update(payload)
+          .eq("id", requestRowId);
+
+        if (updateError) {
+          console.log("Erro ao atualizar request da worklist", updateError.message);
+        }
+      } else {
+        let query = supabase
+          .from("request")
+          .select("id")
+          .eq("donor_id", donor_id)
+          .eq("request_active", "True");
+
+        if (request_name) {
+          query = query.eq("request_name", request_name);
+        }
+
+        const { data: activeRequests, error: selectError } = await query;
+
+        if (selectError) {
+          console.log("Erro ao listar requests ativos", selectError.message);
+        } else if (activeRequests?.length) {
+          const { error: bulkError } = await supabase
+            .from("request")
+            .update(payload)
+            .in(
+              "id",
+              activeRequests.map((r) => r.id)
+            );
+
+          if (bulkError) {
+            console.log("Erro ao atualizar requests da worklist", bulkError.message);
+          }
+        }
       }
     }
 

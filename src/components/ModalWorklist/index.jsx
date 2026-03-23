@@ -12,7 +12,7 @@ import { updateRequestList } from "../../helper/updateRequestList";
 import { registerOperatorActivity, ACTIVITY_TYPES } from "../../services/operatorActivityService";
 import { navigateWithNewTab } from "../../utils/navigationUtils";
 import StatusSelector from "../StatusSelector";
-import { normalizeStatus } from "../../utils/statusUtils";
+import { normalizeStatus, hasStatus } from "../../utils/statusUtils";
 import { REQUEST_STATUS } from "../../constants/requestStatus";
 
 const ModalWorklist = ({
@@ -215,12 +215,13 @@ const ModalWorklist = ({
       null,
       campainSelected,
       null,
-      request_name
+      request_name,
+      id
     );
 
     if (response.length > 0) {
-      const result = await updateRequestSelected("Sucesso", id, null, null);
-      if (result && updateWorklistItem) {
+      toast.success("Doação registrada e status atualizado na lista.");
+      if (updateWorklistItem) {
         await updateWorklistItem(id);
       }
       
@@ -458,8 +459,8 @@ const ModalWorklist = ({
         {!newDonationOpen && !newSchedulingOpen && !statusSelectorOpen ? (
           <div className={styles.modalWorklistActions}>
             <div className={styles.actionButtonsGrid}>
-              {workListSelected.request_status !== REQUEST_STATUS.SUCESSO &&
-                (workListSelected.request_status !== REQUEST_STATUS.RECEBIDO && (
+              {!hasStatus(workListSelected.request_status, REQUEST_STATUS.SUCESSO) &&
+                !hasStatus(workListSelected.request_status, REQUEST_STATUS.RECEBIDO) && (
                   <>
                     <button
                       className={`${styles.actionBtn} ${styles.statusBtn}`}
@@ -483,7 +484,7 @@ const ModalWorklist = ({
                       <span className={styles.btnText}>Nova doação</span>
                     </button>
                   </>
-                ))}
+                )}
 
               <button
                 className={`${styles.actionBtn} ${styles.primary}`}

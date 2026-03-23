@@ -595,7 +595,7 @@ const WorkList = () => {
                       return (
                         <tr
                           className={`${styles.worklistTableRow} ${statusClass}`}
-                          key={list.receipt_donation_id}
+                          key={list.id}
                           onClick={() => handleRequest(list)}
                         >
                         <td className={styles.worklistTableCell}>
