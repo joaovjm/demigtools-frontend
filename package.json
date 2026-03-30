@@ -16,7 +16,6 @@
     "@supabase/supabase-js": "^2.48.1",
     "@tanstack/react-query": "^5.90.20",
     "@twilio/voice-sdk": "^2.16.0",
-    "@wppconnect-team/wppconnect": "^1.37.6",
     "apexcharts": "^4.5.0",
     "axios": "^1.11.0",
     "bwip-js": "^4.7.0",

@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import styles from "./createmensaldonation.module.css";
-import { DataSelect } from "../../components/DataTime";
-import { monthHystoryChecker } from "../../helper/monthHistoryChecker";
-import { monthlyfeeGenerator } from "../../helper/monthlyfeeGenerator";
 import { GiConfirmed } from "react-icons/gi";
 import { FaCalendarAlt, FaBullhorn, FaCog } from "react-icons/fa";
 import Loader from "../../components/Loader";
 import { getCampains } from "../../helper/getCampains";
+import { fetchMonthlyFeeCheck, postMonthlyFeeGenerate } from "../../api/monthlyFeeApi";
+import { toast } from "react-toastify";
 
 const CreateMensalDonation = () => {
   const [mesrefGenerator, setMesrefGenerator] = useState("");
@@ -29,23 +28,45 @@ const CreateMensalDonation = () => {
   const onMonthHystoryChecker = async (e) => {
     const value = e.target.value;
     setMesrefGenerator(value);
-    setIsDisable(await monthHystoryChecker(value));
+    try {
+      const response = await fetchMonthlyFeeCheck(value);
+      setIsDisable(Boolean(response?.data?.exists));
+    } catch (error) {
+      toast.error("Erro ao verificar histórico do mês.");
+      setIsDisable(false);
+    }
     setConfirmed(false);
+    setContador(null);
   };
 
   const handleGerar = async (e) => {
     e.preventDefault();
-    setIsLoading(true)
-    const count = await monthlyfeeGenerator({
-      mesRefGenerator: mesrefGenerator,
-      campain: campainSelected,
-    });
-
-    if (count >= 0) {
+    setIsLoading(true);
+    try {
+      const response = await postMonthlyFeeGenerate({
+        dateRef: mesrefGenerator,
+        campain: campainSelected,
+      });
+      if (!response?.success) {
+        toast.error(response?.message || "Erro ao gerar mensalidades.");
+        return;
+      }
+      if (response?.data?.alreadyGenerated) {
+        setIsDisable(true);
+        setConfirmed(false);
+        setContador(0);
+        toast.warning("Mensalidade desse mês já foi gerada anteriormente.");
+        return;
+      }
+      const count = Number(response?.data?.generated || 0);
       setContador(count);
       setConfirmed(true);
+      setIsDisable(true);
+    } catch (error) {
+      toast.error("Erro ao gerar mensalidades.");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false)
   };
 
   return (

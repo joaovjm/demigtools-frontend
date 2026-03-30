@@ -10,7 +10,6 @@ import { FaAngleDown, FaCode } from "react-icons/fa";
 import { AdminMenu, Navitens, OperadorMenu, RelatórioMenu } from "../Navitens";
 import supabase from "../../helper/superBaseClient";
 import getOperatorMeta from "../../helper/getOperatorMeta";
-import { getInternalUnreadCount } from "../../helper/getInternalUnreadCount";
 import { navigateWithNewTab } from "../../utils/navigationUtils";
 
 // Tipos de operadores com acesso completo aos menus
@@ -26,8 +25,6 @@ const Navbar = () => {
   const [operatorMeta, setOperatorMeta] = useState([]);
   const [pendingTasksCount, setPendingTasksCount] = useState(0);
   const [pendingDevTasksCount, setPendingDevTasksCount] = useState(0);
-  const [chatUnreadCount, setChatUnreadCount] = useState(0);
-
   const dropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
@@ -138,22 +135,6 @@ const Navbar = () => {
 
     return () => clearInterval(interval);
   }, [isDeveloper]);
-
-  // Buscar contagem de mensagens não lidas do chat interno (todos os usuários)
-  useEffect(() => {
-    const fetchChatUnread = async () => {
-      if (!operatorData?.operator_code_id) return;
-      try {
-        const count = await getInternalUnreadCount(operatorData.operator_code_id);
-        setChatUnreadCount(count ?? 0);
-      } catch (e) {
-        console.error("Erro ao buscar não lidas do chat:", e);
-      }
-    };
-    fetchChatUnread();
-    const interval = setInterval(fetchChatUnread, 15000);
-    return () => clearInterval(interval);
-  }, [operatorData?.operator_code_id]);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -433,9 +414,6 @@ const Navbar = () => {
                   title="Ctrl+Click para abrir em nova aba"
                 >
                   {menuItem.title}
-                  {menuItem.title === "CHAT" && chatUnreadCount > 0 && (
-                    <span className="task-badge">{chatUnreadCount > 99 ? "99+" : chatUnreadCount}</span>
-                  )}
                 </li>
               ))}
             </ul>
@@ -474,9 +452,6 @@ const Navbar = () => {
                   title="Ctrl+Click para abrir em nova aba"
                 >
                   {admin.title}
-                  {admin.title === "CHAT" && chatUnreadCount > 0 && (
-                    <span className="task-badge">{chatUnreadCount > 99 ? "99+" : chatUnreadCount}</span>
-                  )}
                 </Link>
               </li>
             ))}
@@ -576,9 +551,6 @@ const Navbar = () => {
                       title="Ctrl+Click para abrir em nova aba"
                     >
                       {admin.title}
-                      {admin.title === "CHAT" && chatUnreadCount > 0 && (
-                        <span className="task-badge">{chatUnreadCount > 99 ? "99+" : chatUnreadCount}</span>
-                      )}
                     </Link>
                   </li>
                 ))}
@@ -638,9 +610,6 @@ const Navbar = () => {
                     title="Ctrl+Click para abrir em nova aba"
                   >
                     {admin.title}
-                    {admin.title === "CHAT" && chatUnreadCount > 0 && (
-                      <span className="task-badge">{chatUnreadCount > 99 ? "99+" : chatUnreadCount}</span>
-                    )}
                   </Link>
                 </li>
               ))}

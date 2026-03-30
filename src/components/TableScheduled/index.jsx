@@ -11,13 +11,49 @@ const TableScheduled = ({
   setNowScheduled,
   donationFilterPerId,
 }) => {
-  console.log({scheduled, scheduledDonations, scheduledFromTable});
+  const getObservation = (item) =>
+    item?.scheduled_observation ??
+    item?.observation ??
+    item?.leads_observation ??
+    item?.request_observation ??
+    null;
+
+  const sourcePriority = (source) => {
+    if (source === "scheduled_table") return 3;
+    if (source === "donation_agendada" || source === "scheduled_donations") return 2;
+    return 1;
+  };
+
+  const buildDedupKey = (item) => {
+    if (
+      item?.source === "scheduled_table" &&
+      (item?.entity_type === "doação" || item?.entity_type === "doacao") &&
+      item?.entity_id != null
+    ) {
+      return `donor:${item.entity_id}`;
+    }
+    if (item?.donor_id != null) return `donor:${item.donor_id}`;
+    if (item?.leads_id != null) return `lead:${item.leads_id}`;
+    if (item?.id != null) return `id:${item.id}`;
+    return `row:${Math.random()}`;
+  };
+
   // Combinar dados de todas as fontes
-  const allScheduled = [
+  const allScheduledRaw = [
     ...scheduled.map(item => ({ ...item, source: 'legacy' })),
     ...scheduledDonations.map(item => ({ ...item, source: item.source || 'scheduled_donations' })),
     ...scheduledFromTable.map(item => ({ ...item, source: item.source || 'scheduled_table' }))
   ];
+
+  const dedupMap = new Map();
+  allScheduledRaw.forEach((item) => {
+    const key = buildDedupKey(item);
+    const current = dedupMap.get(key);
+    if (!current || sourcePriority(item.source) > sourcePriority(current.source)) {
+      dedupMap.set(key, item);
+    }
+  });
+  const allScheduled = Array.from(dedupMap.values());
   
   const handleClick = (e) => {
     // Se é doação agendada da tabela donation
@@ -76,7 +112,7 @@ const TableScheduled = ({
         phone4: null,
         phone5: null,
         phone6: null,
-        observation: e.scheduled_observation,
+        observation: getObservation(e),
         scheduling_date: e.scheduled_date,
         operator_code_id: e.operator_code_id,
         typeScheduled: "scheduled_table",
@@ -102,7 +138,7 @@ const TableScheduled = ({
         leads: e.leads_created,
         date_accessed: e.leads_date_accessed,
         leads_icpf: e.leads_icpf,
-        observation: e.leads_observation || e.request_observation,
+        observation: getObservation(e),
         scheduling_date: e.leads_scheduling_date,
         operator_code_id: e.operator_code_id,
         typeScheduled: e.leads_id ? "lead" : e.donor_id !== undefined && "request"
@@ -112,14 +148,15 @@ const TableScheduled = ({
     setModalOpen(true);
   };
 
-  const filterScheduled = allScheduled.filter(
-    (filter) => filter.operator_code_id === donationFilterPerId
-  );
+  const filterScheduled = allScheduled.filter((filter) => {
+    if (donationFilterPerId === "" || donationFilterPerId === null || donationFilterPerId === undefined) {
+      return true;
+    }
+    return Number(filter.operator_code_id) === Number(donationFilterPerId);
+  });
 
   const dataToShow = donationFilterPerId ? filterScheduled : allScheduled;
   const showPhoneColumn = !donationFilterPerId;
-
-  console.log(dataToShow);
 
   return (
     <div className="table-scheduled-container">
@@ -157,9 +194,7 @@ const TableScheduled = ({
                     const itemName = isScheduledDonation 
                       ? item.donor?.donor_name 
                       : (item.leads_name || item.donor?.donor_name);
-                    const itemObservation = isScheduledDonation
-                      ? item.scheduled_observation
-                      : (item.leads_observation || item.request_observation);
+                    const itemObservation = getObservation(item);
                     const itemDate = isScheduledDonation
                       ? item.scheduled_date
                       : (item.leads_scheduling_date || item.request_scheduled_date);

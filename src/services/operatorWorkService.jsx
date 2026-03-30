@@ -1,10 +1,9 @@
-import getReceiveDonationPerOperator from "../helper/getReceiveDonationPerOperator";
+import { fetchOperatorWorkSummary } from "../api/dashboardApi.js";
 
-const filterName = async (operatorWork) => {
-
+const filterName = (operatorWork) => {
   const operator = [
     ...new Map(
-      operatorWork?.map((op) => [
+      (operatorWork || []).map((op) => [
         op.operator_name?.operator_name,
         { name: op.operator_name?.operator_name, id: op.operator_code_id },
       ])
@@ -13,11 +12,8 @@ const filterName = async (operatorWork) => {
   return operator;
 };
 
-
-
-//Retorna a quantidade de fichas recebidas e o valor total
 const filterValueReceived = (operatorWork, metode) => {
-  const countDonation = operatorWork?.reduce((acc, item) => {
+  const countDonation = (operatorWork || []).reduce((acc, item) => {
     const name = item.operator_name?.operator_name;
     if (item.donation_received === "Sim") {
       acc[name] =
@@ -30,9 +26,8 @@ const filterValueReceived = (operatorWork, metode) => {
   return countDonation;
 };
 
-//Retorna o valor extra recebido
 const filterValueExtraReceived = (operatorWork, metode) => {
-  const countDonation = operatorWork.reduce((acc, item) => {
+  const countDonation = (operatorWork || []).reduce((acc, item) => {
     const name = item.operator_name?.operator_name;
     if (item.donation_received === "Sim") {
       acc[name] =
@@ -45,9 +40,8 @@ const filterValueExtraReceived = (operatorWork, metode) => {
   return countDonation;
 };
 
-//Retorna a quantidade de fichas não recebidas e o valor total
 const filterValueNotReceived = (operatorWork, metode) => {
-  const countDonation = operatorWork.reduce((acc, item) => {
+  const countDonation = (operatorWork || []).reduce((acc, item) => {
     const name = item.operator_name?.operator_name;
     if (item.donation_received !== "Sim") {
       acc[name] =
@@ -59,15 +53,20 @@ const filterValueNotReceived = (operatorWork, metode) => {
   return countDonation;
 };
 
-export const operatorWorkService = async ({startDate, endDate, operatorSelected}) => {
+export const operatorWorkService = async ({ startDate, endDate }) => {
+  const operatorWork = await fetchOperatorWorkSummary({
+    startDate,
+    endDate,
+    kind: "operadores",
+  });
 
-  const operatorWork = await getReceiveDonationPerOperator(startDate, endDate);
-  const names = await filterName(operatorWork);
-  const countReceived = await filterValueReceived(operatorWork, "count");
-  const addValueReceived = await filterValueReceived(operatorWork);
-  const countNotReceived = await filterValueNotReceived(operatorWork, "count");
-  const addValueNotReceived = await filterValueNotReceived(operatorWork);
-  const addValueExtraReceived = await filterValueExtraReceived(operatorWork);
+  const names = filterName(operatorWork);
+  const countReceived = filterValueReceived(operatorWork, "count");
+  const addValueReceived = filterValueReceived(operatorWork);
+  const countNotReceived = filterValueNotReceived(operatorWork, "count");
+  const addValueNotReceived = filterValueNotReceived(operatorWork);
+  const addValueExtraReceived = filterValueExtraReceived(operatorWork);
+
   return {
     names,
     countReceived,

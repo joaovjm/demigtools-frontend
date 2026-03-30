@@ -1,19 +1,21 @@
 import React, { useEffect, useState, useContext } from "react";
+import { toast } from "react-toastify";
 import styles from "./modalconfirmation.module.css";
 import { ICONS } from "../../constants/constants";
-import cancelDonation from "../../helper/cancelDonation";
-import supabase from "../../helper/superBaseClient";
-import { DataNow, DataSelect } from "../DataTime";
-import {useNavigate} from "react-router"
+import { DataSelect } from "../DataTime";
+import { useNavigate } from "react-router";
 import { FaUser, FaMapMarkerAlt, FaPhone, FaDollarSign, FaExclamationTriangle, FaCalendarAlt, FaEdit, FaTimes, FaCheck, FaArrowLeft, FaClock, FaEye, FaPhoneSlash, FaCalendarCheck } from "react-icons/fa";
 import { UserContext } from "../../context/UserContext";
-import { logDonorActivity } from "../../helper/logDonorActivity";
 import { getDonorConfirmationData } from "../../helper/getDonorConfirmationData";
-import { insertDonation } from "../../helper/insertDonation";
-import { updateCollectorForDonor } from "../../helper/updateCollectorForDonor";
 import { navigateWithNewTab } from "../../utils/navigationUtils";
+import {
+  useCreateDonationMutation,
+  useDeleteDonationMutation,
+  useUpdateDonationMutation,
+} from "../../hooks/useDonationMutations";
+import { STATUS_MESSAGES, TOAST_CONFIG } from "../../pages/DashboardAdmin/constants";
 
-const ModalConfirmations = ({ donationConfirmationOpen, onClose, setStatus }) => {
+const ModalConfirmations = ({ donationConfirmationOpen, onClose }) => {
   const [isConfirmation, setIsConfirmation] = useState(false);
   const [dateConfirm, setDateConfirm] = useState("");
   const [observation, setObservation] = useState("");
@@ -27,6 +29,11 @@ const ModalConfirmations = ({ donationConfirmationOpen, onClose, setStatus }) =>
   const [lastThreeDonations, setLastThreeDonations] = useState([]);
 
   const navigate = useNavigate();
+  const deleteMutation = useDeleteDonationMutation();
+  const createMutation = useCreateDonationMutation();
+  const updateMutation = useUpdateDonationMutation();
+  const mutationBusy =
+    deleteMutation.isPending || createMutation.isPending || updateMutation.isPending;
 
   useEffect(() => {
     // Resetar estados quando o modal é aberto com uma nova doação
@@ -48,33 +55,35 @@ const ModalConfirmations = ({ donationConfirmationOpen, onClose, setStatus }) =>
     };
     
     fetchDonorData();
-  }, [donationConfirmationOpen, operatorData])
+  }, [donationConfirmationOpen, operatorData]);
 
   const handleCancel = async () => {
     if (!window.confirm("Você tem certeza que deseja cancelar a ficha?")) {
       return;
     }
-    
-    const status = await cancelDonation({
-      donation: {
-        receipt_donation_id: donationConfirmationOpen.id,
-        donor_id: donationConfirmationOpen.donor_id,
-        donation_value: donationConfirmationOpen.value,
-        donation_extra: donationConfirmationOpen.extra,
-        donation_day_contact: donationConfirmationOpen.day_contact,
-        donation_day_to_receive: donationConfirmationOpen.day_to_receive,
-        donation_print: donationConfirmationOpen.print,
-        donation_monthref: donationConfirmationOpen.monthref,
-        donation_description: donationConfirmationOpen.description,
-        donation_received: "Não",
-        operator_code_id: donationConfirmationOpen.operator_code_id,
-        collector_code_id: donationConfirmationOpen.collector_code_id,
-      },
-      operatorCodeId: operatorData?.operator_code_id,
-    });
-
-    setStatus(status);
-    onClose();
+    try {
+      await deleteMutation.mutateAsync({
+        donation: {
+          receipt_donation_id: donationConfirmationOpen.id,
+          donor_id: donationConfirmationOpen.donor_id,
+          donation_value: donationConfirmationOpen.value,
+          donation_extra: donationConfirmationOpen.extra,
+          donation_day_contact: donationConfirmationOpen.day_contact,
+          donation_day_to_receive: donationConfirmationOpen.day_to_receive,
+          donation_print: donationConfirmationOpen.print,
+          donation_monthref: donationConfirmationOpen.monthref,
+          donation_description: donationConfirmationOpen.description,
+          donation_received: "Não",
+          operator_code_id: donationConfirmationOpen.operator_code_id,
+          collector_code_id: donationConfirmationOpen.collector_code_id,
+        },
+        operatorCodeId: operatorData?.operator_code_id,
+      });
+      toast.success(STATUS_MESSAGES.OK, TOAST_CONFIG);
+      onClose();
+    } catch {
+      toast.error("Não foi possível cancelar a ficha.");
+    }
   };
 
   const handleConfirm = async () => {
@@ -82,67 +91,28 @@ const ModalConfirmations = ({ donationConfirmationOpen, onClose, setStatus }) =>
       window.alert("Por favor, selecione uma data para a nova doação.");
       return;
     }
-    
     if (!window.confirm("Você deseja recriar a doação?")) {
       return;
     }
-    
     try {
-      // Criar nova doação
-      const newDonation = await insertDonation(
-        donationConfirmationOpen.donor_id,
-        donationConfirmationOpen.operator_code_id || operatorData?.operator_code_id,
-        donationConfirmationOpen.value,
-        donationConfirmationOpen.extra || null,
-        DataNow("noformated"),
+      await createMutation.mutateAsync({
+        donorId: donationConfirmationOpen.donor_id,
+        operatorCodeId:
+          donationConfirmationOpen.operator_code_id ||
+          operatorData?.operator_code_id,
+        value: donationConfirmationOpen.value,
+        extra: donationConfirmationOpen.extra || null,
         dateConfirm,
-        false,
-        false,
-        observation || donationConfirmationOpen.description || null,
-        donationConfirmationOpen.monthref || null,
-        null, // campain
-        null, // collector
-        null  // request_name
-      );
-
-      if (!newDonation || newDonation.length === 0) {
-        throw new Error("Erro ao criar nova doação");
-      }
-
-      // Atualizar todas as outras doações na confirmação (collector_code_id = 10) para collector_code_id = 11
-      const updateResult = await updateCollectorForDonor(
-        donationConfirmationOpen.donor_id,
-        10,
-        11
-      );
-
-      if (updateResult.success && updateResult.count > 0) {
-        console.log(`${updateResult.count} doação(ões) atualizada(s) do coletor 10 para 11`);
-      }
-
-      // Registrar criação de nova doação no histórico
-      if (operatorData?.operator_code_id) {
-        await logDonorActivity({
-          donor_id: donationConfirmationOpen.donor_id,
-          operator_code_id: operatorData.operator_code_id,
-          action_type: "donation_create",
-          action_description: `Recriou doação de R$ ${donationConfirmationOpen.value} para ${dateConfirm}`,
-          new_values: {
-            donation_value: donationConfirmationOpen.value,
-            donation_extra: donationConfirmationOpen.extra || null,
-            donation_day_to_receive: dateConfirm,
-            donation_description: observation || donationConfirmationOpen.description || null,
-            receipt_donation_id: newDonation[0].receipt_donation_id,
-          },
-          related_donation_id: donationConfirmationOpen.id,
-        });
-      }
-      
-      setStatus("Update OK")
+        observation: observation || donationConfirmationOpen.description || null,
+        description: donationConfirmationOpen.description || null,
+        monthref: donationConfirmationOpen.monthref || null,
+        previousReceiptId: donationConfirmationOpen.id,
+        actingOperatorCodeId: operatorData?.operator_code_id,
+        donationValueForLog: donationConfirmationOpen.value,
+      });
+      toast.success(STATUS_MESSAGES.UPDATE_OK, TOAST_CONFIG);
       onClose();
-      
-    } catch (errorConfirm) {
-      console.error("Error creating donation:", errorConfirm);
+    } catch {
       window.alert("Erro ao criar nova doação. Por favor, tente novamente.");
     }
   };
@@ -151,40 +121,19 @@ const ModalConfirmations = ({ donationConfirmationOpen, onClose, setStatus }) =>
     if (!window.confirm("Você deseja marcar esta doação como 'Não Atendeu'?")) {
       return;
     }
-    
     try {
-      const { data: updateConfirm, error: errorConfirm } = await supabase
-        .from("donation")
-        .update({
-          confirmation_status: "Não Atendeu",
-          donation_day_contact: DataNow("noformated"),
-        })
-        .eq("receipt_donation_id", donationConfirmationOpen.id);
-
-      if (errorConfirm) throw errorConfirm;
-
-      // Registrar ação no histórico
-      if (operatorData?.operator_code_id) {
-        await logDonorActivity({
-          donor_id: donationConfirmationOpen.donor_id,
-          operator_code_id: operatorData.operator_code_id,
-          action_type: "donation_edit",
-          action_description: `Marcou doação de R$ ${donationConfirmationOpen.value} como 'Não Atendeu'`,
-          old_values: {
-            confirmation_status: donationConfirmationOpen.confirmation_status || null,
-          },
-          new_values: {
-            confirmation_status: "Não Atendeu",
-          },
-          related_donation_id: null,
-        });
-      }
-      
-      setStatus("Update OK")
+      await updateMutation.mutateAsync({
+        action: "not_attended",
+        receiptDonationId: donationConfirmationOpen.id,
+        donorId: donationConfirmationOpen.donor_id,
+        operatorCodeId: operatorData?.operator_code_id,
+        donationValue: donationConfirmationOpen.value,
+        previousConfirmationStatus: donationConfirmationOpen.confirmation_status,
+      });
+      toast.success(STATUS_MESSAGES.UPDATE_OK, TOAST_CONFIG);
       onClose();
-      
-    } catch (errorConfirm) {
-      console.error("Error updating donation:", errorConfirm);
+    } catch {
+      toast.error("Não foi possível atualizar o status.");
     }
   };
 
@@ -193,48 +142,25 @@ const ModalConfirmations = ({ donationConfirmationOpen, onClose, setStatus }) =>
       window.alert("Por favor, selecione uma data para o agendamento.");
       return;
     }
-    
     if (!window.confirm(`Você deseja agendar esta doação para ${scheduleDate}?`)) {
       return;
     }
-    
     try {
-      const { data: updateConfirm, error: errorConfirm } = await supabase
-        .from("donation")
-        .update({
-          confirmation_scheduled: scheduleDate,
-          confirmation_status: "Agendado",
-          donation_day_contact: DataNow("noformated"),
-          confirmation_observation: scheduleObservation || null,
-        })
-        .eq("receipt_donation_id", donationConfirmationOpen.id);
-
-      if (errorConfirm) throw errorConfirm;
-
-      // Registrar ação no histórico
-      if (operatorData?.operator_code_id) {
-        await logDonorActivity({
-          donor_id: donationConfirmationOpen.donor_id,
-          operator_code_id: operatorData.operator_code_id,
-          action_type: "donation_edit",
-          action_description: `Agendou doação de R$ ${donationConfirmationOpen.value} para ${scheduleDate}`,
-          old_values: {
-            confirmation_scheduled: donationConfirmationOpen.confirmation_scheduled || null,
-            confirmation_status: donationConfirmationOpen.confirmation_status || null,
-          },
-          new_values: {
-            confirmation_scheduled: scheduleDate,
-            confirmation_status: "Agendado",
-          },
-          related_donation_id: null,
-        });
-      }
-      
-      setStatus("Update OK")
+      await updateMutation.mutateAsync({
+        action: "schedule",
+        receiptDonationId: donationConfirmationOpen.id,
+        donorId: donationConfirmationOpen.donor_id,
+        operatorCodeId: operatorData?.operator_code_id,
+        donationValue: donationConfirmationOpen.value,
+        scheduleDate,
+        scheduleObservation,
+        previousConfirmationScheduled: donationConfirmationOpen.confirmation_scheduled,
+        previousConfirmationStatus: donationConfirmationOpen.confirmation_status,
+      });
+      toast.success(STATUS_MESSAGES.UPDATE_OK, TOAST_CONFIG);
       onClose();
-      
-    } catch (errorConfirm) {
-      console.error("Error updating donation:", errorConfirm);
+    } catch {
+      toast.error("Não foi possível agendar.");
     }
   };
   return (
@@ -435,27 +361,38 @@ const ModalConfirmations = ({ donationConfirmationOpen, onClose, setStatus }) =>
                 </button>
               
                 <button
+                  type="button"
+                  disabled={mutationBusy}
                   onClick={() => setIsConfirmation(true)}
                   className={styles.btnReschedule}
                 >
                   <FaCalendarAlt />
                   Recriar Doação
                 </button>
-                <button 
+                <button
+                  type="button"
+                  disabled={mutationBusy}
                   onClick={() => setIsScheduling(true)}
                   className={styles.btnSchedule}
                 >
                   <FaCalendarCheck />
                   Agendar
                 </button>
-                <button 
+                <button
+                  type="button"
+                  disabled={mutationBusy}
                   onClick={handleNotAttended}
                   className={styles.btnNotAttended}
                 >
                   <FaPhoneSlash />
                   Não Atendeu
                 </button>
-                <button onClick={handleCancel} className={styles.btnCancel}>
+                <button
+                  type="button"
+                  disabled={mutationBusy}
+                  onClick={handleCancel}
+                  className={styles.btnCancel}
+                >
                   <FaTimes />
                   Cancelar Ficha
                 </button>
@@ -550,7 +487,12 @@ const ModalConfirmations = ({ donationConfirmationOpen, onClose, setStatus }) =>
                     <FaArrowLeft />
                     Voltar
                   </button>
-                  <button onClick={handleSchedule} className={styles.btnConfirm}>
+                  <button
+                    type="button"
+                    disabled={mutationBusy}
+                    onClick={handleSchedule}
+                    className={styles.btnConfirm}
+                  >
                     <FaCheck />
                     Confirmar Agendamento
                   </button>

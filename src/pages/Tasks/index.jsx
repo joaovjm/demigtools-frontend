@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect, useContext, useMemo } from 'react'
 import styles from './tasks.module.css'
-import supabase from '../../helper/superBaseClient'
 import { toast } from 'react-toastify'
 import { UserContext } from '../../context/UserContext'
-import { FaTasks, FaSpinner, FaFilter, FaSearch, FaExclamationTriangle } from 'react-icons/fa'
+import { fetchAllTasks, patchTaskManagerRequest } from '../../api/taskManagerApi'
+import { FaTasks, FaSpinner, FaFilter, FaSearch, FaExclamationTriangle, FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 import ModalTaskDetails from '../../components/ModalTaskDetails'
+
+const PAGE_SIZE = 20
 
 const Tasks = () => {
   const { operatorData } = useContext(UserContext)
@@ -15,6 +17,7 @@ const Tasks = () => {
   const [showModal, setShowModal] = useState(false)
   const [filterStatus, setFilterStatus] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
+  const [page, setPage] = useState(1)
 
   const statusOptions = [
     { value: 'pendente', label: 'Pendente', color: '#faa01c' },
@@ -26,21 +29,11 @@ const Tasks = () => {
   const fetchTasks = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('task_manager')
-        .select(`
-          *,
-          operator_required_info:operator_required(operator_name, operator_code_id),
-          operator_conclude_info:operator_activity_conclude(operator_name, operator_code_id),
-          donor:donor_id(donor_id, donor_name, donor_address, donor_city, donor_neighborhood, donor_tel_1)
-        `)
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
+      const data = await fetchAllTasks()
       setTasks(data || [])
     } catch (error) {
       console.error('Erro ao buscar tarefas:', error)
-      toast.error('Erro ao carregar tarefas')
+      toast.error(error?.message || 'Erro ao carregar tarefas')
     } finally {
       setLoading(false)
     }
@@ -50,31 +43,26 @@ const Tasks = () => {
     fetchTasks()
   }, [])
 
+  useEffect(() => {
+    setPage(1)
+  }, [filterStatus, searchTerm])
+
   const handleStatusChange = async (taskId, newStatus) => {
     try {
       setUpdatingTaskId(taskId)
-      const updateData = {
-        status: newStatus,
-        updated_at: new Date().toISOString()
-      }
+      const updateData = { status: newStatus }
 
-      // Se estiver marcando como em andamento ou concluído, registrar o admin que fez
       if (newStatus === 'em_andamento' || newStatus === 'concluido') {
         updateData.operator_activity_conclude = operatorData?.operator_code_id
       }
 
-      const { error } = await supabase
-        .from('task_manager')
-        .update(updateData)
-        .eq('id', taskId)
-
-      if (error) throw error
+      await patchTaskManagerRequest(taskId, updateData)
 
       toast.success('Status atualizado com sucesso!')
       fetchTasks()
     } catch (error) {
       console.error('Erro ao atualizar status:', error)
-      toast.error('Erro ao atualizar status')
+      toast.error(error?.message || 'Erro ao atualizar status')
     } finally {
       setUpdatingTaskId(null)
     }
@@ -102,40 +90,54 @@ const Tasks = () => {
     })
   }
 
-  const filteredTasks = tasks
-    .filter(task => {
-      // Filtro por status/prioridade
-      let matchesFilter = true
-      if (filterStatus === 'prioridade_alta' && task.status !== 'concluido') {
-        matchesFilter = task.priority === 'alta'
-      } else if (filterStatus !== 'all') {
-        matchesFilter = task.status === filterStatus
-      }
-      
-      // Filtro por busca
-      const matchesSearch = searchTerm === '' || 
-        task.reason?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.operator_required_info?.operator_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.donor?.donor_name?.toLowerCase().includes(searchTerm.toLowerCase())
-      
-      return matchesFilter && matchesSearch
-    })
-    .sort((a, b) => {
-      // 1. Prioridade alta sempre primeiro
-      const aIsHighPriority = a.priority === 'alta'
-      const bIsHighPriority = b.priority === 'alta'
-      if (aIsHighPriority && !bIsHighPriority) return -1
-      if (!aIsHighPriority && bIsHighPriority) return 1
+  const filteredTasks = useMemo(
+    () =>
+      tasks
+        .filter((task) => {
+          let matchesFilter = true
+          if (filterStatus === 'prioridade_alta' && task.status !== 'concluido') {
+            matchesFilter = task.priority === 'alta'
+          } else if (filterStatus !== 'all') {
+            matchesFilter = task.status === filterStatus
+          }
 
-      // 2. Concluídos sempre por último
-      const aIsConcluded = a.status === 'concluido'
-      const bIsConcluded = b.status === 'concluido'
-      if (aIsConcluded && !bIsConcluded) return 1
-      if (!aIsConcluded && bIsConcluded) return -1
+          const matchesSearch =
+            searchTerm === '' ||
+            task.reason?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            task.operator_required_info?.operator_name
+              ?.toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            task.donor?.donor_name?.toLowerCase().includes(searchTerm.toLowerCase())
 
-      // 3. Ordenar por data mais recente
-      return new Date(b.created_at) - new Date(a.created_at)
-    })
+          return matchesFilter && matchesSearch
+        })
+        .sort((a, b) => {
+          const aIsHighPriority = a.priority === 'alta'
+          const bIsHighPriority = b.priority === 'alta'
+          if (aIsHighPriority && !bIsHighPriority) return -1
+          if (!aIsHighPriority && bIsHighPriority) return 1
+
+          const aIsConcluded = a.status === 'concluido'
+          const bIsConcluded = b.status === 'concluido'
+          if (aIsConcluded && !bIsConcluded) return 1
+          if (!aIsConcluded && bIsConcluded) return -1
+
+          return new Date(b.created_at) - new Date(a.created_at)
+        }),
+    [tasks, filterStatus, searchTerm]
+  )
+
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(filteredTasks.length / PAGE_SIZE))
+    setPage((p) => Math.min(Math.max(1, p), totalPages))
+  }, [filteredTasks.length])
+
+  const totalPages = Math.max(1, Math.ceil(filteredTasks.length / PAGE_SIZE))
+  const currentPage = Math.min(Math.max(1, page), totalPages)
+  const paginatedTasks = filteredTasks.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  )
 
   if (loading) {
     return (
@@ -245,7 +247,7 @@ const Tasks = () => {
             <p>Nenhuma tarefa encontrada</p>
           </div>
         ) : (
-          filteredTasks.map((task) => (
+          paginatedTasks.map((task) => (
             <div 
               key={task.id} 
               className={`${styles.taskItemsContainer} ${task.priority === "alta" && task.status !== "concluido" ? styles.priorityTask : ''}`}
@@ -329,6 +331,34 @@ const Tasks = () => {
           ))
         )}
       </div>
+
+      {filteredTasks.length > PAGE_SIZE && (
+        <nav className={styles.pagination} aria-label="Paginação da lista de tarefas">
+          <span className={styles.paginationInfo}>
+            Página {currentPage} de {totalPages} — exibindo{' '}
+            {(currentPage - 1) * PAGE_SIZE + 1}–
+            {Math.min(currentPage * PAGE_SIZE, filteredTasks.length)} de {filteredTasks.length}
+          </span>
+          <div className={styles.paginationButtons}>
+            <button
+              type="button"
+              className={styles.paginationBtn}
+              disabled={currentPage <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              <FaChevronLeft /> Anterior
+            </button>
+            <button
+              type="button"
+              className={styles.paginationBtn}
+              disabled={currentPage >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Próxima <FaChevronRight />
+            </button>
+          </div>
+        </nav>
+      )}
 
       {showModal && selectedTask && (
         <ModalTaskDetails

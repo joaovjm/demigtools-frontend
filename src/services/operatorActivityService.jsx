@@ -170,12 +170,18 @@ export const getOperatorActivityById = async (operatorId, { startDate, endDate }
       .eq("operator_code_id", operatorId)
       .order("created_at", { ascending: false });
 
-    if (startDate) {
-      query = query.gte("created_at", startDate.toISOString());
+    // startDate/endDate podem vir como string (YYYY-MM-DD) do input type="date"
+    const startIso =
+      typeof startDate === "string" ? new Date(startDate).toISOString() : startDate?.toISOString?.();
+    const endIso =
+      typeof endDate === "string" ? new Date(endDate).toISOString() : endDate?.toISOString?.();
+
+    if (startIso) {
+      query = query.gte("created_at", startIso);
     }
 
-    if (endDate) {
-      query = query.lte("created_at", endDate.toISOString());
+    if (endIso) {
+      query = query.lte("created_at", endIso);
     }
 
     const { data, error } = await query;

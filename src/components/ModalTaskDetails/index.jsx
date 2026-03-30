@@ -1,7 +1,12 @@
 import React, { useState, useEffect, useContext } from "react";
 import styles from "./modaltaskdetails.module.css";
-import supabase from "../../helper/superBaseClient";
 import { toast } from "react-toastify";
+import { patchTaskManagerRequest } from "../../api/taskManagerApi";
+import {
+  fetchDonationByReceipt,
+  patchDonationByReceiptRequest,
+  deleteDonationByReceiptRequest,
+} from "../../api/donorApi";
 import { UserContext } from "../../context/UserContext";
 import {
   FaTasks,
@@ -95,6 +100,7 @@ const ModalTaskDetails = ({ task, onClose, onUpdate, statusOptions }) => {
           mensalidade: donor.donor_mensal?.donor_mensal_monthly_fee || "",
           observacao: donor.donor_observation?.donor_observation || "",
           referencia: donor.donor_reference?.donor_reference || "",
+          admin_reason: task.admin_reason || "",
         });
       }
     } catch (error) {
@@ -108,32 +114,22 @@ const ModalTaskDetails = ({ task, onClose, onUpdate, statusOptions }) => {
   const fetchDonationData = async () => {
     try {
       setDonationLoading(true);
-      const { data, error } = await supabase
-        .from("donation")
-        .select(
-          `
-          *,
-          donor:donor_id(donor_id, donor_name),
-          collector:collector_code_id(collector_name),
-          operator:operator_code_id(operator_name)
-        `
-        )
-        .eq("receipt_donation_id", task.receipt_donation_id)
-        .single();
-
-      if (error) throw error;
+      const data = await fetchDonationByReceipt(task.receipt_donation_id);
 
       setDonationData(data);
+      const rawDate = data.donation_day_to_receive;
+      const dateStr =
+        typeof rawDate === "string" ? rawDate.slice(0, 10) : rawDate || "";
       setDonationForm({
-        value: data.donation_value || "",
-        date: data.donation_day_to_receive || "",
-        observation: data.donation_description || "",
-        collector: data.collector_code_id || "",
-        operator: data.operator_code_id || "",
+        value: data.donation_value ?? "",
+        date: dateStr,
+        observation: data.donation_description ?? "",
+        collector: data.collector_code_id ?? "",
+        operator: data.operator_code_id ?? "",
       });
     } catch (error) {
       console.error("Erro ao buscar doação:", error);
-      toast.error("Erro ao carregar dados da doação");
+      toast.error(error?.message || "Erro ao carregar dados da doação");
     } finally {
       setDonationLoading(false);
     }
@@ -203,23 +199,28 @@ const ModalTaskDetails = ({ task, onClose, onUpdate, statusOptions }) => {
   const handleSaveDonation = async () => {
     try {
       setSaving(true);
-      const { error } = await supabase
-        .from("donation")
-        .update({
-          donation_value: donationForm.value,
-          donation_day_to_receive: donationForm.date,
-          donation_description: donationForm.observation,
-          collector_code_id: donationForm.collector,
-          operator_code_id: donationForm.operator,
-        })
-        .eq("receipt_donation_id", task.receipt_donation_id);
-
-      if (error) throw error;
+      await patchDonationByReceiptRequest(task.receipt_donation_id, {
+        donation_value:
+          donationForm.value === "" || donationForm.value == null
+            ? null
+            : Number(donationForm.value),
+        donation_day_to_receive: donationForm.date || null,
+        donation_description: donationForm.observation || null,
+        collector_code_id:
+          donationForm.collector === "" || donationForm.collector == null
+            ? null
+            : Number(donationForm.collector),
+        operator_code_id:
+          donationForm.operator === "" || donationForm.operator == null
+            ? null
+            : Number(donationForm.operator),
+      });
 
       toast.success("Doação atualizada com sucesso!");
+      fetchDonationData();
     } catch (error) {
       console.error("Erro ao salvar doação:", error);
-      toast.error("Erro ao salvar doação");
+      toast.error(error?.message || "Erro ao salvar doação");
     } finally {
       setSaving(false);
     }
@@ -235,18 +236,15 @@ const ModalTaskDetails = ({ task, onClose, onUpdate, statusOptions }) => {
 
     try {
       setSaving(true);
-      const { error } = await supabase
-        .from("donation")
-        .update({ collector_code_id: 11 })
-        .eq("receipt_donation_id", task.receipt_donation_id);
-
-      if (error) throw error;
+      await patchDonationByReceiptRequest(task.receipt_donation_id, {
+        collector_code_id: 11,
+      });
 
       toast.success("Ficha cancelada com sucesso!");
       fetchDonationData();
     } catch (error) {
       console.error("Erro ao cancelar ficha:", error);
-      toast.error("Erro ao cancelar ficha");
+      toast.error(error?.message || "Erro ao cancelar ficha");
     } finally {
       setSaving(false);
     }
@@ -262,26 +260,20 @@ const ModalTaskDetails = ({ task, onClose, onUpdate, statusOptions }) => {
 
     try {
       setSaving(true);
-      const { error } = await supabase
-        .from("donation")
-        .delete()
-        .eq("receipt_donation_id", task.receipt_donation_id);
-
-      if (error) throw error;
+      await deleteDonationByReceiptRequest(task.receipt_donation_id);
 
       toast.success("Ficha excluída com sucesso!");
       onUpdate();
       onClose();
     } catch (error) {
       console.error("Erro ao excluir ficha:", error);
-      toast.error("Erro ao excluir ficha");
+      toast.error(error?.message || "Erro ao excluir ficha");
     } finally {
       setSaving(false);
     }
   };
 
   const handleSaveStatus = async () => {
-    console.log(donorForm.admin_reason);
     if (
       donorForm.admin_reason === "" ||
       donorForm.admin_reason === null ||
@@ -295,26 +287,20 @@ const ModalTaskDetails = ({ task, onClose, onUpdate, statusOptions }) => {
       const updateData = {
         status: "concluido",
         admin_reason: donorForm.admin_reason,
-        updated_at: new Date().toISOString(),
       };
 
       if (status === "em_andamento" || status === "concluido") {
         updateData.operator_activity_conclude = operatorData?.operator_code_id;
       }
 
-      const { error } = await supabase
-        .from("task_manager")
-        .update(updateData)
-        .eq("id", task.id);
-
-      if (error) throw error;
+      await patchTaskManagerRequest(task.id, updateData);
 
       toast.success("Tarefa atualizada com sucesso!");
       onUpdate();
       onClose();
     } catch (error) {
       console.error("Erro ao salvar tarefa:", error);
-      toast.error("Erro ao salvar tarefa");
+      toast.error(error?.message || "Erro ao salvar tarefa");
     } finally {
       setSaving(false);
     }
@@ -613,7 +599,6 @@ const ModalTaskDetails = ({ task, onClose, onUpdate, statusOptions }) => {
             )}
 
             {/* Donation Section */}
-            {/*
             {task?.receipt_donation_id && (
               <div className={styles.formSection}>
                 <h3>
@@ -780,7 +765,6 @@ const ModalTaskDetails = ({ task, onClose, onUpdate, statusOptions }) => {
                 )}
               </div>
             )}
-              */}
           </div>
 
           <div
@@ -803,9 +787,11 @@ const ModalTaskDetails = ({ task, onClose, onUpdate, statusOptions }) => {
 
           <div className={styles.modalFooter}>
             <button
+              type="button"
               onClick={(e) => navigateWithNewTab(e, `/donor/${task.donor_id}`, navigate)}
               className={styles.btnOpenDonor}
               title="Ctrl+Click para abrir em nova aba"
+              disabled={!task?.donor_id}
             >
               <FaPersonBooth /> Abrir Doador
             </button>

@@ -1,11 +1,11 @@
-import supabase from "./superBaseClient";
+import { fetchAdminReceiptConfig } from "../api/adminManagerApi";
 
 export async function getEditReceipt () {
     try{
-        const { data, error } = await supabase.from("receipt_config").select()
-        if (error) throw error;
-        if (!error) return data;
+        const response = await fetchAdminReceiptConfig();
+        return response?.data ? [response.data] : [];
     }catch(error){
         console.error(error)
+        return [];
     }
 }

@@ -1,29 +1,26 @@
 import React, { useEffect, useState } from "react";
 import style from "./modalhistory.module.css";
-import supabase from "../../helper/superBaseClient";
+import { fetchLeadsHistory as fetchLeadsHistoryApi } from "../../api/leadsApi.js";
 
 const ModalHistory = ({ onClose, operatorData }) => {
   const [leadsHistory, setLeadsHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchLeadsHistory = async () => {
+    const loadHistory = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from("leads")
-          .select("*")
-          .eq("operator_code_id", operatorData.operator_code_id)
-          .order("leads_date_accessed", { ascending: false });
-        if (error) throw error;
-        if (data) setLeadsHistory(data);
+        const resp = await fetchLeadsHistoryApi({
+          operatorCodeId: operatorData.operator_code_id,
+        });
+        setLeadsHistory(resp?.data ?? []);
       } catch (error) {
         console.log(error.message);
       } finally {
         setLoading(false);
       }
     };
-    fetchLeadsHistory();
+    loadHistory();
   }, [operatorData.operator_code_id]);
 
   const getStatusColor = (status) => {
@@ -54,10 +51,23 @@ const ModalHistory = ({ onClose, operatorData }) => {
     return statusMap[status?.toLowerCase()] || status || "—";
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "—";
-    return new Date(dateString).toLocaleDateString("pt-BR", {
-      timeZone: "UTC",
+  const formatDate = (value) => {
+    if (value == null || value === "") return "—";
+    const s = String(value).trim();
+    // Só data (YYYY-MM-DD): evitar interpretação como UTC meia-noite (vira 21h no BR em muitos browsers)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+      const [y, mo, da] = s.split("-").map(Number);
+      const localDay = new Date(y, mo - 1, da);
+      if (Number.isNaN(localDay.getTime())) return "—";
+      return localDay.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    }
+    const d = new Date(s);
+    if (Number.isNaN(d.getTime())) return "—";
+    return d.toLocaleString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",

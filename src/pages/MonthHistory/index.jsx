@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
-import supabase from "../../helper/superBaseClient";
 import styles from "./monthhistory.module.css";
+import { toast } from "react-toastify";
+import { fetchMonthHistory as fetchMonthHistoryApi } from "../../api/dashboardApi";
 
 const MonthHistory = () => {
   const [selectedMonth, setSelectedMonth] = useState("");
@@ -17,109 +18,16 @@ const MonthHistory = () => {
 
   const fetchMonthHistory = async () => {
     if (!selectedMonth) {
-      alert("Por favor, selecione um mês");
+      toast.warning("Por favor, selecione um mês");
       return;
     }
 
     setLoading(true);
     try {
-      // Buscar todos os doadores mensais com suas informações do donor
-      const { data: mensalData, error: mensalError } = await supabase
-        .from("donor_mensal")
-        .select(`
-          donor_id,
-          donor_mensal_day,
-          donor_mensal_monthly_fee,
-          donor:donor_id (
-            donor_name,
-            donor_tel_1
-          )
-        `);
-
-      if (mensalError) throw mensalError;
-
-      // Buscar todas as doações do mês de referência
-      // Criar datas para o primeiro dia do mês selecionado e o primeiro dia do próximo mês
-      const startDate = `${selectedMonth}-01`;
-      const [year, month] = selectedMonth.split('-');
-      const nextMonth = parseInt(month) === 12 ? 1 : parseInt(month) + 1;
-      const nextYear = parseInt(month) === 12 ? parseInt(year) + 1 : year;
-      const endDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
-
-      const { data: donationsData, error: donationsError } = await supabase
-        .from("donation")
-        .select(`
-          receipt_donation_id,
-          donor_id,
-          donation_print,
-          donation_received,
-          donation_value,
-          donation_monthref,
-          donation_day_to_receive,
-          donation_day_received,
-          collector: collector_code_id (collector_name)
-        `)
-        .gte("donation_monthref", startDate)
-        .lt("donation_monthref", endDate);
-
-      if (donationsError) throw donationsError;
-
-      // Criar um mapa de doações por donor_id
-      const donationsMap = {};
-      donationsData?.forEach((donation) => {
-        if (!donationsMap[donation.donor_id]) {
-          donationsMap[donation.donor_id] = [];
-        }
-        donationsMap[donation.donor_id].push(donation);
-      });
-
-      // Criar lista unificada de doadores com informações de status
-      const donorsList = [];
-
-      mensalData?.forEach((mensal) => {
-        const donations = donationsMap[mensal.donor_id] || [];
-
-        // Obter o coletador (nome) da última doação com coletador deste doador no mês
-        let collectorName = null;
-        for (let i = donations.length - 1; i >= 0; i--) {
-          const currentCollectorName = donations[i]?.collector?.collector_name;
-          if (currentCollectorName) {
-            collectorName = currentCollectorName;
-            break;
-          }
-        }
-        
-        // Verificar se há alguma doação impressa para este doador no mês
-        const hasPrintedDonation = donations.some(
-          (d) => d.donation_print === true || d.donation_print === "Sim"
-        );
-
-        // Verificar se há alguma doação recebida para este doador no mês
-        const hasReceivedDonation = donations.some(
-          (d) => d.donation_received === true || d.donation_received === "Sim"
-        );
-
-        const donorInfo = {
-          donor_id: mensal.donor_id,
-          donor_name: mensal.donor?.donor_name || "N/A",
-          donor_tel_1: mensal.donor?.donor_tel_1 || "N/A",
-          donor_mensal_day: mensal.donor_mensal_day || "N/A",
-          donor_mensal_monthly_fee: mensal.donor_mensal_monthly_fee || 0,
-          donations: donations,
-          total_value: donations.reduce((sum, d) => sum + (d.donation_value || 0), 0),
-          movements_count: donations.length,
-          isPrinted: hasPrintedDonation,
-          isReceived: hasReceivedDonation,
-          collector_name: collectorName,
-        };
-
-        donorsList.push(donorInfo);
-      });
-
-      setAllDonors(donorsList);
+      const donorsList = await fetchMonthHistoryApi({ selectedMonth });
+      setAllDonors(donorsList || []);
     } catch (error) {
-      console.error("Erro ao buscar histórico do mês:", error.message);
-      alert("Erro ao buscar dados. Verifique o console.");
+      toast.error(error?.message || "Erro ao buscar histórico do mês");
     } finally {
       setLoading(false);
     }

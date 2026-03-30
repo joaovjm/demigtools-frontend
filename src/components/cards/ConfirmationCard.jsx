@@ -30,7 +30,7 @@ const ConfirmationCard = ({ operatorCount, setDonationFilterPerId }) => {
     setOperators(operatorInfo)
     setCount(counting)
     setAdd(countingValue)
-  }, [])
+  }, [operatorCount])
   
 
   const handleClick = (id) => {

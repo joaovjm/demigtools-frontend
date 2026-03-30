@@ -3,7 +3,6 @@ import './App.css'
 import Navbar from './components/Navbar'
 import { ToastContainer } from 'react-toastify'
 import TaskNotification from './components/TaskNotification'
-import ChatNotification from './components/ChatNotification'
 
 function App() {
 
@@ -15,7 +14,6 @@ function App() {
       </main>
       <ToastContainer closeOnClick="true" pauseOnFocusLoss="false" autoClose="2000"/>
       <TaskNotification />
-      <ChatNotification />
     </>
   )
 }

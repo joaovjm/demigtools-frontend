@@ -4,7 +4,7 @@ import { DataSelect } from "../DataTime";
 import "./RequestsTable.css";
 import EditRequestCreated from "./EditRequestCreated";
 
-const RequestsTable = ({setRequestId}) => {
+const RequestsTable = ({ setRequestId, listVersion = 0 }) => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const fetchRequests = async () => {
@@ -22,7 +22,7 @@ const RequestsTable = ({setRequestId}) => {
 
   useEffect(() => {
     fetchRequests();
-  }, []);
+  }, [listVersion]);
 
   const getStatusBadge = (status) => {
 

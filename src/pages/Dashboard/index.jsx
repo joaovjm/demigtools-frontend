@@ -1,7 +1,6 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import "./index.css";
 //import getDonationReceived from "../../helper/getDonationReceived";
-import getDonationNotReceived from "../../helper/getDonationNotReceived";
 // import getDonationPerMonthReceived from "../../helper/getDonationPerMonthReceived";
 import { DataNow } from "../../components/DataTime";
 import TableConfirmation from "../../components/TableConfirmation";
@@ -9,19 +8,21 @@ import TableInOpen from "../../components/TableInOpen";
 import ModalConfirmations from "../../components/ModalConfirmations";
 import { toast } from "react-toastify";
 import TableScheduled from "../../components/TableScheduled";
-import getScheduledLeads from "../../helper/getScheduledLeads";
 import ModalScheduled from "../../components/ModalScheduled";
 import { UserContext } from "../../context/UserContext";
 import ModalDonationInOpen from "../../components/ModalDonationInOpen";
 import { useLocation } from "react-router";
-import supabase from "../../helper/superBaseClient";
 import MotivationalPhrases from "../../components/MotivationalPhrases";
 import getOperatorMeta from "../../helper/getOperatorMeta";
-import getDonationReceived from "../../helper/getDonationReceived";
-import { getSchedulingRequest } from "../../helper/getSchedulingRequest";
-import getScheduledDonations from "../../helper/getScheduledDonations";
-import getScheduledFromTable from "../../helper/getScheduledFromTable";
 import TableReceived from "../../components/TableReceived";
+import {
+  fetchDashboardCards,
+  fetchDashboardReceivedTable,
+  fetchDashboardConfirmationTable,
+  fetchDashboardOpenTable,
+  fetchDashboardScheduledTable,
+} from "../../api/dashboardApi.js";
+import apiClient from "../../services/apiClient.js";
 
 const Dashboard = () => {
   const [confirmations, setConfirmations] = useState(null); //Quantidade de fichas na confirmação
@@ -31,8 +32,21 @@ const Dashboard = () => {
   const [valueMonthReceived, setValueMonthReceived] = useState(null); //Total valor dos recebidos do atual Mês
   const [scheduling, setScheduling] = useState(0); //Total de leads agendadas
   const [active, setActive] = useState(false);
+  const [scheduledTotalCount, setScheduledTotalCount] = useState(0);
   const [nowScheduled, setNowScheduled] = useState(null);
   const { operatorData } = useContext(UserContext);
+  const operatorSessionData = useMemo(() => {
+    try {
+      const raw = localStorage.getItem("operatorData");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }, [operatorData?.operator_code_id, operatorData?.operator_type]);
+  const sessionOperatorCodeId =
+    operatorData?.operator_code_id ?? operatorSessionData?.operator_code_id ?? null;
+  const sessionOperatorType =
+    operatorData?.operator_type ?? operatorSessionData?.operator_type ?? "Operador";
 
   const [donationConfirmationOpen, setDonationConfirmationOpen] = useState([]);
   const [donationOpen, setDonationOpen] = useState([]);
@@ -47,6 +61,7 @@ const Dashboard = () => {
   const [meta, setMeta] = useState([]);
 
   const [modalOpen, setModalOpen] = useState(false);
+  const prevModalOpenRef = useRef(modalOpen);
 
   const monthref = DataNow("mesref");
 
@@ -54,53 +69,88 @@ const Dashboard = () => {
 
   const location = useLocation();
 
-  const donations = async () => {
-    try {
-      await getDonationNotReceived(
-        setConfirmations,
-        setValueConfirmations,
-        setOpenDonations,
-        setValueOpenDonations,
-        setDonationConfirmation,
-        setFullNotReceivedDonations,
-        operatorData.operator_code_id,
-        operatorData.operator_type
-      );
-      const donationReceived = await getDonationReceived(
-        operatorData.operator_code_id,
-        meta,
-        operatorData.operator_type
-      );
-      setValueMonthReceived(donationReceived.totalValue);
-      setDonationsOperator(donationReceived.donation)
-      
-      await getScheduledLeads(
-        operatorData.operator_code_id,
-        setScheduled,
-        setScheduling
-      );
-      await getSchedulingRequest({
-        operatorID: operatorData.operator_code_id,
-        setScheduled: setScheduled,
-        scheduled: scheduled,
-        scheduling: scheduling,
-        setScheduling: setScheduling
+  const loadCards = async () => {
+    if (!sessionOperatorCodeId) return;
+    const cards = await fetchDashboardCards({
+      operatorCodeId: sessionOperatorCodeId,
+      operatorType: sessionOperatorType,
+    });
+
+    setConfirmations(cards.confirmations);
+    setValueConfirmations(cards.valueConfirmations);
+    setOpenDonations(cards.openDonations);
+    setValueOpenDonations(cards.valueOpenDonations);
+    setValueMonthReceived(cards.valueReceived);
+    setScheduledTotalCount(cards.scheduledTotal);
+  };
+
+  const loadActiveTable = async (activeCard) => {
+    if (!sessionOperatorCodeId) return;
+
+    if (activeCard === "inConfirmation") {
+      const rows = await fetchDashboardConfirmationTable({
+        operatorCodeId: sessionOperatorCodeId,
+        operatorType: sessionOperatorType,
       });
-      
-      // Buscar doações agendadas da tabela donation
-      await getScheduledDonations(
-        operatorData.operator_code_id,
-        setScheduledDonations
-      );
-      
-      // Buscar agendados da tabela scheduled
-      await getScheduledFromTable(
-        operatorData.operator_code_id,
-        setScheduledFromTable
-      );
-    } catch (error) {
-      console.error("Error fetching donations:", error);
+      setDonationConfirmation(rows);
+      return;
     }
+
+    if (activeCard === "inOpen") {
+      const rows = await fetchDashboardOpenTable({
+        operatorCodeId: sessionOperatorCodeId,
+        operatorType: sessionOperatorType,
+      });
+      setFullNotReceivedDonations(rows);
+      return;
+    }
+
+    if (activeCard === "inScheduled") {
+      const payload = await fetchDashboardScheduledTable({
+        operatorCodeId: sessionOperatorCodeId,
+        operatorType: sessionOperatorType,
+      });
+      setScheduled(payload.scheduled || []);
+      setScheduledDonations(payload.scheduledDonations || []);
+      setScheduledFromTable(payload.scheduledFromTable || []);
+      return;
+    }
+
+    if (activeCard === "received") {
+      const rows = await fetchDashboardReceivedTable({
+        operatorCodeId: sessionOperatorCodeId,
+        operatorType: sessionOperatorType,
+      });
+      setDonationsOperator(rows || []);
+    }
+  };
+
+  useEffect(() => {
+    const getMeta = async () => {
+      const metaInfo = await getOperatorMeta(sessionOperatorCodeId);
+      setMeta(metaInfo);
+    };
+    if (sessionOperatorCodeId) getMeta();
+  }, [sessionOperatorCodeId]);
+
+  useEffect(() => {
+    // Cards carregam sempre (sem buscar tabelas pesadas).
+    loadCards().catch((e) => console.error("Erro ao carregar cards:", e));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionOperatorCodeId, sessionOperatorType]);
+
+  useEffect(() => {
+    // Carrega a tabela somente quando o card estiver ativo.
+    if (!active) return;
+    loadActiveTable(active).catch((e) =>
+      console.error("Erro ao carregar tabela:", e)
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
+
+  useEffect(() => {
+    if (!status) return;
+
     if (status === "OK") {
       toast.success("Ficha cancelada com sucesso!", {
         position: "top-right",
@@ -118,20 +168,36 @@ const Dashboard = () => {
         draggable: true,
       });
     }
-    setStatus(null);
-  };
-  
-  useEffect(() => {
-    const getMeta = async () => {
-      const metaInfo = await getOperatorMeta(operatorData.operator_code_id);
-      setMeta(metaInfo);
-    };
-    getMeta();
-  }, []);
 
+    loadCards().catch((e) => console.error("Erro ao recarregar cards:", e));
+    if (active) {
+      loadActiveTable(active).catch((e) =>
+        console.error("Erro ao recarregar tabela:", e)
+      );
+    }
+    setStatus(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
+  // Atualiza dados quando o usuário fecha modais após ações que alteram status
   useEffect(() => {
-    donations();
-  }, [active, modalOpen, status, operatorData, meta]);
+    if (!prevModalOpenRef.current) {
+      prevModalOpenRef.current = modalOpen;
+      return;
+    }
+
+    if (prevModalOpenRef.current && !modalOpen) {
+      loadCards().catch((e) => console.error("Erro ao recarregar cards:", e));
+      if (active) {
+        loadActiveTable(active).catch((e) =>
+          console.error("Erro ao recarregar tabela:", e)
+        );
+      }
+    }
+
+    prevModalOpenRef.current = modalOpen;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [modalOpen, active]);
 
   useEffect(() => {
     setActive(false);
@@ -157,7 +223,7 @@ const Dashboard = () => {
               <h3 className="h3Header">Agendados</h3>
             </div>
             <div className="divBody">
-              <p>{scheduled.length + scheduledDonations.length + scheduledFromTable.length}</p>
+              <p>{scheduledTotalCount}</p>
             </div>
           </div>
           
@@ -237,14 +303,13 @@ const Dashboard = () => {
               setNowScheduled={setNowScheduled}
             />
           ) : active === "received" ? (
-            <TableReceived donationsOperator={donationsOperator} operatorType={operatorData.operator_type} />
+            <TableReceived donationsOperator={donationsOperator} operatorType={sessionOperatorType} />
           ) : null}
         </section>
         {modalOpen && active === "inConfirmation" && (
           <ModalConfirmations
             donationConfirmationOpen={donationConfirmationOpen}
             onClose={() => setModalOpen(false)}
-            setStatus={setStatus}
           />
         )}
         {modalOpen && active === "inScheduled" && (

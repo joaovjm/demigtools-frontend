@@ -5,14 +5,12 @@ import extenso from "extenso";
 import { generatePixPayload } from "../../services/generatePixPayload";
 import { receiptLogo } from "../../assets/receiptLogo";
 import { toast } from "react-toastify";
-import supabase from "../../helper/supaBaseClient.js";
 
 pdfMake.vfs = pdfFonts.vfs;
 
 // Função para gerar código de barras em base64 no navegador
 
-const GenerateReceiptPDF = async ({ cards, receiptConfig, setOk }) => {
-  let update = [];
+const GenerateReceiptPDF = async ({ cards, receiptConfig, setOk, download = true }) => {
   if (
     cards.some(
       (v) => v.collector_code_id === "" || v.collector_code_id === null
@@ -31,9 +29,6 @@ const GenerateReceiptPDF = async ({ cards, receiptConfig, setOk }) => {
         txid: data.receipt_donation_id.toString(),
       });
       const barcode = await barCodeGenerator(data.receipt_donation_id);
-      update.push({
-        receipt_donation_id: data.receipt_donation_id,
-      });
       return {
         stack: [
           {
@@ -452,54 +447,25 @@ const GenerateReceiptPDF = async ({ cards, receiptConfig, setOk }) => {
       },
     },
   };
-  pdfMake.createPdf(docDefinition).getBlob(async (blob) => {
-    try {
-
-      const { data: uploadData, error } = await supabase.storage
-        .from("receiptPdfToPrint")
-        .upload(
-          `Print Checked/${cards.length === 1
-            ? cards[0].donor?.donor_name.replace(/[^a-zA-Z0-9]/g) + "-"
-            : cards[0].receipt_donation_id
-          } ${cards[0].donation_day_to_receive}.pdf`,
-          blob,
-          {
-            contentType: "application/pdf",
-            upsert: true,
-          }
-        );
-
-      if (error) throw error;
-
-      if (!error) {
-        const { error: updateError } = await supabase
-          .from("donation")
-          .update({ donation_print: "Sim" })
-          .in(
-            "receipt_donation_id",
-            update.map((item) => item.receipt_donation_id)
-          );
-
-        if (updateError) {
-          throw updateError;
-        } else {
+  return new Promise((resolve, reject) => {
+    pdfMake.createPdf(docDefinition).getBlob((blob) => {
+      try {
+        if (download) {
           const url = URL.createObjectURL(blob);
           const link = document.createElement("a");
           link.href = url;
-          link.download = `${cards[0].donor?.donor_name
-              ? cards[0].donor?.donor_name + "-"
-              : cards[0]?.receipt_donation_id
-            } ${cards[0].donation_day_to_receive}.pdf`;
+          link.download = `${cards[0].donor?.donor_name ? cards[0].donor?.donor_name + "-" : cards[0]?.receipt_donation_id} ${cards[0].donation_day_to_receive}.pdf`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
           URL.revokeObjectURL(url);
         }
+        if (typeof setOk === "function") setOk(true);
+        resolve(blob);
+      } catch (error) {
+        reject(error);
       }
-      setOk(true);
-    } catch (error) {
-      console.log("Erro ao salvar o recibo: ", error.message);
-    }
+    });
   });
 };
 

@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import "./index.css";
 import { FaPrint, FaDownload, FaEye } from "react-icons/fa";
-import supabase from "../../../helper/superBaseClient";
 import { toast } from "react-toastify";
+import { getDonationsPrinted } from "../../../services/printService";
+import { fetchCheckPrintPackage, fetchReceiptConfig } from "../../../api/receiverDonationsApi";
+import GenerateReceiptPDF from "../../GenerateReceiptPDF";
 
 const ModalPrintedPackages = ({ setModalOpen }) => {
   const [pdfs, setPdfs] = useState([]);
@@ -11,93 +13,45 @@ const ModalPrintedPackages = ({ setModalOpen }) => {
   const fetchPrintedPDFs = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.storage
-        .from('receiptPdfToPrint')
-        .list('Print Checked', {
-          limit: 100,
-          offset: 0,
-          sortBy: { column: 'created_at', order: 'desc' }
-        });
-
-      if (error) {
-        console.error('Erro ao buscar PDFs:', error);
-        toast.error('Erro ao carregar PDFs impressos');
-        return;
-      }
-
-      if (data) {
-        // Filtrar apenas arquivos PDF
-        const pdfFiles = data.filter(file => 
-          file.name.toLowerCase().endsWith('.pdf')
-        );
-        setPdfs(pdfFiles);
-      }
+      const data = await getDonationsPrinted();
+      setPdfs(data || []);
     } catch (error) {
-      console.error('Erro ao buscar PDFs:', error);
-      toast.error('Erro ao carregar PDFs impressos');
+      toast.error("Erro ao carregar impressos");
     } finally {
       setLoading(false);
     }
   };
 
-  const downloadPDF = async (fileName) => {
+  const buildAndDownload = async (pkg, openInTab = false) => {
     try {
-      const { data, error } = await supabase.storage
-        .from('receiptPdfToPrint')
-        .download(`Print Checked/${fileName}`);
-
-      if (error) {
-        console.error('Erro ao baixar PDF:', error);
-        toast.error('Erro ao baixar PDF');
+      const packageRes = await fetchCheckPrintPackage(pkg.id);
+      const cards = packageRes?.data?.cards || [];
+      if (!cards.length) {
+        toast.warning("Pacote sem recibos para reimpressão.");
         return;
       }
-
-      // Criar URL do blob e fazer download
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      toast.success('PDF baixado com sucesso!');
-    } catch (error) {
-      console.error('Erro ao baixar PDF:', error);
-      toast.error('Erro ao baixar PDF');
-    }
-  };
-
-  const viewPDF = async (fileName) => {
-    try {
-      const { data, error } = await supabase.storage
-        .from('receiptPdfToPrint')
-        .createSignedUrl(`Print Checked/${fileName}`, 60);
-
-      if (error) {
-        console.error('Erro ao gerar URL do PDF:', error);
-        toast.error('Erro ao visualizar PDF');
-        return;
+      const cfgRes = await fetchReceiptConfig();
+      const receiptConfig = cfgRes?.data || {};
+      const blob = await GenerateReceiptPDF({
+        cards,
+        receiptConfig,
+        setOk: () => {},
+        download: !openInTab,
+      });
+      if (openInTab && blob) {
+        const url = URL.createObjectURL(blob);
+        window.open(url, "_blank");
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
       }
-
-      // Abrir PDF em nova aba
-      window.open(data.signedUrl, '_blank');
+      toast.success("PDF gerado com sucesso!");
     } catch (error) {
-      console.error('Erro ao visualizar PDF:', error);
-      toast.error('Erro ao visualizar PDF');
+      toast.error("Erro ao gerar PDF");
     }
-  };
-
-  const formatFileSize = (size) => {
-    if (size < 1024) return `${size} B`;
-    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
-    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleString('pt-BR');
+    return date.toLocaleString("pt-BR");
   };
 
   useEffect(() => {
@@ -127,37 +81,45 @@ const ModalPrintedPackages = ({ setModalOpen }) => {
             </div>
           ) : pdfs.length === 0 ? (
             <div className="modal-printed-packages-empty">
-              <p>Nenhum PDF encontrado na pasta de impressos.</p>
+              <p>Nenhum pacote impresso encontrado.</p>
             </div>
           ) : (
-            pdfs.map((pdf, index) => (
-              <div key={index} className="modal-printed-packages-item">
+            pdfs.map((pkg) => (
+              <div key={pkg.id} className="modal-printed-packages-item">
                 <div className="modal-printed-packages-item-info">
                   <div className="input-field">
-                    <label>Nome do Arquivo</label>
-                    <p>{pdf.name}</p>
+                    <label>Pacote</label>
+                    <p>#{pkg.id}</p>
                   </div>
                   <div className="input-field">
-                    <label>Tamanho</label>
-                    <p>{formatFileSize(pdf.metadata?.size || 0)}</p>
+                    <label>Quantidade</label>
+                    <p>{pkg.total_items || 0} recibo(s)</p>
                   </div>
                   <div className="input-field">
-                    <label>Data de Criação</label>
-                    <p>{formatDate(pdf.created_at)}</p>
+                    <label>Data de Geração</label>
+                    <p>{formatDate(pkg.created_at)}</p>
+                  </div>
+                  <div className="input-field">
+                    <label>Filtro</label>
+                    <p>
+                      {pkg.donation_type || "Todos"} |{" "}
+                      {pkg.start_date ? formatDate(pkg.start_date) : "-"} até{" "}
+                      {pkg.end_date ? formatDate(pkg.end_date) : "-"}
+                    </p>
                   </div>
                 </div>
                 
                 <div className="modal-printed-packages-item-actions">
                   <button
                     className="modal-printed-packages-action-btn view"
-                    onClick={() => viewPDF(pdf.name)}
+                    onClick={() => buildAndDownload(pkg, true)}
                     title="Visualizar PDF"
                   >
                     <FaEye />
                   </button>
                   <button
                     className="modal-printed-packages-action-btn download"
-                    onClick={() => downloadPDF(pdf.name)}
+                    onClick={() => buildAndDownload(pkg, false)}
                     title="Baixar PDF"
                   >
                     <FaDownload />

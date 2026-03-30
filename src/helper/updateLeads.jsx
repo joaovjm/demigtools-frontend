@@ -1,29 +1,21 @@
-import { DataNow } from "../components/DataTime";
-import supabase from "./superBaseClient";
+import { patchUpdateLeadStatus } from "../api/leadsApi.js";
 
 const updateLeads = async (status_leads, operator_code_id, leads_id) => {
-  const updateData = {
-    leads_date_accessed: DataNow("noformated"),
-    leads_status: status_leads,
-    ...(operator_code_id !== null &&
-      operator_code_id !== undefined && { operator_code_id: operator_code_id }),
-  };
-
   try {
-    const { data, error } = await supabase
-      .from("leads")
-      .update(updateData)
-      .eq("leads_id", leads_id)
-      .select();
+    const resp = await patchUpdateLeadStatus({
+      leads_id,
+      leads_status: status_leads,
+      operator_code_id,
+    });
 
-    if (error) throw error;
-    if(data[0].leads_status === status_leads){
+    // backend retorna: { status: "OK", data: [...] }
+    const data = resp?.data;
+    if (Array.isArray(data) && data?.[0]?.leads_status === status_leads) {
       return data;
     }
-
-    
+    return resp?.data ?? null;
   } catch (error) {
-    console.log(error.message);
+    console.log(error?.message || error);
   }
 };
 

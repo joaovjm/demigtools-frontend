@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
 import styles from "./modalreceiptsend.module.css";
-import { FaDollarSign, FaEdit, FaSave, FaTimes, FaEnvelope, FaPaperPlane, FaCheckCircle, FaInfoCircle, FaCheck } from "react-icons/fa";
+import { FaDollarSign, FaTimes, FaEnvelope, FaPaperPlane, FaCheckCircle, FaInfoCircle, FaCheck, FaFilePdf } from "react-icons/fa";
+import {
+  fetchReceiptConfig,
+  patchDepositReceiptSent,
+} from "../../../api/receiverDonationsApi.js";
 import GenerateDepositPDF from "../../GenerateDepositPDF";
-import supabase from "../../../helper/superBaseClient";
 import { toast } from "react-toastify";
 
 const ModalReceiptSend = ({ setSendModalOpen, deposit, setDeposit }) => {
-  const [whatsapp, setWhatsapp] = useState();
-  const [inEdit, setInEdit] = useState("");
-  const [config, setConfig] = useState([]);
-  
+  const [config, setConfig] = useState({});
   // Estados para envio de email
   const [selectedRecipients, setSelectedRecipients] = useState([]);
   const [emailSubject, setEmailSubject] = useState("Comprovante de Depósito");
@@ -20,22 +20,21 @@ const ModalReceiptSend = ({ setSendModalOpen, deposit, setDeposit }) => {
   const [showEmailSection, setShowEmailSection] = useState(false);
   const [sendingProgress, setSendingProgress] = useState({ current: 0, total: 0 });
   const [showPreview, setShowPreview] = useState(false);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [receiptToMark, setReceiptToMark] = useState(null);
 
-  const handleEdit = (item) => {
-    if (inEdit === item.receipt_donation_id) {
-      setInEdit("");
-    } else {
-      setInEdit(item.receipt_donation_id);
+  const loadReceiptConfig = async () => {
+    try {
+      const res = await fetchReceiptConfig();
+      const row = res?.data;
+      if (row) setConfig(row);
+    } catch (e) {
+      console.error(e?.message || e);
     }
   };
 
-  const fetchReceiptConfig = async () => {
-    const { data, error } = await supabase.from("receipt_config").select();
-    if (error) throw error;
-    if (!error) {
-      setConfig(data[0]);
-    }
-  };
+  /** Metadados continuam vindo do Postgres (pai); PDF gerado localmente sob demanda. */
+  const displayDeposit = deposit ?? [];
 
   // Função para gerar saudação baseada na hora
   const getSaudacao = () => {
@@ -65,8 +64,12 @@ const ModalReceiptSend = ({ setSendModalOpen, deposit, setDeposit }) => {
 
   // Função para selecionar todos
   const selectAll = () => {
-    const validDeposits = deposit?.filter(item => item.donor?.donor_email?.donor_email);
-    setSelectedRecipients(validDeposits?.map((item) => item.receipt_donation_id) || []);
+    const validDeposits = displayDeposit?.filter(
+      (item) => item.donor?.donor_email?.donor_email
+    );
+    setSelectedRecipients(
+      validDeposits?.map((item) => item.receipt_donation_id) || []
+    );
   };
 
   // Função para desselecionar todos
@@ -93,36 +96,24 @@ const ModalReceiptSend = ({ setSendModalOpen, deposit, setDeposit }) => {
     }, 0);
   };
 
-  // Função para gerar PDF como base64
+  // Função para gerar PDF como base64 (sempre local)
   const generatePDFBase64 = async (item) => {
     try {
-      // Mapear a estrutura de dados para o formato esperado pela API
       const mappedData = {
         receipt_donation_id: item.receipt_donation_id,
         donation_value: item.donation_value,
         donation_campain: item.donation_campain,
         donation_day_received: item.donation_day_received || new Date().toISOString(),
-        donor_name: item.donor?.donor_name || '',
-        cpf: item.donor?.cpf || '',
+        donor_name: item.donor?.donor_name || "",
+        cpf: item.donor?.cpf || "",
       };
 
-      const response = await fetch("/api/generate-deposit-pdf", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ 
-          data: mappedData, 
-          config, 
-          cpf_visible: false 
-        }),
+      const blob = await GenerateDepositPDF({
+        data: mappedData,
+        config,
+        cpf_visible: false,
+        download: false,
       });
-
-      if (!response.ok) {
-        throw new Error("Erro ao gerar PDF");
-      }
-
-      const blob = await response.blob();
       
       // Converter blob para base64
       return new Promise((resolve, reject) => {
@@ -140,37 +131,81 @@ const ModalReceiptSend = ({ setSendModalOpen, deposit, setDeposit }) => {
     }
   };
 
-  // Função para marcar recibo como enviado manualmente
-  const handleMarkAsSent = async (item) => {
-    const confirmed = window.confirm(
-      `Você já enviou o recibo para ${item.donor?.donor_name}?\n\nClique em "OK" para confirmar que o recibo já foi enviado.`
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
+  // Função para marcar recibo como enviado manualmente (via modal de confirmação)
+  const handleMarkAsSent = async () => {
+    if (!receiptToMark) return;
     try {
-      const { error } = await supabase
-        .from('donation')
-        .update({ donation_deposit_receipt_send: 'Sim' })
-        .eq('receipt_donation_id', item.receipt_donation_id);
-
-      if (error) {
-        console.error('Erro ao atualizar banco de dados:', error);
-        toast.error('Erro ao marcar recibo como enviado');
-        return;
-      }
+      await patchDepositReceiptSent(receiptToMark.receipt_donation_id);
 
       // Remover o item da lista
       setDeposit(prevDeposit => 
-        prevDeposit.filter(d => d.receipt_donation_id !== item.receipt_donation_id)
+        prevDeposit.filter(d => d.receipt_donation_id !== receiptToMark.receipt_donation_id)
       );
 
-      toast.success(`Recibo marcado como enviado para ${item.donor?.donor_name}`);
+      toast.success(`Recibo marcado como enviado para ${receiptToMark.donor?.donor_name}`);
+      setConfirmModalOpen(false);
+      setReceiptToMark(null);
     } catch (error) {
       console.error('Erro ao marcar como enviado:', error);
       toast.error('Erro ao processar a solicitação');
+    }
+  };
+
+  const openConfirmMarkAsSent = (item) => {
+    setReceiptToMark(item);
+    setConfirmModalOpen(true);
+  };
+
+  const handleGenerateAndDownloadPdf = async (item) => {
+    try {
+      await GenerateDepositPDF({
+        data: {
+          receipt_donation_id: item.receipt_donation_id,
+          donation_value: item.donation_value,
+          donation_campain: item.donation_campain,
+          donation_day_received: item.donation_day_received,
+          donor_name: item.donor?.donor_name || "",
+          cpf: item.donor?.cpf || "",
+        },
+        config,
+        cpf_visible: false,
+      });
+      toast.success("PDF gerado e baixado com sucesso");
+    } catch (error) {
+      console.error(error);
+      toast.error(error?.message || "Erro ao gerar PDF");
+    }
+  };
+
+  const handleDownloadSelectedPdfs = async () => {
+    if (selectedRecipients.length === 0) {
+      toast.error("Selecione pelo menos um destinatário");
+      return;
+    }
+    let okCount = 0;
+    for (const receiptId of selectedRecipients) {
+      const item = displayDeposit.find((d) => d.receipt_donation_id === receiptId);
+      if (!item) continue;
+      try {
+        await GenerateDepositPDF({
+          data: {
+            receipt_donation_id: item.receipt_donation_id,
+            donation_value: item.donation_value,
+            donation_campain: item.donation_campain,
+            donation_day_received: item.donation_day_received,
+            donor_name: item.donor?.donor_name || "",
+            cpf: item.donor?.cpf || "",
+          },
+          config,
+          cpf_visible: false,
+        });
+        okCount += 1;
+      } catch (_error) {
+        // erro individual já notificado no helper
+      }
+    }
+    if (okCount > 0) {
+      toast.success(`${okCount} PDF(s) gerado(s) e baixado(s)`);
     }
   };
 
@@ -197,7 +232,7 @@ const ModalReceiptSend = ({ setSendModalOpen, deposit, setDeposit }) => {
         const receiptId = selectedRecipients[i];
         setSendingProgress({ current: i + 1, total: selectedRecipients.length });
         
-        const item = deposit.find((d) => d.receipt_donation_id === receiptId);
+        const item = displayDeposit.find((d) => d.receipt_donation_id === receiptId);
         
         if (!item || !item.donor?.donor_email?.donor_email) {
           errorCount++;
@@ -243,18 +278,13 @@ const ModalReceiptSend = ({ setSendModalOpen, deposit, setDeposit }) => {
           });
 
           if (response.ok) {
-            // Atualizar o banco de dados para marcar como enviado
-            const { error: updateError } = await supabase
-              .from('donation')
-              .update({ donation_deposit_receipt_send: 'Sim' })
-              .eq('receipt_donation_id', item.receipt_donation_id);
-
-            if (updateError) {
-              console.error(`Erro ao atualizar banco para ${donorEmail}:`, updateError);
-              errorCount++;
-            } else {
+            try {
+              await patchDepositReceiptSent(item.receipt_donation_id);
               successCount++;
-              sentReceiptIds.push(item.receipt_donation_id); // Adiciona à lista de enviados
+              sentReceiptIds.push(item.receipt_donation_id);
+            } catch (updateErr) {
+              console.error(`Erro ao atualizar banco para ${donorEmail}:`, updateErr);
+              errorCount++;
             }
           } else {
             errorCount++;
@@ -271,8 +301,8 @@ const ModalReceiptSend = ({ setSendModalOpen, deposit, setDeposit }) => {
 
       // Remover todos os itens enviados com sucesso de uma vez
       if (sentReceiptIds.length > 0) {
-        setDeposit(prevDeposit => 
-          prevDeposit.filter(d => !sentReceiptIds.includes(d.receipt_donation_id))
+        setDeposit((prevDeposit) =>
+          prevDeposit.filter((d) => !sentReceiptIds.includes(d.receipt_donation_id))
         );
       }
 
@@ -297,8 +327,8 @@ const ModalReceiptSend = ({ setSendModalOpen, deposit, setDeposit }) => {
   };
 
   useEffect(() => {
-    fetchReceiptConfig();
-  }, [])
+    loadReceiptConfig();
+  }, []);
   
   return (
     <div className="modal-area">
@@ -318,7 +348,7 @@ const ModalReceiptSend = ({ setSendModalOpen, deposit, setDeposit }) => {
         </div>
         
         <div className={styles.modalReceiptSendBody}>
-          {deposit?.length === 0 ? (
+          {displayDeposit?.length === 0 ? (
             <div className={styles.modalReceiptSendEmpty}>
               <p>Nenhum comprovante de depósito encontrado.</p>
             </div>
@@ -340,7 +370,8 @@ const ModalReceiptSend = ({ setSendModalOpen, deposit, setDeposit }) => {
                 </div>
 
                 {/* Aviso se não houver emails */}
-                {deposit?.filter(item => item.donor?.donor_email?.donor_email).length === 0 && (
+                {displayDeposit?.filter((item) => item.donor?.donor_email?.donor_email)
+                  .length === 0 && (
                   <div className={styles.warningMessage}>
                     <FaInfoCircle />
                     <p>Nenhum doador possui email cadastrado. Cadastre emails para habilitar o envio.</p>
@@ -428,7 +459,7 @@ const ModalReceiptSend = ({ setSendModalOpen, deposit, setDeposit }) => {
                         </div>
                         <div className={styles.previewContent}>
                           {(() => {
-                            const firstRecipient = deposit.find(
+                            const firstRecipient = displayDeposit.find(
                               (d) => d.receipt_donation_id === selectedRecipients[0]
                             );
                             const previewNome = getPrimeirosDoisNomes(firstRecipient?.donor?.donor_name || "[Nome]");
@@ -452,6 +483,14 @@ const ModalReceiptSend = ({ setSendModalOpen, deposit, setDeposit }) => {
 
                     {/* Botões de ação */}
                     <div className={styles.emailActions}>
+                      <button
+                        type="button"
+                        onClick={handleDownloadSelectedPdfs}
+                        disabled={sending || selectedRecipients.length === 0}
+                        className={styles.previewBtn}
+                      >
+                        <FaFilePdf /> Gerar/Baixar PDFs Selecionados
+                      </button>
                       {!showPreview && selectedRecipients.length > 0 && (
                         <button
                           type="button"
@@ -498,7 +537,7 @@ const ModalReceiptSend = ({ setSendModalOpen, deposit, setDeposit }) => {
                 <h4>Lista de Comprovantes</h4>
               </div>
 
-              {deposit?.map((item, index) => {
+              {displayDeposit?.map((item) => {
                 const hasEmail = item.donor?.donor_email?.donor_email;
                 const isSelected = selectedRecipients.includes(item.receipt_donation_id);
                 
@@ -522,6 +561,9 @@ const ModalReceiptSend = ({ setSendModalOpen, deposit, setDeposit }) => {
                       <div className={styles.inputField}>
                         <label>Recibo</label>
                         <p title={item.receipt_donation_id}>{item.receipt_donation_id}</p>
+                        <span className={styles.pdfHintWarn}>
+                          PDF gerado localmente no envio/geração manual
+                        </span>
                       </div>
                       <div className={styles.inputField}>
                         <label>Nome</label>
@@ -538,37 +580,29 @@ const ModalReceiptSend = ({ setSendModalOpen, deposit, setDeposit }) => {
                       </div>
                       <div className={styles.inputField}>
                         <label>WhatsApp</label>
-                        <input
-                          type="text"
-                          value={item.donor.donor_tel_1}
-                          onChange={(e) => setWhatsapp(e.target.value)}
-                          readOnly={inEdit !== item.receipt_donation_id}
-                          className={inEdit === item.receipt_donation_id ? styles.editable : styles.readonly}
-                          title={item.donor.donor_tel_1}
-                        />
+                        <p title={item.donor?.donor_tel_1}>{item.donor?.donor_tel_1 || "-"}</p>
                       </div>
                     </div>
                     
                     <div className={styles.modalReceiptSendItemActions}>
-                      <button
-                        onClick={() => handleEdit(item, index)}
-                        className={`${styles.modalReceiptSendActionBtn} ${inEdit === item.receipt_donation_id ? styles.save : styles.edit}`}
-                        title={inEdit === item.receipt_donation_id ? "Salvar alterações" : "Editar WhatsApp"}
-                      >
-                        {inEdit === item.receipt_donation_id ? <FaSave /> : <FaEdit />}
-                      </button>
-                      
                       {/* Botão para marcar como enviado manualmente (apenas se não tem email) */}
                       {!hasEmail && (
                         <button
-                          onClick={() => handleMarkAsSent(item)}
+                          onClick={() => openConfirmMarkAsSent(item)}
                           className={`${styles.modalReceiptSendActionBtn} ${styles.markAsSent}`}
                           title="Marcar como enviado manualmente"
                         >
                           <FaCheck />
                         </button>
                       )}
-                      {/* <GenerateDepositPDF data={item} config={config}/> */}
+                      <button
+                        type="button"
+                        onClick={() => handleGenerateAndDownloadPdf(item)}
+                        className={`${styles.modalReceiptSendActionBtn} ${styles.generatePdf}`}
+                        title="Gerar e baixar PDF localmente"
+                      >
+                        <FaFilePdf />
+                      </button>
                     </div>
                   </div>
                 );
@@ -577,6 +611,39 @@ const ModalReceiptSend = ({ setSendModalOpen, deposit, setDeposit }) => {
           )}
         </div>
       </div>
+
+      {confirmModalOpen && receiptToMark && (
+        <div className={styles.confirmModalOverlay}>
+          <div className={styles.confirmModalBox}>
+            <h4>Confirmar envio</h4>
+            <p>
+              Deseja marcar o recibo <strong>#{receiptToMark.receipt_donation_id}</strong> de{" "}
+              <strong>{receiptToMark.donor?.donor_name || "doador"}</strong> como enviado?
+            </p>
+            <div className={styles.confirmModalActions}>
+              <button
+                type="button"
+                className={`${styles.confirmActionBtn} ${styles.cancelBtn}`}
+                onClick={() => {
+                  setConfirmModalOpen(false);
+                  setReceiptToMark(null);
+                }}
+                title="Cancelar"
+              >
+                <FaTimes /> Cancelar
+              </button>
+              <button
+                type="button"
+                className={`${styles.confirmActionBtn} ${styles.confirmBtn}`}
+                onClick={handleMarkAsSent}
+                title="Confirmar"
+              >
+                <FaCheck /> Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

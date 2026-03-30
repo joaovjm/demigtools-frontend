@@ -18,36 +18,45 @@ const LoadLeads = () => {
 
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
-    setIsLoading(true);
-    await xlsxFileUpload(file, setExcelData, setHeaders);
-    if (file) {
-      setFileName(file.name);
-    } else {
+    if (!file) {
       setFileName("Nenhum arquivo selecionado");
+      setExcelData([]);
+      setHeaders(null);
+      return;
     }
-    setIsLoading(false);
+    setIsLoading(true);
+    try {
+      await xlsxFileUpload(file, setExcelData, setHeaders);
+      setFileName(file.name);
+    } catch {
+      setFileName("Nenhum arquivo selecionado");
+      setExcelData([]);
+      setHeaders(null);
+      event.target.value = "";
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInsertNewLead = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    const response = await insertNewLeads(
-      excelData,
-      setInsertedCount,
-      setTotalCount,
-      typeLead
-    );
-    if (response) {
-      setFileName("Nenhum arquivo selecionado");
-      setExcelData([]);
-      setSuccessMessage(response);
+    try {
+      const response = await insertNewLeads(
+        excelData,
+        setInsertedCount,
+        setTotalCount,
+        typeLead
+      );
+      if (response) {
+        setFileName("Nenhum arquivo selecionado");
+        setExcelData([]);
+        setSuccessMessage(response);
+      }
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
-
-  const handleTypeLead = () => {
-
-  }
 
   return (
     <div className="load-leads-container">

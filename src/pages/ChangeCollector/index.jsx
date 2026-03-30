@@ -2,13 +2,15 @@ import React, { useEffect, useState } from "react";
 import styles from "./changecollector.module.css";
 
 import { getCollector } from "../../helper/getCollector";
-import { changeCollector, handleReasonButtonPressed } from "../../helper/changeCollector";
 import { DataNow, DataSelect } from "../../components/DataTime";
 import { ALERT_TYPES, ICONS, MESSAGES } from "../../constants/constants";
 import FormSelect from "../../components/forms/FormSelect";
 import FormInput from "../../components/forms/FormInput";
 import MessageStatus from "../../components/MessageStatus";
-import supabase from "../../helper/superBaseClient";
+import {
+  changeCollectorRequest,
+  fetchDonationDonorByReceipt,
+} from "../../api/changeCollectorApi";
 
 const ChangeCollector = () => {
   const [formData, setFormData] = useState({
@@ -22,6 +24,7 @@ const ChangeCollector = () => {
   const [reason, setReason] = useState("");
   const [donorName, setDonorName] = useState("");
   const [donationCount, setDonationCount] = useState(0);
+  const [pendingPayload, setPendingPayload] = useState(null);
 
   useEffect(() => {
     const fetchCollectors = async () => {
@@ -43,14 +46,7 @@ const ChangeCollector = () => {
     const fetchDonorName = async () => {
       if (openReason && formData.search) {
         try {
-          const { data, error } = await supabase
-            .from("donation")
-            .select("donor:donor_id (donor_name)")
-            .eq("receipt_donation_id", formData.search)
-            .single();
-
-          if (error) throw error;
-
+          const data = await fetchDonationDonorByReceipt(formData.search);
           if (data && data.donor) {
             setDonorName(data.donor.donor_name || "");
           }
@@ -86,12 +82,20 @@ const ChangeCollector = () => {
 
     try {
       const dateFormat = formData.date;
-      const result = await changeCollector(
-        Number(formData.collector),
-        formData.search,
-        dateFormat,
-        setOpenReason,
-      );
+      const payload = {
+        collector_code_id: Number(formData.collector),
+        receipt_donation_id: Number(formData.search),
+        donation_day_to_receive: dateFormat,
+      };
+
+      if (Number(formData.collector) === 10) {
+        setPendingPayload(payload);
+        setOpenReason(true);
+        return;
+      }
+
+      const resultEnvelope = await changeCollectorRequest(payload);
+      const result = resultEnvelope?.code === "OK" ? "Ok" : resultEnvelope?.code === "RECEIVED" ? "Yes" : 0;
 
       let message, type;
 
@@ -121,6 +125,41 @@ const ChangeCollector = () => {
     }
 
     setFormData((prev) => ({ ...prev, search: "" }));
+  };
+
+  const handleConfirmReason = async () => {
+    if (!pendingPayload) return;
+    if (!reason?.trim()) return;
+    try {
+      const resultEnvelope = await changeCollectorRequest({
+        ...pendingPayload,
+        donor_confirmation_reason: reason.trim(),
+      });
+      const result = resultEnvelope?.code === "OK" ? "Ok" : resultEnvelope?.code === "RECEIVED" ? "Yes" : 0;
+
+      let message;
+      let type;
+      if (result === "Ok") {
+        message = MESSAGES.COLLECTOR_SUCCESS;
+        type = ALERT_TYPES.SUCCESS;
+        setDonationCount((prev) => prev + 1);
+      } else if (result === "Yes") {
+        message = MESSAGES.DONATION_RECEIVED;
+        type = ALERT_TYPES.ERROR;
+      } else {
+        message = MESSAGES.RECEIPT_NOT_FOUND;
+        type = ALERT_TYPES.ERROR;
+      }
+      setAlert({ message, type });
+      setFormData((prev) => ({ ...prev, search: "" }));
+    } catch (_e) {
+      setAlert({ message: "Erro ao alterar o coletador", type: ALERT_TYPES.ERROR });
+    } finally {
+      setOpenReason(false);
+      setReason("");
+      setDonorName("");
+      setPendingPayload(null);
+    }
   };
 
   return (
@@ -248,7 +287,7 @@ const ChangeCollector = () => {
                   {ICONS.CANCEL} Fechar
                 </button>
                 <button 
-                  onClick={() => handleReasonButtonPressed(reason)} 
+                  onClick={handleConfirmReason}
                   className={`${styles.changeCollectorBtn} ${styles.primary}`}
                 >
                   {ICONS.CONFIRMED} Confirmar

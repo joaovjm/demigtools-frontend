@@ -1,11 +1,14 @@
+const apiBase = import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL.replace(/\/$/, "")
+  : "/api";
+
 /**
- * Gera o PDF de depósito chamando a API do backend
- * A geração do PDF agora é feita no servidor Node.js, usando arquivos PNG
- * ao invés de base64, removendo a responsabilidade do frontend
+ * Gera o PDF de depósito pelo backend e baixa localmente.
+ * Com containers separados, defina VITE_API_URL (ex.: https://api.seudominio.com/api).
  */
-const GenerateDepositPDF = async ({ data, config, cpf_visible }) => {
+const GenerateDepositPDF = async ({ data, config, cpf_visible, download = true }) => {
   try {
-    const response = await fetch("/api/generate-deposit-pdf", {
+    const response = await fetch(`${apiBase}/generate-deposit-pdf`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -30,23 +33,24 @@ const GenerateDepositPDF = async ({ data, config, cpf_visible }) => {
       throw new Error(errorMessage);
     }
 
-    // Obter o blob do PDF
     const blob = await response.blob();
-    
-    // Criar URL temporária e fazer download
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    
-    const fileName = `${data.receipt_donation_id} - ${data.donor_name
-      .normalize("NFD")
-      .toUpperCase()}.pdf`.replace(/[\/\\:*?"<>|]/g, "");
-    
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+
+    if (download) {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+
+      const fileName = `${data.receipt_donation_id} - ${data.donor_name
+        .normalize("NFD")
+        .toUpperCase()}.pdf`.replace(/[\/\\:*?"<>|]/g, "");
+
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }
+    return blob;
   } catch (error) {
     console.error("Erro ao gerar PDF:", error);
     throw error;

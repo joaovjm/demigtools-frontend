@@ -24,7 +24,6 @@ const DashboardModals = ({
         <ModalConfirmations
           donationConfirmationOpen={donationConfirmationOpen}
           onClose={onClose}
-          setStatus={setStatus}
         />
       );
     case CARD_IDS.IN_SCHEDULED:

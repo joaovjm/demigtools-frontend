@@ -7,16 +7,9 @@ import ModalNewDonation from "../ModalNewDonation";
 import ModalScheduling from "../ModalScheduling";
 import { UserContext } from "../../context/UserContext";
 import { toast } from "react-toastify";
-import supabase from "../../helper/superBaseClient";
 import { DataNow } from "../../components/DataTime";
-import {
-  insertDonor,
-  insertDonor_cpf,
-  insertDonor_reference,
-  insertDonor_tel_2,
-  insertDonor_tel_3,
-} from "../../helper/insertDonor";
 import { registerOperatorActivity, ACTIVITY_TYPES } from "../../services/operatorActivityService";
+import { createDonationFromLead, scheduleLead } from "../../api/leadsApi.js";
 
 const ModalEditLead = ({ 
   isOpen, 
@@ -141,41 +134,32 @@ const ModalEditLead = ({
       return;
     }
     try {
-      const { data, error } = await supabase
-        .from("leads")
-        .update([
-          {
-            leads_date_accessed: DataNow("noformated"),
-            leads_scheduling_date: formData.dateScheduling,
-            leads_status: "agendado",
-            leads_observation: formData.observationScheduling,
-            leads_tel_success: formData.telScheduling
-          },
-        ])
-        .eq("leads_id", leadId)
-        .select();
+      const resp = await scheduleLead({
+        leads_id: leadId,
+        dateScheduling: formData.dateScheduling,
+        telScheduling: formData.telScheduling,
+        observationScheduling: formData.observationScheduling,
+      });
 
-      if (error) throw error;
+      const updatedLead = resp?.data ?? null;
 
-      if (!error) {
-        // Registra atividade de lead agendado
-        await registerOperatorActivity({
-          operatorId: operatorData?.operator_code_id,
-          operatorName: operatorData?.operator_name,
-          activityType: ACTIVITY_TYPES.LEAD_SCHEDULED,
-          donorName: fullLeadData?.leads_name || leadData.name,
-          metadata: { 
-            leadId: leadId, 
-            source: "leads_scheduled",
-            scheduledDate: formData.dateScheduling,
-          },
-        });
-        toast.success("Agendado com sucesso!");
-        setIsModalSchedulingOpen(false);
-        if (onSave && data && data.length > 0) {
-          setFullLeadData(data[0]);
-          onSave(data[0]);
-        }
+      // Registra atividade de lead agendado
+      await registerOperatorActivity({
+        operatorId: operatorData?.operator_code_id,
+        operatorName: operatorData?.operator_name,
+        activityType: ACTIVITY_TYPES.LEAD_SCHEDULED,
+        donorName: fullLeadData?.leads_name || leadData.name,
+        metadata: {
+          leadId: leadId,
+          source: "leads_scheduled",
+          scheduledDate: formData.dateScheduling,
+        },
+      });
+      toast.success("Agendado com sucesso!");
+      setIsModalSchedulingOpen(false);
+      if (onSave && updatedLead) {
+        setFullLeadData(updatedLead);
+        onSave(updatedLead);
       }
     } catch (error) {
       console.error("Erro: ", error.message);
@@ -200,89 +184,15 @@ const ModalEditLead = ({
           try {
             const leadName = fullLeadData?.leads_name || leadData.name;
             const wasScheduled = fullLeadData?.leads_status === "agendado";
-            
-            const data = await insertDonor(
-              leadName,
-              "Lista",
-              formData.address,
-              formData.city,
-              formData.neighborhood,
-              formData.telSuccess
-            );
 
-            if (data.length > 0) {
-              console.log("Doador Criado com Sucesso");
-            }
+            const resp = await createDonationFromLead({
+              leads_id: leadId,
+              operator_code_id: operatorData?.operator_code_id,
+              formData,
+            });
 
-            const cpf = await insertDonor_cpf(
-              data[0].donor_id,
-              fullLeadData?.leads_icpf || leadData.icpf
-            );
-
-            if (formData.newTel2 !== "") {
-              await insertDonor_tel_2(data[0].donor_id, formData.newTel2);
-            }
-            if (formData.newTel3 !== "") {
-              await insertDonor_tel_3(data[0].donor_id, formData.newTel3);
-            }
-            if (formData.reference !== "") {
-              await insertDonor_reference(data[0].donor_id, formData.reference);
-            }
-
-            if (formData.valueDonation !== "" && formData.dateDonation !== "") {
-              const { data: donation, error: donationError } = await supabase
-                .from("donation")
-                .insert([
-                  {
-                    donor_id: data[0].donor_id,
-                    operator_code_id: operatorData?.operator_code_id,
-                    donation_value: formData.valueDonation,
-                    donation_day_contact: DataNow("noformated"),
-                    donation_day_to_receive: formData.dateDonation,
-                    donation_print: "Não",
-                    donation_received: "Não",
-                    donation_description: formData.observation,
-                    donation_campain: formData.campain,
-                  },
-                ])
-                .select();
-
-              if (donationError) throw donationError;
-            }
-
-            const { data: update, error } = await supabase
-              .from("leads")
-              .update({ leads_status: "Sucesso" })
-              .eq("leads_id", leadId)
-              .select();
-            if (error) throw error;
-
-            // Verificar se o lead estava agendado e marcar na tabela scheduled como concluído
-            if (wasScheduled) {
-              // Buscar e atualizar agendamentos pendentes relacionados a este lead
-              const { error: scheduledError } = await supabase
-                .from("scheduled")
-                .update({ status: "concluído" })
-                .eq("entity_type", "lead")
-                .eq("entity_id", leadId)
-                .eq("status", "pendente");
-
-              if (scheduledError) {
-                console.log("Erro ao atualizar agendamento:", scheduledError.message);
-              }
-            }
-
-            // Verificar se existe doação agendada (confirmation_status = "Agendado") para o novo doador
-            // e marcar como Concluído
-            const { error: updateScheduledDonationsError } = await supabase
-              .from("donation")
-              .update({ confirmation_status: "Concluído" })
-              .eq("donor_id", data[0].donor_id)
-              .eq("confirmation_status", "Agendado");
-
-            if (updateScheduledDonationsError) {
-              console.log("Erro ao atualizar doações agendadas:", updateScheduledDonationsError.message);
-            }
+            const out = resp?.data ?? {};
+            const donorId = out?.donor_id;
 
             // Registra atividade - usa tipo diferente se veio de agendado
             await registerOperatorActivity({
@@ -291,7 +201,7 @@ const ModalEditLead = ({
               activityType: wasScheduled 
                 ? ACTIVITY_TYPES.LEAD_DONATION_FROM_SCHEDULED 
                 : ACTIVITY_TYPES.LEAD_SUCCESS,
-              donorId: data[0].donor_id,
+              donorId,
               donorName: leadName,
               metadata: { 
                 leadId: leadId, 
@@ -302,10 +212,11 @@ const ModalEditLead = ({
             });
 
             setIsModalNewDonationOpen(false);
-            
-            if (onSave && update && update.length > 0) {
-              setFullLeadData(update[0]);
-              onSave(update[0]);
+
+            const updated = await getLeadById(leadId);
+            if (onSave && updated) {
+              setFullLeadData(updated);
+              onSave(updated);
             }
 
             return "Processo concluido com sucesso!";

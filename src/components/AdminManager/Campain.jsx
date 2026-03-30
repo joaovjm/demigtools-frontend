@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { getCampains } from "../../helper/getCampains";
 import { ICONS } from "../../constants/constants";
-import { FaImage, FaTrash, FaVideo } from "react-icons/fa";
+import { FaEye, FaImage, FaTrash, FaVideo } from "react-icons/fa";
 import { updateCampains } from "../../helper/updateCampains";
 import { deleteCampain } from "../../helper/deleteCampain";
 import { insertNewCampain } from "../../helper/insertNewCampain";
@@ -12,8 +12,25 @@ import { deleteCampainText } from "../../helper/deleteCampainText";
 import { toast } from "react-toastify";
 import JoditEditor from "jodit-react";
 import styles from "../../pages/AdminManager/adminmanager.module.css";
+import { fetchCampainTextById } from "../../api/campainsApi";
 
 const Campain = () => {
+  const defaultVideoPoster =
+    "data:image/svg+xml;utf8," +
+    encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+        <defs>
+          <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0%" stop-color="#2f2d2d"/>
+            <stop offset="100%" stop-color="#1f1d1d"/>
+          </linearGradient>
+        </defs>
+        <rect width="1280" height="720" fill="url(#g)"/>
+        <circle cx="640" cy="360" r="88" fill="rgba(250,160,28,0.22)" stroke="#faa01c" stroke-width="4"/>
+        <polygon points="615,315 615,405 695,360" fill="#faa01c"/>
+        <text x="640" y="470" text-anchor="middle" fill="#faf5e9" font-family="Arial, sans-serif" font-size="30">Video da campanha</text>
+      </svg>`
+    );
   const [campains, setCampains] = useState([]);
   const [newCampain, setNewCampain] = useState();
   const [inEdit, setInEdit] = useState();
@@ -26,6 +43,10 @@ const Campain = () => {
   const [textContent, setTextContent] = useState("");
   const [editingTextId, setEditingTextId] = useState(null);
   const [reloadTexts, setReloadTexts] = useState(false);
+  const [textsLoading, setTextsLoading] = useState(false);
+  const [openedTextId, setOpenedTextId] = useState(null);
+  const [openedTextData, setOpenedTextData] = useState(null);
+  const [openedTextLoading, setOpenedTextLoading] = useState(false);
   
   // Estados para gerenciar imagens
   const [textImage, setTextImage] = useState(null);
@@ -319,8 +340,12 @@ const Campain = () => {
 
   useEffect(() => {
     const campain = async () => {
-      const response = await getCampains();
-      setCampains(response);
+      try {
+        const response = await getCampains();
+        setCampains(response);
+      } catch (error) {
+        toast.error("Erro ao carregar campanhas.");
+      }
     };
     campain();
   }, [inEdit, reload]);
@@ -328,12 +353,21 @@ const Campain = () => {
   // Buscar textos quando uma campanha é selecionada
   useEffect(() => {
     const fetchTexts = async () => {
-      if (selectedCampainId) {
-        const texts = await getCampainTexts(selectedCampainId);
-        setCampainTexts(texts);
-      } else {
-        const texts = await getCampainTexts();
-        setCampainTexts(texts);
+      setTextsLoading(true);
+      setOpenedTextId(null);
+      setOpenedTextData(null);
+      try {
+        if (selectedCampainId) {
+          const texts = await getCampainTexts(selectedCampainId);
+          setCampainTexts(texts);
+        } else {
+          const texts = await getCampainTexts();
+          setCampainTexts(texts);
+        }
+      } catch (error) {
+        toast.error("Erro ao carregar textos das campanhas.");
+      } finally {
+        setTextsLoading(false);
       }
     };
     fetchTexts();
@@ -348,9 +382,13 @@ const Campain = () => {
 
   const handleEdit = async (id) => {
     if (inEdit) {
-      const updateCampain = campains.find((c) => c.id === id);
-      await updateCampains(updateCampain);
-      setInEdit();
+      try {
+        const updateCampain = campains.find((c) => c.id === id);
+        await updateCampains(updateCampain);
+        setInEdit();
+      } catch (error) {
+        toast.error("Erro ao atualizar campanha.");
+      }
     } else {
       setInEdit(id);
     }
@@ -358,8 +396,12 @@ const Campain = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm("Deseja mesmo deletar esta campanha?")) {
-      await deleteCampain(id);
-      setReload((prev) => !prev);
+      try {
+        await deleteCampain(id);
+        setReload((prev) => !prev);
+      } catch (error) {
+        toast.error("Erro ao deletar campanha.");
+      }
     }
   };
 
@@ -368,9 +410,13 @@ const Campain = () => {
       toast.warning("Preencha o campo 'Nova Campanha' corretamente...");
       return;
     }
-    await insertNewCampain(newCampain);
-    setReload((prev) => !prev);
-    setNewCampain("");
+    try {
+      await insertNewCampain(newCampain);
+      setReload((prev) => !prev);
+      setNewCampain("");
+    } catch (error) {
+      toast.error("Erro ao adicionar campanha.");
+    }
   };
 
   // Função para lidar com seleção de imagem
@@ -475,51 +521,88 @@ const Campain = () => {
       textData.video = videoPreview; // base64
     }
 
-    if (editingTextId) {
-      // Atualizar texto existente
-      await updateCampainText(editingTextId, textData);
-    } else {
-      // Inserir novo texto
-      await insertCampainText(textData);
-    }
+    try {
+      if (editingTextId) {
+        await updateCampainText(editingTextId, textData);
+      } else {
+        await insertCampainText(textData);
+      }
 
-    // Limpar formulário
-    setTextTitle("");
-    setTextContent("");
-    setTextImage(null);
-    setImagePreview(null);
-    setTextVideo(null);
-    setVideoPreview(null);
-    setEditingTextId(null);
-    setReloadTexts((prev) => !prev);
+      setTextTitle("");
+      setTextContent("");
+      setTextImage(null);
+      setImagePreview(null);
+      setTextVideo(null);
+      setVideoPreview(null);
+      setEditingTextId(null);
+      setReloadTexts((prev) => !prev);
+    } catch (error) {
+      toast.error("Erro ao salvar texto da campanha.");
+    }
   };
 
-  const handleEditText = (text) => {
-    setEditingTextId(text.id);
-    setTextTitle(text.title);
-    setTextContent(text.content);
-    setSelectedCampainId(text.campain_id.toString());
-    
-    // Carregar imagem se existir
-    if (text.image) {
-      setImagePreview(text.image);
-      setTextImage({ name: "imagem_salva.jpg" }); // Placeholder para indicar que há imagem
+  const handleEditText = async (text) => {
+    try {
+      const response = await fetchCampainTextById(text.id);
+      const detail = response?.data;
+      if (!response?.success || !detail) {
+        toast.error(response?.message || "Erro ao carregar texto para edição.");
+        return;
+      }
+      setEditingTextId(detail.id);
+      setTextTitle(detail.title);
+      setTextContent(detail.content || "");
+      setSelectedCampainId(String(detail.campain_id || ""));
+      if (detail.image) {
+        setImagePreview(detail.image);
+        setTextImage({ name: "imagem_salva.jpg" });
+      } else {
+        setImagePreview(null);
+        setTextImage(null);
+      }
+      if (detail.video) {
+        setVideoPreview(detail.video);
+        setTextVideo({ name: "video_salvo.mp4" });
+      } else {
+        setVideoPreview(null);
+        setTextVideo(null);
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (error) {
+      toast.error("Erro ao carregar texto para edição.");
     }
-    
-    // Carregar vídeo se existir
-    if (text.video) {
-      setVideoPreview(text.video);
-      setTextVideo({ name: "video_salvo.mp4" }); // Placeholder para indicar que há vídeo
-    }
-    
-    // Scroll para o formulário
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDeleteText = async (id) => {
     if (window.confirm("Deseja mesmo deletar este texto?")) {
-      await deleteCampainText(id);
-      setReloadTexts((prev) => !prev);
+      try {
+        await deleteCampainText(id);
+        setReloadTexts((prev) => !prev);
+      } catch (error) {
+        toast.error("Erro ao deletar texto da campanha.");
+      }
+    }
+  };
+
+  const handleViewTextContent = async (textId) => {
+    if (openedTextId === textId) {
+      setOpenedTextId(null);
+      setOpenedTextData(null);
+      return;
+    }
+    setOpenedTextLoading(true);
+    try {
+      const response = await fetchCampainTextById(textId);
+      if (!response?.success || !response?.data) {
+        toast.error(response?.message || "Erro ao carregar conteúdo do texto.");
+        return;
+      }
+      setOpenedTextId(textId);
+      setOpenedTextData(response.data);
+    } catch (error) {
+      toast.error("Erro ao carregar conteúdo do texto.");
+    } finally {
+      setOpenedTextLoading(false);
     }
   };
 
@@ -551,7 +634,7 @@ const Campain = () => {
     
     // Substituir marcador {{video}} pelo vídeo real
     if (videoPreview) {
-      const videoTag = `<video src="${videoPreview}" controls style="max-width: 100%; height: auto; border-radius: 6px; margin: 12px 0;">Seu navegador não suporta vídeos.</video>`;
+      const videoTag = `<video src="${videoPreview}" controls preload="none" poster="${defaultVideoPoster}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 12px 0;">Seu navegador não suporta vídeos.</video>`;
       preview = preview.replace(/\{\{video\}\}/gi, videoTag);
     } else {
       // Se não há vídeo, mostrar placeholder
@@ -843,7 +926,18 @@ const Campain = () => {
         </div>
 
         <div className={styles.textsList}>
-          {campainTexts.length === 0 ? (
+          {textsLoading ? (
+            <>
+              {[1, 2, 3].map((idx) => (
+                <div key={idx} className={`${styles.textCard} ${styles.textCardSkeleton}`}>
+                  <div className={styles.skeletonLineTitle} />
+                  <div className={styles.skeletonLineMeta} />
+                  <div className={styles.skeletonLineBody} />
+                  <div className={styles.skeletonLineBodyShort} />
+                </div>
+              ))}
+            </>
+          ) : campainTexts.length === 0 ? (
             <div className={styles.emptyState}>
               <p>Nenhum texto cadastrado {selectedCampainId ? 'para esta campanha' : 'ainda'}.</p>
               <p className={styles.emptyStateHint}>Crie seu primeiro texto acima!</p>
@@ -867,6 +961,14 @@ const Campain = () => {
                     </div>
                     <div className={styles.textCardActions}>
                       <button
+                        onClick={() => handleViewTextContent(text.id)}
+                        className={`${styles.campainBtn} ${styles.iconBtn} ${styles.primary}`}
+                        title="Visualizar conteúdo"
+                        disabled={openedTextLoading}
+                      >
+                        <FaEye />
+                      </button>
+                      <button
                         onClick={() => handleEditText(text)}
                         className={`${styles.campainBtn} ${styles.iconBtn} ${styles.secondary}`}
                         title="Editar"
@@ -883,45 +985,42 @@ const Campain = () => {
                     </div>
                   </div>
                   
-                  <div className={styles.textCardBody}>
-                    <label className={styles.textCardLabel}>Conteúdo:</label>
-                    <div
-                      className={styles.textCardContent}
-                      dangerouslySetInnerHTML={{ 
-                        __html: (() => {
-                          let content = text.content;
-                          
-                          // Substituir {{imagem}}
-                          if (text.image) {
-                            content = content.replace(
-                              /\{\{imagem\}\}/gi, 
-                              `<img src="${text.image}" alt="Imagem da campanha" style="max-width: 100%; height: auto; border-radius: 6px; margin: 12px 0;" />`
-                            );
-                          } else {
-                            content = content.replace(
-                              /\{\{imagem\}\}/gi, 
-                              '<div style="padding: 20px; background: #2f2d2d; border: 2px dashed #faa01c; border-radius: 6px; text-align: center; color: #9e9e9e; margin: 12px 0;">📷 Imagem não anexada</div>'
-                            );
-                          }
-                          
-                          // Substituir {{video}}
-                          if (text.video) {
-                            content = content.replace(
-                              /\{\{video\}\}/gi, 
-                              `<video src="${text.video}" controls style="max-width: 100%; height: auto; border-radius: 6px; margin: 12px 0;">Seu navegador não suporta vídeos.</video>`
-                            );
-                          } else {
-                            content = content.replace(
-                              /\{\{video\}\}/gi, 
-                              '<div style="padding: 20px; background: #2f2d2d; border: 2px dashed #4a90d9; border-radius: 6px; text-align: center; color: #9e9e9e; margin: 12px 0;">🎬 Vídeo não anexado</div>'
-                            );
-                          }
-                          
-                          return content;
-                        })()
-                      }}
-                    />
-                  </div>
+                  {openedTextId === text.id && openedTextData && (
+                    <div className={styles.textCardBody}>
+                      <label className={styles.textCardLabel}>Conteúdo:</label>
+                      <div
+                        className={styles.textCardContent}
+                        dangerouslySetInnerHTML={{ 
+                          __html: (() => {
+                            let content = openedTextData.content || "";
+                            if (openedTextData.image) {
+                              content = content.replace(
+                                /\{\{imagem\}\}/gi,
+                                `<img src="${openedTextData.image}" alt="Imagem da campanha" style="max-width: 100%; height: auto; border-radius: 6px; margin: 12px 0;" />`
+                              );
+                            } else {
+                              content = content.replace(
+                                /\{\{imagem\}\}/gi,
+                                '<div style="padding: 20px; background: #2f2d2d; border: 2px dashed #faa01c; border-radius: 6px; text-align: center; color: #9e9e9e; margin: 12px 0;">📷 Imagem não anexada</div>'
+                              );
+                            }
+                            if (openedTextData.video) {
+                              content = content.replace(
+                                /\{\{video\}\}/gi,
+                                `<video src="${openedTextData.video}" controls preload="none" poster="${defaultVideoPoster}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 12px 0;">Seu navegador não suporta vídeos.</video>`
+                              );
+                            } else {
+                              content = content.replace(
+                                /\{\{video\}\}/gi,
+                                '<div style="padding: 20px; background: #2f2d2d; border: 2px dashed #4a90d9; border-radius: 6px; text-align: center; color: #9e9e9e; margin: 12px 0;">🎬 Vídeo não anexado</div>'
+                              );
+                            }
+                            return content;
+                          })()
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               );
             })

@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import styles from './modalsendemail.module.css'
 import { FaEnvelope, FaTimes, FaPaperPlane, FaImage, FaTrash, FaVideo } from 'react-icons/fa';
-import { getCampains } from '../../helper/getCampains';
+import { getCampainsSummary } from '../../helper/getCampains';
 import { getCampainTexts } from '../../helper/getCampainTexts';
+import {
+  fetchCampainTextBodyById,
+  fetchCampainTextMediaById,
+} from '../../api/campainsApi.js';
 
 const ModalSendEmail = ({ donor_email, donor_name, setModalSendEmail }) => {
   const [emailTo, setEmailTo] = useState('');
@@ -15,11 +19,13 @@ const ModalSendEmail = ({ donor_email, donor_name, setModalSendEmail }) => {
   const [status, setStatus] = useState({ type: '', message: '' });
   
   // Estados para campanhas e textos
-  const [campains, setCampains] = useState([]);
   const [campainTexts, setCampainTexts] = useState([]);
   const [selectedCampainId, setSelectedCampainId] = useState('');
   const [selectedTextId, setSelectedTextId] = useState('');
   const [campainsWithTexts, setCampainsWithTexts] = useState([]);
+  /** Vídeo da campanha: só busca e exibe após "Exibir Anexo" */
+  const [deferCampaignMedia, setDeferCampaignMedia] = useState(false);
+  const [campaignMediaLoading, setCampaignMediaLoading] = useState(false);
 
   // Preenche o email automaticamente se vier do prop
   useEffect(() => {
@@ -32,10 +38,8 @@ const ModalSendEmail = ({ donor_email, donor_name, setModalSendEmail }) => {
   useEffect(() => {
     const fetchCampains = async () => {
       try {
-        const campainsData = await getCampains();
+        const campainsData = await getCampainsSummary();
 
-        setCampains(campainsData || []);
-        // Por padrão, exibe todas as campanhas no select
         setCampainsWithTexts(campainsData || []);
       } catch (error) {
         console.error('Erro ao buscar campanhas:', error);
@@ -73,36 +77,108 @@ const ModalSendEmail = ({ donor_email, donor_name, setModalSendEmail }) => {
     fetchTextsForCampain();
   }, [selectedCampainId]);
 
-  // Quando selecionar um texto, preencher o formulário
+  // Lista de textos vem sem `content` (API leve); ao escolher um, busca o registro completo
   useEffect(() => {
-    if (selectedTextId) {
-      const selectedText = campainTexts.find(
-        text => text.id === parseInt(selectedTextId)
-      );
-      
-      if (selectedText) {
-        setSubject(selectedText.title);
-        
-        // Substituir {{imagem}} e {{video}} por marcadores para compatibilidade
-        let content = selectedText.content.replace(/\{\{imagem\}\}/gi, '[IMAGEM]');
+    if (!selectedTextId) {
+      setDeferCampaignMedia(false);
+      setCampaignMediaLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadFullText = async () => {
+      try {
+        const id = parseInt(selectedTextId, 10);
+        if (!Number.isFinite(id)) return;
+
+        setDeferCampaignMedia(false);
+        setCampaignMediaLoading(false);
+
+        const resBody = await fetchCampainTextBodyById(id);
+        const body = resBody?.success ? resBody.data : resBody?.data ?? resBody;
+        if (cancelled || !body) return;
+
+        setSubject(body.title ?? '');
+
+        const raw = String(body.content ?? '');
+        let content = raw.replace(/\{\{imagem\}\}/gi, '[IMAGEM]');
         content = content.replace(/\{\{video\}\}/gi, '[VIDEO]');
         setMessage(content);
-        
-        // Se o texto tem imagem anexada, carregar a imagem
-        if (selectedText.image) {
-          setMediaPreview(selectedText.image);
+
+        const meta = campainTexts.find((t) => Number(t.id) === id);
+        const needMediaFetch =
+          !meta || meta.has_image === true || meta.has_video === true;
+
+        if (!needMediaFetch) {
+          setMediaPreview(null);
+          setMediaType(null);
+          setMedia(null);
+          return;
+        }
+
+        // Vídeo da campanha: não baixa nem exibe até "Exibir Anexo"
+        if (meta?.has_video === true) {
+          setMediaPreview(null);
+          setMediaType(null);
+          setMedia(null);
+          setDeferCampaignMedia(true);
+          return;
+        }
+
+        const resMedia = await fetchCampainTextMediaById(id);
+        const mediaRow = resMedia?.success ? resMedia.data : resMedia?.data ?? resMedia;
+        if (cancelled) return;
+
+        if (mediaRow?.image) {
+          setMediaPreview(mediaRow.image);
           setMediaType('image');
           setMedia({ name: 'imagem_campanha.jpg', type: 'image/jpeg' });
+        } else {
+          setMediaPreview(null);
+          setMediaType(null);
+          setMedia(null);
         }
-        // Se o texto tem vídeo anexado, carregar o vídeo
-        else if (selectedText.video) {
-          setMediaPreview(selectedText.video);
-          setMediaType('video');
-          setMedia({ name: 'video_campanha.mp4', type: 'video/mp4' });
-        }
+      } catch (e) {
+        if (!cancelled) console.error('Erro ao carregar texto da campanha:', e);
       }
-    }
+    };
+
+    loadFullText();
+    return () => {
+      cancelled = true;
+    };
   }, [selectedTextId, campainTexts]);
+
+  const handleRevealCampaignAttachment = async () => {
+    const id = parseInt(selectedTextId, 10);
+    if (!Number.isFinite(id)) return;
+
+    setCampaignMediaLoading(true);
+    try {
+      const resMedia = await fetchCampainTextMediaById(id);
+      const mediaRow = resMedia?.success ? resMedia.data : resMedia?.data ?? resMedia;
+
+      if (mediaRow?.image) {
+        setMediaPreview(mediaRow.image);
+        setMediaType('image');
+        setMedia({ name: 'imagem_campanha.jpg', type: 'image/jpeg' });
+      } else if (mediaRow?.video) {
+        setMediaPreview(mediaRow.video);
+        setMediaType('video');
+        setMedia({ name: 'video_campanha.mp4', type: 'video/mp4' });
+      } else {
+        setMediaPreview(null);
+        setMediaType(null);
+        setMedia(null);
+      }
+      setDeferCampaignMedia(false);
+    } catch (e) {
+      console.error('Erro ao carregar anexo da campanha:', e);
+    } finally {
+      setCampaignMediaLoading(false);
+    }
+  };
 
   // Função para lidar com seleção de mídia (imagem ou vídeo)
   const handleMediaChange = (e) => {
@@ -132,7 +208,8 @@ const ModalSendEmail = ({ donor_email, donor_name, setModalSendEmail }) => {
 
       setMedia(file);
       setMediaType(isVideo ? 'video' : 'image');
-      
+      setDeferCampaignMedia(false);
+
       // Criar preview
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -254,6 +331,8 @@ const ModalSendEmail = ({ donor_email, donor_name, setModalSendEmail }) => {
           setMedia(null);
           setMediaPreview(null);
           setMediaType(null);
+          setDeferCampaignMedia(false);
+          setCampaignMediaLoading(false);
           setStatus({ type: '', message: '' });
         }, 2000);
       } else {
@@ -381,12 +460,24 @@ const ModalSendEmail = ({ donor_email, donor_name, setModalSendEmail }) => {
                             <label htmlFor="media-upload" className={styles.imageUploadLabel}>
                                 <FaImage /> <FaVideo /> Escolher Mídia
                             </label>
+                            {deferCampaignMedia && (
+                                <button
+                                    type="button"
+                                    className={styles.exibirAnexoButton}
+                                    onClick={handleRevealCampaignAttachment}
+                                    disabled={campaignMediaLoading}
+                                >
+                                    <FaVideo />
+                                    {campaignMediaLoading ? 'Carregando…' : 'Exibir Anexo'}
+                                </button>
+                            )}
                             {mediaPreview && (
                                 <div className={styles.imagePreviewContainer}>
                                     {mediaType === 'video' ? (
                                         <video 
                                             src={mediaPreview} 
                                             controls
+                                            preload="none"
                                             className={styles.videoPreview}
                                         >
                                             Seu navegador não suporta vídeos.

@@ -58,7 +58,10 @@ const EditRequestCreated = ({ requestId, onClose }) => {
             // Dados do operador
             operator_name: item.operator?.operator_name,
             // Valor da doação
-            donation_value: item.donation?.donation_value,
+            donation_value: (() => {
+              const n = Number(item.donation?.donation_value);
+              return Number.isFinite(n) ? n : 0;
+            })(),
             last_operation: item.donation?.donation_day_received,
           }));
 

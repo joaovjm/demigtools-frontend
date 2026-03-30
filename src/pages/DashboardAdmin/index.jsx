@@ -1,175 +1,233 @@
-import { useContext, useEffect, useState, useRef, useCallback } from "react";
-import { toast, ToastContainer } from "react-toastify";
+import { useContext, useEffect, useState, useRef, useCallback, useMemo } from "react";
+import { toast } from "react-toastify";
 import styles from "./dashboardadmin.module.css";
 
-// Context
 import { UserContext } from "../../context/UserContext";
-
-// Components
 import DateRangePicker from "../../components/DateRangePicker";
 import { DashboardCards, DashboardContent, DashboardModals } from "./components";
-
-// Helpers & Services
-import getDonationNotReceived from "../../helper/getDonationNotReceived";
-import getAllDonationsReceived from "../../helper/getAllDonationsReceived";
-import getScheduledLeads from "../../helper/getScheduledLeads";
-import getOperatorMeta from "../../helper/getOperatorMeta";
-import { getOperatorActivities } from "../../services/operatorActivityService";
-
-// Constants
 import { CARD_IDS, VIEW_TYPES, STATUS_MESSAGES, TOAST_CONFIG } from "./constants";
+import MotivationalPhrases from "../../components/MotivationalPhrases";
+import { useDashboardCardsQuery } from "../../hooks/useDashboardCardsQuery";
+import {
+  useDashboardLeadsTableQuery,
+  useDashboardReceivedTableQuery,
+  useDashboardConfirmationTableQuery,
+  useDashboardOpenTableQuery,
+  useDashboardScheduledTableQuery,
+} from "../../hooks/useDashboardTableQueries";
+
+import "../Dashboard/index.css";
 
 /**
- * Dashboard Admin - Página principal do administrador
+ * Dashboard Admin — dados via GET /api/dashboard (React Query).
  */
 const Dashboard = () => {
-  const caracterOperator = JSON.parse(localStorage.getItem("operatorData"));
   const { operatorData } = useContext(UserContext);
   const receivedCardRef = useRef(null);
 
-  // Estados de UI
+  const caracterOperator = useMemo(() => {
+    try {
+      const raw = localStorage.getItem("operatorData");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }, [operatorData?.operator_code_id]);
+
+  const operatorCodeId =
+    operatorData?.operator_code_id ?? caracterOperator?.operator_code_id;
+  const operatorType =
+    operatorData?.operator_type ?? caracterOperator?.operator_type ?? "Admin";
+
+  // Evita exibir a tabela de leads no carregamento (o histórico só aparece quando Leads estiver ativo)
   const [active, setActive] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const prevModalOpenRef = useRef(modalOpen);
   const [viewType, setViewType] = useState(VIEW_TYPES.OPERATOR);
   const [donationFilterPerId, setDonationFilterPerId] = useState("");
   const [status, setStatus] = useState();
 
-  // Estados do DateRangePicker
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [datePickerPosition, setDatePickerPosition] = useState({ top: 0, left: 0 });
 
-  // Estados de dados de doações
-  const [confirmations, setConfirmations] = useState(null);
-  const [valueConfirmations, setValueConfirmations] = useState(null);
-  const [openDonations, setOpenDonations] = useState(null);
-  const [valueOpenDonations, setValueOpenDonations] = useState(null);
-  const [donationConfirmation, setDonationConfirmation] = useState([]);
-  const [fullNotReceivedDonations, setFullNotReceivedDonations] = useState([]);
-
-  // Estados de doações recebidas
-  const [valueReceived, setValueReceived] = useState(0);
-  const [donationsReceived, setDonationsReceived] = useState([]);
-
-  // Estados de agendamentos
-  const [scheduling, setScheduling] = useState(0);
-  const [scheduled, setScheduled] = useState([]);
-  const [scheduledDonations, setScheduledDonations] = useState([]);
-  const [nowScheduled, setNowScheduled] = useState(null);
-
-  // Estados de modais
   const [donationConfirmationOpen, setDonationConfirmationOpen] = useState([]);
   const [donationOpen, setDonationOpen] = useState([]);
   const [scheduledOpen, setScheduledOpen] = useState([]);
+  const [nowScheduled, setNowScheduled] = useState(null);
 
-  // Estado de atividades das operadoras (inclui atividades de leads)
-  const [operatorActivities, setOperatorActivities] = useState({
-    activities: [],
-    grouped: {},
+  const {
+    data: cards,
+    isLoading: isCardsLoading,
+    isError,
+    error,
+    refetch: refetchCards,
+  } = useDashboardCardsQuery({
+    operatorCodeId,
+    operatorType,
+    startDate,
+    endDate,
+    enabled: Boolean(operatorCodeId),
   });
 
-  // Estado de meta
-  const [meta, setMeta] = useState([]);
+  const {
+    data: leadsTable,
+    refetch: refetchLeadsTable,
+    isLoading: isLeadsTableLoading,
+    isFetching: isLeadsTableFetching,
+  } = useDashboardLeadsTableQuery({
+    startDate,
+    endDate,
+    enabled: active === CARD_IDS.LEADS && Boolean(operatorCodeId),
+  });
 
-  /**
-   * Busca dados de doações
-   */
-  const fetchDonations = useCallback(async () => {
-    if (!caracterOperator) return;
+  const {
+    data: receivedTable,
+    refetch: refetchReceivedTable,
+    isLoading: isReceivedTableLoading,
+    isFetching: isReceivedTableFetching,
+  } = useDashboardReceivedTableQuery({
+    operatorCodeId,
+    operatorType,
+    startDate,
+    endDate,
+    enabled: active === CARD_IDS.RECEIVED && Boolean(operatorCodeId),
+  });
 
-    try {
-      await getDonationNotReceived(
-        setConfirmations,
-        setValueConfirmations,
-        setOpenDonations,
-        setValueOpenDonations,
-        setDonationConfirmation,
-        setFullNotReceivedDonations,
-        caracterOperator.operator_code_id,
-        caracterOperator.operator_type,
-        startDate,
-        endDate
-      );
+  const {
+    data: confirmationTable,
+    refetch: refetchConfirmationTable,
+    isLoading: isConfirmationTableLoading,
+    isFetching: isConfirmationTableFetching,
+  } = useDashboardConfirmationTableQuery({
+    operatorCodeId,
+    operatorType,
+    startDate,
+    endDate,
+    enabled: active === CARD_IDS.IN_CONFIRMATION && Boolean(operatorCodeId),
+  });
 
-      const receivedData = await getAllDonationsReceived({ startDate, endDate });
-      setValueReceived(receivedData.totalValue);
-      setDonationsReceived(receivedData.donation);
+  const {
+    data: openTable,
+    refetch: refetchOpenTable,
+    isLoading: isOpenTableLoading,
+    isFetching: isOpenTableFetching,
+  } = useDashboardOpenTableQuery({
+    operatorCodeId,
+    operatorType,
+    startDate,
+    endDate,
+    enabled: active === CARD_IDS.IN_OPEN && Boolean(operatorCodeId),
+  });
 
-      await getScheduledLeads(null, setScheduled, setScheduling);
-    } catch (error) {
-      console.error("Erro ao buscar doações:", error);
+  const {
+    data: scheduledTable,
+    refetch: refetchScheduledTable,
+    isLoading: isScheduledTableLoading,
+    isFetching: isScheduledTableFetching,
+  } = useDashboardScheduledTableQuery({
+    operatorCodeId,
+    operatorType,
+    startDate,
+    endDate,
+    enabled: active === CARD_IDS.IN_SCHEDULED && Boolean(operatorCodeId),
+  });
+
+  useEffect(() => {
+    if (isError && error?.message) {
+      toast.error(error.message);
     }
-  }, [caracterOperator?.operator_code_id, startDate, endDate]);
+  }, [isError, error]);
 
-  /**
-   * Busca atividades das operadoras (inclui atividades de leads)
-   */
-  const fetchOperatorActivities = useCallback(async () => {
-    try {
-      const activities = await getOperatorActivities({ startDate, endDate });
-      setOperatorActivities(activities);
-    } catch (error) {
-      console.error("Erro ao buscar atividades:", error);
-    }
-  }, [startDate, endDate]);
+  useEffect(() => {
+    if (!status) return;
 
-  /**
-   * Busca meta dos operadores
-   */
-  const fetchMeta = useCallback(async () => {
-    try {
-      const metaInfo = await getOperatorMeta();
-      setMeta(metaInfo);
-    } catch (error) {
-      console.error("Erro ao buscar meta:", error);
-    }
-  }, []);
-
-  /**
-   * Exibe toast de status
-   */
-  const showStatusToast = useCallback(() => {
     if (status === "OK") {
       toast.success(STATUS_MESSAGES.OK, TOAST_CONFIG);
     } else if (status === "Update OK") {
       toast.success(STATUS_MESSAGES.UPDATE_OK, TOAST_CONFIG);
     }
+
+    // Atualiza cards e a tabela ativa após mudança de status no backend
+    refetchCards?.();
+    if (active === CARD_IDS.LEADS) refetchLeadsTable?.();
+    if (active === CARD_IDS.RECEIVED) refetchReceivedTable?.();
+    if (active === CARD_IDS.IN_CONFIRMATION) refetchConfirmationTable?.();
+    if (active === CARD_IDS.IN_OPEN) refetchOpenTable?.();
+    if (active === CARD_IDS.IN_SCHEDULED) refetchScheduledTable?.();
+
     setStatus(null);
-  }, [status]);
+  }, [
+    status,
+    active,
+    refetchCards,
+    refetchLeadsTable,
+    refetchReceivedTable,
+    refetchConfirmationTable,
+    refetchOpenTable,
+    refetchScheduledTable,
+  ]);
 
-  // Efeito para buscar meta inicial
+  // Atualiza dados quando modais fecham (ações em ModalConfirmations/ModalDonationInOpen
+  // não disparam setStatus, mas devem refletir mudanças no dashboard)
   useEffect(() => {
-    fetchMeta();
-  }, [fetchMeta]);
+    if (!prevModalOpenRef.current) {
+      prevModalOpenRef.current = modalOpen;
+      return;
+    }
 
-  // Efeito para buscar dados quando dependências mudam
+    if (prevModalOpenRef.current && !modalOpen) {
+      refetchCards?.();
+      if (active === CARD_IDS.LEADS) refetchLeadsTable?.();
+      if (active === CARD_IDS.RECEIVED) refetchReceivedTable?.();
+      if (active === CARD_IDS.IN_CONFIRMATION) refetchConfirmationTable?.();
+      if (active === CARD_IDS.IN_OPEN) refetchOpenTable?.();
+      if (active === CARD_IDS.IN_SCHEDULED) refetchScheduledTable?.();
+    }
+
+    prevModalOpenRef.current = modalOpen;
+  }, [
+    modalOpen,
+    active,
+    refetchCards,
+    refetchLeadsTable,
+    refetchReceivedTable,
+    refetchConfirmationTable,
+    refetchOpenTable,
+    refetchScheduledTable,
+  ]);
+
+  // Garante refresh quando o usuário alterna os cards
+  // (especialmente útil se uma query anterior falhou e ficou em erro).
   useEffect(() => {
-    fetchDonations();
-    fetchOperatorActivities();
-    showStatusToast();
-  }, [active, modalOpen, status, operatorData, meta, startDate, endDate]);
+    if (!operatorCodeId) return;
+    if (active === CARD_IDS.LEADS) refetchLeadsTable?.();
+    if (active === CARD_IDS.RECEIVED) refetchReceivedTable?.();
+    if (active === CARD_IDS.IN_CONFIRMATION) refetchConfirmationTable?.();
+    if (active === CARD_IDS.IN_OPEN) refetchOpenTable?.();
+    if (active === CARD_IDS.IN_SCHEDULED) refetchScheduledTable?.();
+  }, [
+    active,
+    operatorCodeId,
+    refetchLeadsTable,
+    refetchReceivedTable,
+    refetchConfirmationTable,
+    refetchOpenTable,
+    refetchScheduledTable,
+  ]);
 
-  /**
-   * Handler para clique no card
-   */
   const handleClickCard = useCallback((e) => {
     setActive(e.currentTarget.id);
-    setDonationFilterPerId(null);
+    setDonationFilterPerId("");
     setViewType(VIEW_TYPES.OPERATOR);
   }, []);
 
-  /**
-   * Handler para mudança de tipo de visualização
-   */
   const handleViewTypeChange = useCallback((type) => {
     setViewType(type);
-    setDonationFilterPerId(null);
+    setDonationFilterPerId("");
   }, []);
 
-  /**
-   * Handler para menu de contexto do card Recebido
-   */
   const handleReceivedCardContextMenu = useCallback((e) => {
     e.preventDefault();
     if (!receivedCardRef.current) return;
@@ -183,7 +241,6 @@ const Dashboard = () => {
     let left = rect.left;
     let top = rect.bottom + 10;
 
-    // Ajustes de posição para não sair da tela
     if (left + pickerWidth > viewportWidth) {
       left = viewportWidth - pickerWidth - 10;
     }
@@ -197,36 +254,40 @@ const Dashboard = () => {
     setIsDatePickerOpen(true);
   }, []);
 
-  /**
-   * Handler para seleção de data
-   */
   const handleDateSelect = useCallback((start, end) => {
     setStartDate(start || null);
     setEndDate(end || null);
   }, []);
 
-  /**
-   * Handler para fechar modal
-   */
   const handleCloseModal = useCallback(() => {
     setModalOpen(false);
   }, []);
 
-  // Dados agregados para os componentes
   const cardData = {
-    valueReceived,
-    confirmations,
-    valueConfirmations,
-    openDonations,
-    valueOpenDonations,
+    valueReceived: cards?.valueReceived ?? 0,
+    confirmations: cards?.confirmations ?? 0,
+    valueConfirmations: cards?.valueConfirmations ?? 0,
+    openDonations: cards?.openDonations ?? 0,
+    valueOpenDonations: cards?.valueOpenDonations ?? 0,
   };
 
   const contentData = {
-    donationsReceived,
-    donationConfirmation,
-    fullNotReceivedDonations,
-    scheduled,
-    scheduledDonations,
+    donationsReceived: receivedTable ?? [],
+    donationConfirmation: confirmationTable ?? [],
+    fullNotReceivedDonations: openTable ?? [],
+    scheduled: scheduledTable?.scheduled ?? [],
+    scheduledDonations: scheduledTable?.scheduledDonations ?? [],
+    scheduledFromTable: scheduledTable?.scheduledFromTable ?? [],
+  };
+
+  const operatorActivities = leadsTable ?? { grouped: {} };
+
+  const tableLoading = {
+    leads: isLeadsTableLoading || isLeadsTableFetching,
+    received: isReceivedTableLoading || isReceivedTableFetching,
+    inConfirmation: isConfirmationTableLoading || isConfirmationTableFetching,
+    inOpen: isOpenTableLoading || isOpenTableFetching,
+    inScheduled: isScheduledTableLoading || isScheduledTableFetching,
   };
 
   const modalHandlers = {
@@ -240,17 +301,19 @@ const Dashboard = () => {
 
   return (
     <main className={styles.mainDashboard}>
-      {/* Cards do Dashboard */}
+      {isCardsLoading && !cards ? (
+        <p style={{ padding: "1rem" }}>Carregando dashboard…</p>
+      ) : null}
+
       <DashboardCards
         active={active}
         onCardClick={handleClickCard}
         receivedCardRef={receivedCardRef}
         onReceivedContextMenu={handleReceivedCardContextMenu}
         data={cardData}
-        totalActivities={operatorActivities.activities?.length || 0}
+        totalActivities={cards?.activitiesTotal ?? 0}
       />
 
-      {/* DateRangePicker para filtro de datas */}
       {isDatePickerOpen && (
         <DateRangePicker
           isOpen={isDatePickerOpen}
@@ -262,7 +325,14 @@ const Dashboard = () => {
         />
       )}
 
-      {/* Conteúdo Principal */}
+      {!active && (
+        <section className="motivational">
+          <div className="motivational-card">
+            <MotivationalPhrases />
+          </div>
+        </section>
+      )}
+
       <DashboardContent
         active={active}
         viewType={viewType}
@@ -272,9 +342,9 @@ const Dashboard = () => {
         handlers={modalHandlers}
         operatorActivities={operatorActivities}
         dateFilter={{ startDate, endDate }}
+        tableLoading={tableLoading}
       />
 
-      {/* Modais */}
       <DashboardModals
         modalOpen={modalOpen}
         active={active}

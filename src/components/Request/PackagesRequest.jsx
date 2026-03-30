@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from "react";
-import supabase from "../../helper/superBaseClient";
+import { fetchRequestNames } from "../../api/requestPackagesApi.js";
 import { DataSelect } from "../DataTime";
 
 const PackagesRequest = () => {
   const [packages, setPackages] = useState([]);
   const fetchPackages = async () => {
     try {
-      const { data, error } = await supabase.from("request_name").select();
-      if (error) throw error;
-      if (data) setPackages(data);
+      const res = await fetchRequestNames();
+      setPackages(Array.isArray(res) ? res : []);
     } catch (error) {
-      console.error(error.message);
+      console.error(error?.message || error);
     }
   };
   useEffect(() => {
@@ -30,11 +29,17 @@ const PackagesRequest = () => {
           </thead>
           <tbody className="package-request-table-body">
             {packages.map((pkgs) => (
-              <tr key={pkgs.id} className="package-request-table-body-tr" >
+              <tr key={pkgs.id} className="package-request-table-body-tr">
                 <td className="package-request-table-body-tr-td">{pkgs.name}</td>
-                <td className="package-request-table-body-tr-td">{DataSelect(pkgs.date_created)}</td>
-                <td className="package-request-table-body-tr-td">{DataSelect(pkgs.date_validate)}</td>
-                <td className="package-request-table-body-tr-td">{pkgs.active === true ? "Ativo" : "Desativado"}</td>
+                <td className="package-request-table-body-tr-td">
+                  {DataSelect(pkgs.date_created)}
+                </td>
+                <td className="package-request-table-body-tr-td">
+                  {DataSelect(pkgs.date_validate)}
+                </td>
+                <td className="package-request-table-body-tr-td">
+                  {pkgs.active === true ? "Ativo" : "Desativado"}
+                </td>
               </tr>
             ))}
           </tbody>

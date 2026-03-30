@@ -8,9 +8,12 @@ import MessageStatus from "../../components/MessageStatus";
 import { useDonation } from "../../helper/receiveDonation";
 import { getCollector } from "../../helper/getCollector";
 import { ModalConfirm } from "../../components/ModalConfirm";
-import supabase from "../../helper/superBaseClient";
 import ModalReceiptSend from "../../components/modals/ModalReceiptSend";
 import { DataNow } from "../../components/DataTime";
+import { fetchDepositPending } from "../../api/receiverDonationsApi.js";
+
+/** Coletor cujas doações entram na fila de comprovantes de depósito (igual ao filtro anterior no Supabase). */
+const DEPOSIT_PENDING_COLLECTOR_ID = 22;
 
 const ReceiverDonations = () => {
   const [formData, setFormData] = useState({
@@ -46,30 +49,16 @@ const ReceiverDonations = () => {
   }, []);
 
   useEffect(() => {
-    const fetchDeposit = async () => {
-      const { data, error } = await supabase
-        .from("donation")
-        .select(
-          "receipt_donation_id, donation_value, donation_campain, donation_day_received, donor_id, donor: donor_id(donor_name, donor_tel_1, donor_email(donor_email))"
-        )
-        .eq("donation_deposit_receipt_send", "Não")
-        .eq("collector_code_id", 22)
-        .eq("donation_received", "Sim")
-      if (error) throw error;
-      if (!error) {
-        // Ordena os dados: primeiro os que possuem email, depois os que não possuem
-        const sortedData = data.sort((a, b) => {
-          const hasEmailA = a.donor?.donor_email?.donor_email && a.donor.donor_email.donor_email.length > 0;
-          const hasEmailB = b.donor?.donor_email?.donor_email && b.donor.donor_email.donor_email.length === 0;
-          
-          if (hasEmailA && !hasEmailB) return -1;
-          if (!hasEmailA && hasEmailB) return 1;
-          return 0;
-        });
-        setDeposit(sortedData);
+    const loadDeposit = async () => {
+      try {
+        const res = await fetchDepositPending(DEPOSIT_PENDING_COLLECTOR_ID);
+        setDeposit(res?.data ?? []);
+      } catch (error) {
+        console.error(error?.message || error);
+        setDeposit([]);
       }
     };
-    fetchDeposit();
+    loadDeposit();
   }, [tableReceipt]);
 
   useEffect(() => {

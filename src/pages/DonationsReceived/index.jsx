@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import styles from "./donationsreceived.module.css";
-import supabase from "../../helper/superBaseClient";
 import { DataSelect } from "../../components/DataTime";
 import Loader from "../../components/Loader";
+import { fetchDonationsReceivedDaily } from "../../api/dashboardApi.js";
+import { toast } from "react-toastify";
 
 const DonationsReceived = () => {
   const [startDate, setStartDate] = useState();
@@ -12,76 +13,55 @@ const DonationsReceived = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [totalValue, setTotalValue] = useState(0);
 
-  const fetchDonationReceived = async (i) => {
-    let dateAdd;
-
-    if (i >= 0) {
-      const newDate = new Date(startDate);
-      newDate.setDate(newDate.getDate() + i);
-      const newDateAdd = newDate;
-      dateAdd = DataSelect(newDateAdd, "noformated");
-    } else {
-      dateAdd = startDate;
+  const handleDonationReceived = async () => {
+    if (!startDate || !endDate) {
+      toast.warning("Selecione data de início e fim.");
+      return;
     }
-    try {
-      const { data, error } = await supabase
-        .from("donation")
-        .select("donation_value")
-        .eq("donation_day_received", dateAdd);
-      console.log(data)
-      if (error) throw error;
-      if (data) {
-        const valueDonation = data.reduce(
-          (acc, item) => {return acc + item?.donation_value}, 0
-        );
-        const count = data.length; 
+    if (endDate < startDate) {
+      toast.warning("A data final não pode ser menor que a inicial.");
+      return;
+    }
 
-        return { valueDonation, count, dateAdd };
+    setIsLoading(true);
+    setDonationReceived([]);
+
+    try {
+      const payload = await fetchDonationsReceivedDaily({
+        startDate,
+        endDate,
+      });
+
+      const rows = (payload.days || []).map((row) => ({
+        valueDonation: row.valueDonation ?? 0,
+        count: row.count ?? 0,
+        dateAdd: row.dateAdd,
+      }));
+
+      setDonationReceived(rows);
+      setTotalCount(payload.totalCount ?? 0);
+      setTotalValue(payload.totalValue ?? 0);
+
+      if (rows.length === 0 || (payload.totalCount ?? 0) === 0) {
+        toast.info("Nenhuma doação encontrada no período.");
       }
     } catch (error) {
       console.error(error);
+      toast.error(error?.message || "Erro ao carregar relatório");
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  const handleDonationReceived = async () => {
-    setIsLoading(true);
-    setDonationReceived([]);
-    let totalCount = 0;
-    let totalValue = 0;
-    const diffTime = Math.abs(new Date(endDate) - new Date(startDate));
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) {
-      const { valueDonation, count, dateAdd } = await fetchDonationReceived();
-      setDonationReceived([{ valueDonation, count, dateAdd }]);
-    } else {
-      for (let i = 0; i <= diffDays; i++) {
-        const { valueDonation, count, dateAdd } = await fetchDonationReceived(
-          i
-        );
-        setDonationReceived((prev) => [
-          ...prev,
-          { valueDonation, count, dateAdd },
-        ]);
-
-        totalValue = totalValue + valueDonation;
-        totalCount = totalCount + count;
-      }
-    }
-    
-    setTotalValue(totalValue);
-    setTotalCount(totalCount);
-    setIsLoading(false);
   };
 
   return (
     <main className={styles.donationsReceivedContainer}>
       <div className={styles.donationsReceivedContent}>
-        {/* Cabeçalho com título e ações */}
         <header className={styles.donationsReceivedHeader}>
           <h2 className={styles.donationsReceivedTitle}>💰 Doações Recebidas</h2>
           <div className={styles.donationsReceivedActions}>
-            <button 
-              onClick={() => window.history.back()} 
+            <button
+              type="button"
+              onClick={() => window.history.back()}
               className={`${styles.donationsReceivedBtn} ${styles.secondary}`}
             >
               ← Voltar
@@ -89,7 +69,6 @@ const DonationsReceived = () => {
           </div>
         </header>
 
-        {/* Seção de Filtros */}
         <div className={styles.donationsReceivedFilters}>
           <h3>Filtros de Período</h3>
           <div className={styles.filtersForm}>
@@ -113,7 +92,8 @@ const DonationsReceived = () => {
                 />
               </div>
               <div className={styles.formGroup}>
-                <button 
+                <button
+                  type="button"
                   onClick={handleDonationReceived}
                   disabled={isLoading || !startDate || !endDate}
                   className={`${styles.donationsReceivedBtn} ${styles.primary}`}
@@ -125,7 +105,6 @@ const DonationsReceived = () => {
           </div>
         </div>
 
-        {/* Cards de Resumo */}
         {donationReceived.length > 0 && (
           <div className={styles.donationsReceivedSummary}>
             <div className={styles.summaryCards}>
@@ -153,7 +132,8 @@ const DonationsReceived = () => {
                 <div className={styles.summaryCardContent}>
                   <h4>Período</h4>
                   <span className={styles.summaryCardValue}>
-                    {donationReceived.length} {donationReceived.length === 1 ? 'dia' : 'dias'}
+                    {donationReceived.length}{" "}
+                    {donationReceived.length === 1 ? "dia" : "dias"}
                   </span>
                 </div>
               </div>
@@ -161,7 +141,6 @@ const DonationsReceived = () => {
           </div>
         )}
 
-        {/* Tabela de Resultados */}
         <div className={styles.donationsReceivedTableSection}>
           {donationReceived.length > 0 ? (
             <div className={styles.donationsReceivedTableWrapper}>
@@ -177,23 +156,26 @@ const DonationsReceived = () => {
                   </thead>
                   <tbody>
                     {donationReceived?.map((item, index) => (
-                      <tr key={index} className={styles.donationsReceivedTableRow}>
+                      <tr
+                        key={`${item.dateAdd}-${index}`}
+                        className={styles.donationsReceivedTableRow}
+                      >
                         <td className={styles.dateCell}>
                           <span className={styles.dateValue}>
-                            {new Date(item.dateAdd).toLocaleDateString("pt-BR", {
-                              timeZone: "UTC",
-                            }) || "—"}
+                            {item.dateAdd ? DataSelect(item.dateAdd) : "—"}
                           </span>
                         </td>
                         <td className={styles.countCell}>
-                          <span className={styles.countValue}>{item.count || 0}</span>
+                          <span className={styles.countValue}>
+                            {item.count || 0}
+                          </span>
                         </td>
                         <td className={styles.valueCell}>
                           <span className={styles.valueAmount}>
-                            {item.valueDonation?.toLocaleString("pt-BR", {
+                            {(item.valueDonation ?? 0)?.toLocaleString("pt-BR", {
                               style: "currency",
                               currency: "BRL",
-                            }) || "R$ 0,00"}
+                            })}
                           </span>
                         </td>
                       </tr>
@@ -206,7 +188,10 @@ const DonationsReceived = () => {
             <div className={styles.donationsReceivedEmpty}>
               <div className={styles.emptyIcon}>📊</div>
               <h4>Nenhum dado encontrado</h4>
-              <p>Selecione um período e clique em "Gerar Relatório" para visualizar as doações recebidas.</p>
+              <p>
+                Selecione um período e clique em &quot;Gerar Relatório&quot; para
+                visualizar as doações recebidas.
+              </p>
             </div>
           )}
         </div>

@@ -1,8 +1,32 @@
-import { useEffect, useState, Fragment } from "react";
+import { useEffect, useState, Fragment, useMemo } from "react";
 import "./index.css";
-import { getDonation } from "../../helper/getDonation";
+import { fetchDonorDonations } from "../../api/donorApi";
 import { toast } from "react-toastify";
-import { DataSelect } from "../DataTime";
+
+/** Normaliza valor vindo do Postgres/api (number, string "123.45" ou "1.234,56"). */
+function toMoneyNumber(v) {
+  if (v == null || v === "") return 0;
+  if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+  let s = String(v).trim().replace(/R\$\s?/gi, "").replace(/\s/g, "");
+  if (!s) return 0;
+  const direct = Number(s);
+  if (Number.isFinite(direct)) return direct;
+  // Formato brasileiro: milhar com ponto, decimal com vírgula (ex.: 1.234,56)
+  if (s.includes(",")) {
+    s = s.replace(/\./g, "").replace(",", ".");
+    const n = Number(s);
+    return Number.isFinite(n) ? n : 0;
+  }
+  const n = Number(s.replace(/,/g, "."));
+  return Number.isFinite(n) ? n : 0;
+}
+
+function formatBRL(v) {
+  return toMoneyNumber(v).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
 
 const TableDonor = ({
   idDonor,
@@ -17,11 +41,12 @@ const TableDonor = ({
   // Carrega os dados da doação
   useEffect(() => {
     if (idDonor) {
-      getDonation(idDonor)
+      fetchDonorDonations(idDonor)
         .then((data) => {
-          setDados(data);
+          setDados(Array.isArray(data) ? data : []);
         })
-        .catch((error) => {
+        .catch(() => {
+          setDados([]);
         });
     }
   }, [idDonor, modalShow, modalEdit]);
@@ -46,6 +71,16 @@ const TableDonor = ({
     setDonation(item);
   };
 
+  const totalValor = useMemo(
+    () =>
+      dados.reduce(
+        (acc, item) =>
+          acc + toMoneyNumber(item.donation_value) + toMoneyNumber(item.donation_extra),
+        0
+      ),
+    [dados]
+  );
+
   return (
     <div className="donor-table-container">
       <div className="donor-table-content">
@@ -58,7 +93,7 @@ const TableDonor = ({
                 </span>
                 <span className="stats-item">
                   Total: <strong>
-                    {dados.reduce((acc, item) => acc + (item.donation_value || 0) + (item.donation_extra || 0), 0).toLocaleString("pt-BR", {
+                    {totalValor.toLocaleString("pt-BR", {
                       style: "currency",
                       currency: "BRL",
                     })}
@@ -102,18 +137,12 @@ const TableDonor = ({
                         </td>
                         <td className="donor-table-cell">
                           <span className="value-amount">
-                            {item?.donation_value?.toLocaleString("pt-BR", {
-                              style: "currency",
-                              currency: "BRL",
-                            })}
+                            {formatBRL(item?.donation_value)}
                           </span>
                         </td>
                         <td className="donor-table-cell">
                           <span className="extra-amount">
-                            {item?.donation_extra ? item?.donation_extra.toLocaleString("pt-BR", {
-                              style: "currency",
-                              currency: "BRL",
-                            }) : "R$ 0,00"}
+                            {formatBRL(item?.donation_extra)}
                           </span>
                         </td>
                         <td className="donor-table-cell">

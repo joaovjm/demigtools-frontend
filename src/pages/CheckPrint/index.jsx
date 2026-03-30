@@ -1,13 +1,20 @@
 import React, { useEffect, useState } from "react";
 import styles from "./checkprint.module.css";
-import { getDonationsPrint, getDonationsPrinted } from "../../services/printService";
+import {
+  getDonationsPrint,
+  getDonationsPrinted,
+  markPrintedDonations,
+  updateDonationCollectorsPrint,
+} from "../../services/printService";
 import { FaAngleRight } from "react-icons/fa";
 import { getCollector } from "../../helper/getCollector";
-import supabase from "../../helper/superBaseClient";
 import { toast } from "react-toastify";
-import { getReceiptPrint } from "../../helper/getReceiptPrint";
 import GenerateReceiptPDF from "../../components/GenerateReceiptPDF";
 import ModalPrintedPackages from "../../components/modals/ModalPrintedPackages";
+import {
+  fetchReceiptConfig,
+  postCheckPrintPackage,
+} from "../../api/receiverDonationsApi";
 
 const CheckPrint = () => {
   const [startDate, setStartDate] = useState("");
@@ -17,7 +24,6 @@ const CheckPrint = () => {
   const [collectors, setCollectors] = useState([]);
   const [config, setConfig] = useState([]);
   const [isOpen, setIsOpen] = useState();
-  const [receiptPrint, setReceiptPrint] = useState([]);
   const [loading, setLoading] = useState(false);
   const [ok, setOk] = useState(false);
   const [donationsPrinted, setDonationsPrinted] = useState([]);
@@ -29,19 +35,17 @@ const CheckPrint = () => {
     setCollectors(response);
   };
 
-  const fetchReceiptPrint = async () => {
-    const response = await getReceiptPrint();
-    setReceiptPrint(response);
-  };
-
   const fetchDonationsPrinted = async () => {
-    const response = await getDonationsPrinted();
-    setDonationsPrinted(response);
-  }
+    try {
+      const response = await getDonationsPrinted();
+      setDonationsPrinted(response);
+    } catch (error) {
+      toast.error("Erro ao carregar impressos");
+    }
+  };
 
   useEffect(() => {
     fetchCollectors();
-    fetchReceiptPrint();
     fetchDonationsPrinted();
   }, []);
 
@@ -63,39 +67,45 @@ const CheckPrint = () => {
       return;
     }
     setPrinters([]);
-    const response = await getDonationsPrint(startDate, endDate, selectType);
-    setPrinters(response);
-    // Armazenar os dados originais do banco para comparação posterior
-    if (response?.length > 0) {
-      setOriginalDonations(response?.map(item => ({
-        receipt_donation_id: item.receipt_donation_id,
-        // Usa o valor original do banco (antes da modificação pelo serviço)
-        collector_code_id: item.original_collector_code_id !== undefined 
-          ? item.original_collector_code_id 
-          : item.collector_code_id
-      })));
-      const { data, error } = await supabase.from("receipt_config").select();
-      if (error) throw error;
-      if (!error) {
-        setConfig(data[0]);
+    try {
+      const response = await getDonationsPrint(startDate, endDate, selectType);
+      setPrinters(response);
+      if (response?.length > 0) {
+        setOriginalDonations(
+          response?.map((item) => ({
+            receipt_donation_id: item.receipt_donation_id,
+            collector_code_id:
+              item.original_collector_code_id !== undefined
+                ? item.original_collector_code_id
+                : item.collector_code_id,
+          }))
+        );
+      } else {
+        setOriginalDonations([]);
       }
-      
+      const cfgRes = await fetchReceiptConfig();
+      setConfig(cfgRes?.data || {});
+    } catch (error) {
+      toast.error("Erro ao buscar doações para impressão");
     }
     setLoading("");
-
   };
 
   const selected = (id, collector) => {
-    const collectorName = collectors.find(
-      (f) => f.collector_code_id === Number(collector)
+    const selectedCollectorId =
+      collector === "" || collector == null ? null : Number(collector);
+    const collectorRow = collectors.find(
+      (f) => Number(f.collector_code_id) === selectedCollectorId
     );
     setPrinters((prev) =>
       prev.map((item) =>
         item.receipt_donation_id === id
           ? {
             ...item,
-            collector_code_id: collector,
-            collector: { collector_name: collectorName.collector_name },
+            collector_code_id: selectedCollectorId,
+            collector: collectorRow
+              ? { collector_name: collectorRow.collector_name }
+              : item.collector ?? null,
           }
           : item
       )
@@ -112,6 +122,18 @@ const CheckPrint = () => {
 
   const handleGenerateReceiptPDF = async () => {
     setGenerating(true);
+    const hasMissingCollector = printers.some(
+      (item) =>
+        item.collector_code_id == null ||
+        item.collector_code_id === "" ||
+        Number.isNaN(Number(item.collector_code_id))
+    );
+    if (hasMissingCollector) {
+      toast.warning("Selecione um coletador para todas as doações antes de gerar.");
+      setGenerating(false);
+      return;
+    }
+
     // Verificar quais doações tiveram o coletador alterado
     const donationsToUpdate = printers.filter(print => {
       const original = originalDonations.find(
@@ -128,33 +150,46 @@ const CheckPrint = () => {
     // Atualizar as doações que tiveram o coletador alterado
     if (donationsToUpdate.length > 0) {
       try {
-        const updatePromises = donationsToUpdate.map(donation =>
-          supabase
-            .from("donation")
-            .update({ collector_code_id: donation.collector_code_id })
-            .eq("receipt_donation_id", donation.receipt_donation_id)
+        const out = await updateDonationCollectorsPrint(
+          donationsToUpdate.map((donation) => ({
+            receipt_donation_id: donation.receipt_donation_id,
+            collector_code_id: donation.collector_code_id,
+          }))
         );
-
-        const results = await Promise.all(updatePromises);
-        const errors = results.filter(result => result.error);
-
-        if (errors.length > 0) {
-          toast.error(`Erro ao atualizar ${errors.length} doação(ões)`);
-        } else {
+        if ((out?.updated || 0) > 0) {
           toast.success(`${donationsToUpdate.length} doação(ões) atualizada(s) com sucesso`);
         }
       } catch (error) {
-        console.error("Erro ao atualizar coletadores:", error);
         toast.error("Erro ao atualizar coletadores das doações");
       }
     }
 
-    await GenerateReceiptPDF({
-      cards: printers,
-      receiptConfig: config,
-      setOk: setOk,
-    });
-    setGenerating(false);
+    try {
+      const blob = await GenerateReceiptPDF({
+        cards: printers,
+        receiptConfig: config,
+        setOk: setOk,
+      });
+
+      if (!blob) {
+        return;
+      }
+
+      const receiptIds = printers.map((item) => item.receipt_donation_id);
+      await markPrintedDonations(receiptIds);
+      await postCheckPrintPackage({
+        receiptIds,
+        startDate,
+        endDate,
+        donationType: selectType,
+      });
+      await fetchDonationsPrinted();
+      toast.success("Recibos marcados como impressos.");
+    } catch (error) {
+      toast.error("Erro ao gerar os recibos.");
+    } finally {
+      setGenerating(false);
+    }
   };
 
   return (

@@ -1,5 +1,5 @@
 import { toast } from "react-toastify";
-import supabase from "./superBaseClient";
+import { patchCampainTextRequest } from "../api/campainsApi";
 
 /**
  * Atualiza um texto de campanha existente
@@ -24,22 +24,10 @@ export const updateCampainText = async (id, { title, content, campain_id, image,
     if (campain_id !== undefined) updateData.campain_id = campain_id;
     if (image !== undefined) updateData.image = image;
     if (video !== undefined) updateData.video = video;
-
-    const { data, error } = await supabase
-      .from("campain_texts")
-      .update(updateData)
-      .eq("id", id)
-      .select();
-
-    if (error) {
-      console.error("Erro ao atualizar texto da campanha:", error.message);
-      toast.error("Erro ao atualizar texto da campanha");
-      throw error;
-    }
-
-    if (data && data.length > 0) {
+    const response = await patchCampainTextRequest(id, updateData);
+    if (response?.success && response?.data) {
       toast.success("Texto da campanha atualizado com sucesso!");
-      return data[0];
+      return response.data;
     }
 
     return null;

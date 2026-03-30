@@ -1,6 +1,11 @@
 import { getOperators } from "../helper/getOperators";
 import { deleteRequestPackage } from "../helper/deleteRequestPackage";
 
+function donationNum(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
 export const distributePackageService = async (
   createPackage,
   setPerOperator,
@@ -100,18 +105,20 @@ export function assignAllPackage(
   maxValue,
   countValue
 ) {
-  let count = countValue;
+  let count = donationNum(countValue);
+  const max = donationNum(maxValue);
   const update = createPackage?.map((pkg) => {
     if (
       unassigned.some(
         (item) => item.receipt_donation_id === pkg.receipt_donation_id
       )
     ) {
-      if (count < maxValue) {
-        if (count + pkg.donation_value > maxValue) {
+      if (count < max) {
+        const val = donationNum(pkg.donation_value);
+        if (count + val > max) {
           return pkg;
         }
-        count = count + pkg.donation_value;
+        count += val;
         return {
           ...pkg,
           operator_code_id: Number(operatorID),
@@ -151,14 +158,14 @@ export function distribute(unassigned, createPackage, selection) {
   // Contabilizar fichas já atribuídas
   update.forEach(pkg => {
     if (selection.includes(pkg.operator_code_id)) {
-      operatorStats[pkg.operator_code_id].totalValue += pkg.donation_value || 0;
+      operatorStats[pkg.operator_code_id].totalValue += donationNum(pkg.donation_value);
       operatorStats[pkg.operator_code_id].count += 1;
     }
   });
   
   // Ordenar fichas não atribuídas do maior para o menor valor
-  const sortedUnassigned = [...unassigned].sort((a, b) => 
-    (b.donation_value || 0) - (a.donation_value || 0)
+  const sortedUnassigned = [...unassigned].sort(
+    (a, b) => donationNum(b.donation_value) - donationNum(a.donation_value)
   );
   
   // Distribuir cada ficha para o operador com menor carga
@@ -176,7 +183,7 @@ export function distribute(unassigned, createPackage, selection) {
         const stats = operatorStats[opId];
         // Score considera valor com peso maior que quantidade
         // Normaliza quantidade multiplicando por valor médio das fichas
-        const avgValue = unassignedItem.donation_value || 100;
+        const avgValue = donationNum(unassignedItem.donation_value) || 100;
         const score = stats.totalValue + (stats.count * avgValue * 0.3);
         
         if (score < minScore) {
@@ -189,7 +196,9 @@ export function distribute(unassigned, createPackage, selection) {
       update[find].operator_code_id = selectedOperator;
       
       // Atualizar estatísticas do operador
-      operatorStats[selectedOperator].totalValue += unassignedItem.donation_value || 0;
+      operatorStats[selectedOperator].totalValue += donationNum(
+        unassignedItem.donation_value
+      );
       operatorStats[selectedOperator].count += 1;
     }
   });

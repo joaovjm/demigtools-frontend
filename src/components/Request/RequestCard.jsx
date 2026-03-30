@@ -41,10 +41,10 @@ const RequestCard = ({
   const calculateValues = () => {
     
     if (perOperator && perOperator.length > 0) {
-      const value = perOperator.reduce(
-        (acc, item) => acc + item.donation_value,
-        0
-      );
+      const value = perOperator.reduce((acc, item) => {
+        const n = Number(item.donation_value);
+        return acc + (Number.isFinite(n) ? n : 0);
+      }, 0);
       const quantity = perOperator.length;
 
       setCountValue(value);

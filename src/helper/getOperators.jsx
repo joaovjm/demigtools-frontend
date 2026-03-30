@@ -1,24 +1,26 @@
-import supabase from "./superBaseClient";
+import apiClient from "../services/apiClient";
 
-export const getOperators = async ({ active, item, from, to }) => {
-  let query = supabase.from("operator");
+export const getOperators = async ({ active, item, from, to } = {}) => {
+  const params = {};
+  if (active !== undefined && active !== null && active !== "") {
+    params.active = active;
+  }
   if (item) {
-    query = query.select(item);
-  } else {
-    query = query.select();
+    params.item = String(item).replace(/\s/g, "");
   }
   if (from !== undefined && from !== null) {
-    query = query.range(from, to)
-    
+    params.from = from;
   }
-  if (active) query = query.eq("operator_active", active);
-  
-  const { data, error } = await query
-  if (data) {
+  if (to !== undefined && to !== null) {
+    params.to = to;
+  }
+  const { data } = await apiClient.get("/operators", { params });
 
+  if (data && typeof data === "object" && data.success === true && Array.isArray(data.data)) {
+    return data.data;
+  }
+  if (Array.isArray(data)) {
     return data;
   }
-  if (error) {
-    return error;
-  }
+  return [];
 };

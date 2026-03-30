@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import styles from "./modalscheduledonor.module.css";
 import { FaCalendarAlt, FaEdit, FaTimes } from "react-icons/fa";
-import { insertScheduled } from "../../helper/insertScheduled";
+import { postScheduledForDonorRequest } from "../../api/donorApi";
 import { UserContext } from "../../context/UserContext";
 import { toast } from "react-toastify";
 
@@ -40,17 +40,16 @@ const ModalScheduleDonor = ({ isOpen, onClose, donorId }) => {
 
     try {
       // Enviar apenas a data no formato YYYY-MM-DD
-      const result = await insertScheduled({
+      const result = await postScheduledForDonorRequest({
         scheduled_date: scheduledDate,
         observation: observation.trim() || null,
         entity_type: "doação",
-        entity_id: donorId,
+        entity_id: Number(donorId),
         operator_code_id: operatorData?.operator_code_id || null,
       });
 
-
-      if (result) {
-        // Limpar formulário
+      if (result?.status === "OK") {
+        toast.success("Agendamento criado com sucesso!");
         setScheduledDate("");
         setObservation("");
         onClose();

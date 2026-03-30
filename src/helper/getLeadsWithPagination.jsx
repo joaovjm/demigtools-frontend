@@ -1,4 +1,4 @@
-import supabase from "./superBaseClient";
+import { fetchLeadsPaginated } from "../api/leadsApi.js";
 
 const GetLeadsWithPagination = async (
   start,
@@ -9,42 +9,19 @@ const GetLeadsWithPagination = async (
   neighborhood = ""
 ) => {
   try {
-    let query = supabase
-      .from("leads")
-      .select("*", { count: "exact" })
-      .or(
-        `leads_status.eq.Nunca Ligado,and(leads_status.eq.Aberto,operator_code_id.eq.${operatorID})`
-      );
+    const out = await fetchLeadsPaginated({
+      operatorCodeId: operatorID,
+      start,
+      neighborhood,
+    });
 
-    // Adicionar filtro por bairro se especificado
-    if (neighborhood && neighborhood.trim() !== "") {
-      query = query.eq("leads_neighborhood", neighborhood);
-    }
-
-    // Ordenar por date_received quando o bairro é AACRECHE
-    let orderBy = "leads_id";
-    let orderAscending = true;
-    if (neighborhood && neighborhood.trim() === "AACRECHE") {
-      orderBy = "date_received";
-      orderAscending = false; // Mais recentes primeiro
-    }
-
-    const { data, error, count } = await query
-      .range(start, end)
-      .order(orderBy, { ascending: orderAscending })
-      .limit(1);
-
+    const data = out?.data ?? [];
     setCurrentLead(data?.[0] || null);
-    setItems(count || 0);
+    setItems(out?.total ?? 0);
 
     return data;
   } catch (error) {
-    // Erro 416 (Range Not Satisfiable) significa que não há mais leads disponíveis
-    if (error.message && error.message.includes("Range Not Satisfiable")) {
-      console.log("Não há mais leads disponíveis na posição solicitada");
-    } else {
-      console.error("Erro ao buscar os dados", error.message);
-    }
+    console.error("Erro ao buscar os dados", error?.message || error);
     setItems(0);
     setCurrentLead(null);
     return [];

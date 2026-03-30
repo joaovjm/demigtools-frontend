@@ -32,7 +32,7 @@ const CollectorCard = ({ operatorCount, setDonationFilterPerId }) => {
     setCollectors(collectorInfo)
     setCount(counting)
     setAdd(countingValue)
-  }, [])
+  }, [operatorCount])
 
   const handleClick = (id) => {
     setDonationFilterPerId(id);

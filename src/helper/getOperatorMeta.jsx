@@ -1,23 +1,26 @@
-import supabase from "./superBaseClient";
+import apiClient from "../services/apiClient";
 
 const getOperatorMeta = async (operator) => {
-  let query = supabase
-    .from("operator_meta")
-    .select(
-      "id, meta, operator_code_id, operator_name: operator_code_id(operator_name), start_date"
-    );
-  if (operator) {
-    query = query.eq("operator_code_id", operator);
-  } else {
-    query = query;
-  }
-
   try {
-    const { data, error } = await query.eq("status", "Ativo").order("start_date", { ascending: false }).limit(1);
-    if (error) throw error;
-    if (!error) return data;
+    const params = { limit: 1 };
+    if (operator !== undefined && operator !== null && operator !== "") {
+      params.operatorCodeId = operator;
+    }
+
+    const { data } = await apiClient.get("/admin-manager/operator-meta/history", {
+      params,
+    });
+
+    if (data && typeof data === "object" && data.success === true && Array.isArray(data.data)) {
+      return data.data;
+    }
+    if (Array.isArray(data)) {
+      return data;
+    }
+    return [];
   } catch (error) {
     console.log("Error: ", error.message);
+    return [];
   }
 };
 

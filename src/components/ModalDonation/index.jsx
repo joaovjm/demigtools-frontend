@@ -2,15 +2,14 @@ import React, { useContext, useEffect, useState } from "react";
 import styles from "./modaldonation.module.css";
 
 import { FaDollarSign } from "react-icons/fa";
-import { insertDonation } from "../../helper/insertDonation";
 import { DataNow, DataSelect } from "../DataTime";
 import { toast } from "react-toastify";
-import { getCampains } from "../../helper/getCampains";
+import { fetchActiveCampains } from "../../api/campainsApi";
+import { createDonationRequest, updateCollectorForDonorRequest } from "../../api/donationsApi";
+import { fetchDonorActiveRequest } from "../../api/donorApi";
 import { UserContext } from "../../context/UserContext";
 import { getOperators } from "../../helper/getOperators";
 import { logDonorActivity } from "../../helper/logDonorActivity";
-import { updateCollectorForDonor } from "../../helper/updateCollectorForDonor";
-import supabase from "../../helper/superBaseClient";
 
 const ModalDonation = ({
   modalShow,
@@ -43,8 +42,8 @@ const ModalDonation = ({
   const data_contato = DataNow("noformated");
 
   const fetchCampains = async () => {
-    const response = await getCampains();
-    setCampain(response);
+    const response = await fetchActiveCampains();
+    setCampain(response || []);
   };
 
   const fetchOperators = async () => {
@@ -64,19 +63,11 @@ const ModalDonation = ({
   useEffect(() => {
     const fetchRequest = async () => {
       try {
-        const { data, error } = await supabase
-          .from("request")
-          .select("*, operator: operator_code_id(operator_name)")
-          .eq("donor_id", donor_id)
-          .eq("request_active", "True")
-          .limit(1)
-          .order("request_start_date", { ascending: false });
-        if (error) throw error;
-        if (data) {
-          setRequest(data);
-        }
+        const data = await fetchDonorActiveRequest(donor_id);
+        setRequest(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Erro ao buscar requisição:", error.message);
+        setRequest([]);
       }
     };
     if (donor_id) {
@@ -106,31 +97,24 @@ const ModalDonation = ({
     }
 
 
-    const promise = insertDonation(
-      donor_id,
-      operator,
-      valor,
-      comissao,
-      data_contato,
-      data_receber,
-      impresso,
-      recebido,
-      descricao,
-      mesref,
-      campainSelected
-    );
-
-    toast.promise(promise, {
-      pending: "Criando doação...",
-      success: "Doação criada com sucesso!",
-      error: "Erro ao criar doação!",
-    });
-
-    try {
-      const result = await promise;
-
-      // Registrar criação de doação no histórico
-      if (result && result[0]) {
+    const runCreate = async () => {
+      const res = await createDonationRequest({
+        donor_id,
+        operator_code_id: operator,
+        valor,
+        comissao: comissao || null,
+        data_receber,
+        descricao,
+        mesref: mesref || null,
+        campain: campainSelected,
+        collector_code_id: null,
+        request_name: null,
+        requestRowId: null,
+        impresso: impresso === true,
+        recebido: recebido === true,
+      });
+      const created = res?.donation?.[0];
+      if (created) {
         logDonorActivity({
           donor_id: donor_id,
           operator_code_id: operatorData.operator_code_id,
@@ -143,18 +127,20 @@ const ModalDonation = ({
             donation_description: descricao,
             donation_monthref: mesref,
             donation_campain: campainSelected,
-            receipt_donation_id: result[0].receipt_donation_id,
+            receipt_donation_id: created.receipt_donation_id,
           },
-          related_donation_id: result[0].donation_code_id || null,
+          related_donation_id: created.donation_code_id || null,
         });
 
-        // Atualizar todas as doações desse doador com collector_code_id = 10 para 11
-        const updateResult = await updateCollectorForDonor(donor_id, 10, 11);
-        if (updateResult.success && updateResult.count > 0) {
+        const updateResult = await updateCollectorForDonorRequest({
+          donorId: donor_id,
+          oldCollectorId: 10,
+          newCollectorId: 11,
+        });
+        if (updateResult?.success && updateResult.count > 0) {
           console.log(`${updateResult.count} doação(ões) atualizada(s) do coletor 10 para 11`);
         }
       }
-
       setModalShow(false);
       setValor("");
       setComissao("");
@@ -163,6 +149,14 @@ const ModalDonation = ({
       setImpresso("");
       setRecebido("");
       setMesref("");
+    };
+
+    try {
+      await toast.promise(runCreate(), {
+        pending: "Criando doação...",
+        success: "Doação criada com sucesso!",
+        error: "Erro ao criar doação!",
+      });
     } catch (_) {}
   };
 

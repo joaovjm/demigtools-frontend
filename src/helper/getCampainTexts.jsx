@@ -1,4 +1,4 @@
-import supabase from "./superBaseClient";
+import { fetchCampainTexts } from "../api/campainsApi";
 
 /**
  * Busca todos os textos de uma campanha específica
@@ -7,25 +7,8 @@ import supabase from "./superBaseClient";
  */
 export const getCampainTexts = async (campainId = null) => {
   try {
-    let query = supabase
-      .from("campain_texts")
-      .select("*")
-      .eq("is_active", true)
-      .order("created_at", { ascending: false });
-
-    // Se campainId for fornecido, filtra por campanha específica
-    if (campainId) {
-      query = query.eq("campain_id", campainId);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error("Erro ao buscar textos das campanhas:", error.message);
-      throw error;
-    }
-
-    return data || [];
+    const response = await fetchCampainTexts(campainId || undefined);
+    return response?.data || [];
   } catch (error) {
     console.error("Erro na função getCampainTexts:", error);
     return [];

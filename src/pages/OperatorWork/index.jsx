@@ -5,6 +5,7 @@ import TableOperatorAndCollectorWork from "../../components/TableOperatorAndColl
 import { toast } from "react-toastify";
 import { collectorWorkService } from "../../services/collectorWorkService";
 import ModalOperatorsAndCollectorsWork from "../../components/modals/ModalOperatorsAndCollectorsWork";
+import Loader from "../../components/Loader";
 
 const OperatorWork = () => {
   const [startDate, setStartDate] = useState("");
@@ -13,6 +14,7 @@ const OperatorWork = () => {
   const [relatory, setRelatory] = useState();
   const [click, setClick] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleGenerate = async () => {
     if ([startDate, endDate, filter].some((v) => v === "")) {
@@ -24,14 +26,29 @@ const OperatorWork = () => {
       return;
     }
 
-    if (filter === "Operadores") {
+    setLoading(true);
+    setRelatory(null);
+
+    try {
+      if (filter === "Operadores") {
+        const response = await operatorWorkService({ startDate, endDate });
+        setRelatory(response);
+        if (!response.names?.length) {
+          toast.info("Nenhum operador encontrado no período.");
+        }
+      } else if (filter === "Coletadores") {
+        const response = await collectorWorkService({ startDate, endDate });
+        setRelatory(response);
+        if (!response.names?.length) {
+          toast.info("Nenhum coletor encontrado no período.");
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(error?.message || "Erro ao gerar relatório");
       setRelatory(null);
-      const response = await operatorWorkService({startDate: startDate, endDate: endDate});
-      setRelatory(response);
-    } else if (filter === "Coletadores") {
-      setRelatory(null);
-      const response = await collectorWorkService({startDate: startDate, endDate: endDate});
-      setRelatory(response);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -39,8 +56,7 @@ const OperatorWork = () => {
     <div className={styles.operatorWorkContainer}>
       <div className={styles.operatorWorkContent}>
         <h3 className={styles.operatorWorkTitle}>Relatório de Trabalho</h3>
-        
-        {/* Seção de Filtros */}
+
         <div className={styles.operatorWorkFilters}>
           <div className={styles.operatorWorkForm}>
             <div className={styles.formRow}>
@@ -53,6 +69,7 @@ const OperatorWork = () => {
                   className={styles.operatorWorkInput}
                 />
               </div>
+
               <div className={styles.formGroup}>
                 <label>Data de Fim</label>
                 <input
@@ -62,33 +79,36 @@ const OperatorWork = () => {
                   className={styles.operatorWorkInput}
                 />
               </div>
+
               <div className={styles.formGroup}>
                 <label>Tipo de Relatório</label>
-                <select 
-                  value={filter} 
+                <select
+                  value={filter}
                   onChange={(e) => setFilter(e.target.value)}
                   className={styles.operatorWorkSelect}
                 >
-                  <option value="" disabled>Selecione o tipo...</option>
+                  <option value="" disabled>
+                    Selecione o tipo...
+                  </option>
                   <option value="Operadores">Operadores</option>
                   <option value="Coletadores">Coletadores</option>
                 </select>
               </div>
             </div>
-            
+
             <div className={styles.formActions}>
-              <button 
-                onClick={handleGenerate} 
+              <button
+                type="button"
+                onClick={handleGenerate}
                 className={`${styles.operatorWorkBtn} ${styles.primary}`}
-                disabled={!startDate || !endDate || !filter}
+                disabled={!startDate || !endDate || !filter || loading}
               >
-                Gerar Relatório
+                {loading ? <Loader /> : "Gerar Relatório"}
               </button>
             </div>
           </div>
         </div>
 
-        {/* Seção de Resultados */}
         {relatory && relatory.names.length !== 0 && (
           <div className={styles.operatorWorkResults}>
             <TableOperatorAndCollectorWork
@@ -100,17 +120,19 @@ const OperatorWork = () => {
           </div>
         )}
 
-        {/* Estado Vazio */}
-        {(!relatory || !relatory.names || relatory.names.length === 0) && (startDate && endDate && filter) && (
-          <div className={styles.operatorWorkEmpty}>
-            <div className={styles.emptyIcon}>📊</div>
-            <h4>Nenhum dado encontrado</h4>
-            <p>Não há registros para o período e filtro selecionados.</p>
-          </div>
-        )}
+        {(!relatory || !relatory.names || relatory.names.length === 0) &&
+          startDate &&
+          endDate &&
+          filter &&
+          !loading && (
+            <div className={styles.operatorWorkEmpty}>
+              <div className={styles.emptyIcon}>📊</div>
+              <h4>Nenhum dado encontrado</h4>
+              <p>Não há registros para o período e filtro selecionados.</p>
+            </div>
+          )}
       </div>
 
-      {/* Modal */}
       {modalOpen && (
         <ModalOperatorsAndCollectorsWork
           click={click}

@@ -1,11 +1,9 @@
 import { toast } from "react-toastify";
-import supabase from "./superBaseClient"
+import { createCampainRequest } from "../api/campainsApi";
 
 export const insertNewCampain = async (campain_name) => {
-
-    const { data, error } = await supabase.from("campain").insert([{campain_name: campain_name}]).select()
-    if (error) throw error;
-    if(data.length > 0){
+    const response = await createCampainRequest(campain_name);
+    if(response?.success){
         toast.success("Campanha adicionada com sucesso...")
     }
 }

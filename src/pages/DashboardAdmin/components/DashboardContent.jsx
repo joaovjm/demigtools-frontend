@@ -29,6 +29,8 @@ const OperatorSidebar = ({
     donationConfirmation,
     fullNotReceivedDonations,
     scheduled,
+    scheduledDonations,
+    scheduledFromTable,
   },
   setDonationFilterPerId,
 }) => {
@@ -62,7 +64,7 @@ const OperatorSidebar = ({
     case CARD_IDS.IN_SCHEDULED:
       return (
         <SchedulingCard
-          operatorCount={scheduled}
+          operatorCount={[...(scheduled || []), ...(scheduledDonations || []), ...(scheduledFromTable || [])]}
           setDonationFilterPerId={setDonationFilterPerId}
         />
       );
@@ -78,12 +80,14 @@ const MainTable = ({
   active,
   viewType,
   donationFilterPerId,
+  tableLoading,
   data: {
     donationsReceived,
     donationConfirmation,
     fullNotReceivedDonations,
     scheduled,
     scheduledDonations,
+    scheduledFromTable,
   },
   handlers: {
     setModalOpen,
@@ -93,6 +97,24 @@ const MainTable = ({
     setNowScheduled,
   },
 }) => {
+  const isLoading =
+    (active === CARD_IDS.RECEIVED && tableLoading?.received) ||
+    (active === CARD_IDS.IN_CONFIRMATION &&
+      tableLoading?.inConfirmation) ||
+    (active === CARD_IDS.IN_OPEN && tableLoading?.inOpen) ||
+    (active === CARD_IDS.IN_SCHEDULED && tableLoading?.inScheduled);
+
+  const TableSkeleton = () => (
+    <div className={styles.tableSkeleton}>
+      <div className={styles.tableSkeletonHeader} />
+      {Array.from({ length: 8 }).map((_, idx) => (
+        <div key={idx} className={styles.tableSkeletonLine} />
+      ))}
+    </div>
+  );
+
+  if (isLoading) return <TableSkeleton />;
+
   switch (active) {
     case CARD_IDS.RECEIVED:
       return (
@@ -131,6 +153,7 @@ const MainTable = ({
         <TableScheduled
           scheduled={scheduled}
           scheduledDonations={scheduledDonations}
+          scheduledFromTable={scheduledFromTable}
           setModalOpen={setModalOpen}
           setScheduledOpen={setScheduledOpen}
           setNowScheduled={setNowScheduled}
@@ -154,9 +177,29 @@ const DashboardContent = ({
   handlers,
   operatorActivities,
   dateFilter,
+  tableLoading,
 }) => {
-  // Se nenhum card está ativo ou é o card de leads, mostra a tabela de leads
-  if (!active || active === CARD_IDS.LEADS) {
+  const LeadsSkeleton = () => (
+    <div className={styles.divLeads}>
+      <div className={styles.tableSkeleton}>
+        <div className={styles.tableSkeletonHeader} />
+        {Array.from({ length: 10 }).map((_, idx) => (
+          <div key={idx} className={styles.tableSkeletonLine} />
+        ))}
+      </div>
+    </div>
+  );
+
+  // O histórico de "Leads" só deve ser carregado/exibido quando o card Leads estiver ativo
+  if (active === CARD_IDS.LEADS) {
+    if (tableLoading?.leads) {
+      return (
+        <section className={styles.sectionGrafic}>
+          <LeadsSkeleton />
+        </section>
+      );
+    }
+
     return (
       <section className={styles.sectionGrafic}>
         <div className={styles.divLeads}>
@@ -168,6 +211,8 @@ const DashboardContent = ({
       </section>
     );
   }
+
+  if (!active) return null;
 
   return (
     <section className={styles.sectionGrafic}>
@@ -198,6 +243,7 @@ const DashboardContent = ({
             donationFilterPerId={donationFilterPerId}
             data={data}
             handlers={handlers}
+            tableLoading={tableLoading}
           />
         </div>
       </div>

@@ -29,7 +29,7 @@ import ActionDropdown from "../../components/ActionDropdown";
 import ModalScheduleDonor from "../../components/ModalScheduleDonor";
 import ModalCreateTask from "../../components/ModalCreateTask";
 import { CallComponent } from "../../components/CallComponent";
-import supabase from "../../helper/superBaseClient";
+import { fetchDonorActiveRequest, deactivateDonorMensalRequest } from "../../api/donorApi";
 const Donor = () => {
   const { id } = useParams();
   const { operatorData, setOperatorData } = useContext(UserContext);
@@ -122,16 +122,8 @@ const Donor = () => {
   useEffect(() => {
     const fetchWorkListRequest = async () => {
       try {
-        const { data, error } = await supabase
-          .from("request")
-          .select("*, operator: operator_code_id(operator_name)")
-          .eq("donor_id", id)
-          .eq("request_active", "True")
-          .order("request_start_date", { ascending: false })
-          .limit(1);
-        if (error) throw error;
-        if (data) setWorkListRequest(data);
-        else setWorkListRequest([]);
+        const data = await fetchDonorActiveRequest(id);
+        setWorkListRequest(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Erro ao buscar lista de trabalho:", error.message);
         setWorkListRequest([]);
@@ -188,19 +180,7 @@ const Donor = () => {
             donorData.tipo === DONOR_TYPES.CASUAL
           ) {
             try {
-              const { error: deleteError } = await supabase
-                .from("donor_mensal")
-                .update({
-                  active: false,
-                })
-                .eq("donor_id", id);
-
-              if (deleteError) {
-                console.error(
-                  "Erro ao remover dados de mensal do doador:",
-                  deleteError.message
-                );
-              }
+              await deactivateDonorMensalRequest(id);
             } catch (error) {
               console.error(
                 "Erro inesperado ao remover dados de mensal do doador:",

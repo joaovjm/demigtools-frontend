@@ -1,20 +1,10 @@
-import supabase from "./superBaseClient";
+import { fetchRequestNames } from "../api/requestPackagesApi.js";
 
 const getAllRequests = async () => {
   try {
-    const { data, error } = await supabase
-      .from("request_name")
-      .select()
-      .order("date_created", { ascending: false });
-
-    if (error) {
-      console.error("Erro ao buscar requisições:", error);
-      throw error;
-    }
-
-    return data || [];
+    return await fetchRequestNames();
   } catch (error) {
-    console.error("Erro na função getAllRequests:", error);
+    console.error("Erro ao buscar requisições:", error);
     return [];
   }
 };

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import supabase from "../../helper/superBaseClient";
 import { getEditReceipt } from "../../helper/getEditReceipt";
 import { toast } from "react-toastify";
 import styles from "../../pages/AdminManager/adminmanager.module.css";
+import { patchAdminReceiptConfig } from "../../api/adminManagerApi";
 
 const ReceiptConfig = () => {
   const [inEdit, setInEdit] = useState(false);
@@ -55,22 +55,19 @@ const ReceiptConfig = () => {
     setEditReceipt((item) => ({ ...item, [field]: value }));
   };
 
-  console.log(editReceipt)
-
   const handleEditReceipt = async () => {
     if (inEdit) {
       try {
-        const { error } = await supabase
-          .from("receipt_config")
-          .update(editReceipt)
-          .eq("id", 1);
-        if (error) {
-          toast.error("Erro ao atualizar recibo: ", error.message);
+        const response = await patchAdminReceiptConfig(editReceipt);
+        if (!response?.success) {
+          toast.error(response?.message || "Erro ao atualizar recibo");
         } else {
           toast.success("Recibo atualizado com sucesso!");
           setInEdit(!inEdit);
         }
-      } catch (error) {}
+      } catch (error) {
+        toast.error("Erro ao atualizar recibo");
+      }
     } else {
       setInEdit(!inEdit);
     }

@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import styles from "./modalcreatetask.module.css";
-import supabase from "../../helper/superBaseClient";
+import { postTaskManagerRequest } from "../../api/donorApi";
 import { toast } from "react-toastify";
 import { UserContext } from "../../context/UserContext";
 import {
@@ -33,19 +33,13 @@ const ModalCreateTask = ({ isOpen, onClose, donorId, donorName }) => {
     try {
       setLoading(true);
 
-      const taskData = {
+      await postTaskManagerRequest({
         reason: reason.trim(),
-        priority: priority,
+        priority,
         operator_required: operatorData?.operator_code_id,
         status: "pendente",
-        donor_id: donorId,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      const { error } = await supabase.from("task_manager").insert([taskData]);
-
-      if (error) throw error;
+        donor_id: Number(donorId),
+      });
 
       toast.success("Tarefa criada com sucesso!");
       setReason("");

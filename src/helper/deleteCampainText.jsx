@@ -1,5 +1,5 @@
 import { toast } from "react-toastify";
-import supabase from "./superBaseClient";
+import { deleteCampainTextRequest } from "../api/campainsApi";
 
 /**
  * Deleta um texto de campanha (soft delete por padrão)
@@ -14,26 +14,8 @@ export const deleteCampainText = async (id, hardDelete = false) => {
       return false;
     }
 
-    let result;
-
-    if (hardDelete) {
-      // Hard delete - remove permanentemente
-      result = await supabase.from("campain_texts").delete().eq("id", id);
-    } else {
-      // Soft delete - apenas marca como inativo
-      result = await supabase
-        .from("campain_texts")
-        .update({ is_active: false })
-        .eq("id", id);
-    }
-
-    const { error } = result;
-
-    if (error) {
-      console.error("Erro ao deletar texto da campanha:", error.message);
-      toast.error("Erro ao deletar texto da campanha");
-      throw error;
-    }
+    const response = await deleteCampainTextRequest(id, hardDelete);
+    if (!response?.success) throw new Error(response?.message || "Erro ao deletar");
 
     toast.success("Texto da campanha deletado com sucesso!");
     return true;

@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "./adminmanager.module.css";
 import { getOperators } from "../../helper/getOperators";
-import getOperatorMeta from "../../helper/getOperatorMeta";
 import Meta from "../../components/AdminManager/Meta";
-import WhatsappManager from "../../components/AdminManager/WhatsappManager";
 import Campain from "../../components/AdminManager/Campain";
 import ReceiptConfig from "../../components/AdminManager/ReceiptConfig";
 import LeadsManager from "../../components/AdminManager/LeadsManager";
@@ -37,7 +35,6 @@ const AdminManager = () => {
 
   const menuItems = [
     { id: "meta", label: "Meta", icon: "🎯" },
-    { id: "whatsapp", label: "WhatsApp", icon: "💬" },
     { id: "campain", label: "Campanha", icon: "📢" },
     { id: "receipt", label: "Config. Recibo", icon: "🧾" },
     { id: "leads", label: "Ger. Leads", icon: "👥" },
@@ -72,8 +69,6 @@ const AdminManager = () => {
             read={read}
             setRead={setRead}
           />
-        ) : active === "whatsapp" ? (
-          <WhatsappManager />
         ) : active === "campain" ? (
           <Campain />
         ) : active === "receipt" ? (
@@ -94,11 +89,6 @@ const AdminManager = () => {
                   <span className={styles.featureIcon}>🎯</span>
                   <h4>Metas</h4>
                   <p>Gerencie metas dos operadores</p>
-                </div>
-                <div className={styles.featureCard}>
-                  <span className={styles.featureIcon}>💬</span>
-                  <h4>WhatsApp</h4>
-                  <p>Configure templates e contatos</p>
                 </div>
                 <div className={styles.featureCard}>
                   <span className={styles.featureIcon}>📢</span>

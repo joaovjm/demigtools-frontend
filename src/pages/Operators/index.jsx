@@ -38,20 +38,18 @@ const Operators = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const operators = async () => {
+    let cancelled = false;
+    const loadOperators = async () => {
       setIsLoading(true);
       try {
-        let status;
-        if (active === "Ativos") {
-          status = "true";
-        } else {
-          status = "false";
-        }
+        const status = active === "Ativos" ? "true" : "false";
         const data = await getOperators({ active: status });
-        setTableOperators(data);
+        if (cancelled) return;
+        const list = Array.isArray(data) ? data : [];
+        setTableOperators(list.map((op) => ({ ...op, isDisable: true })));
 
-        if (data.length > 0) {
-          const operator = data[0];
+        if (list.length > 0) {
+          const operator = list[0];
           setFormTerm({
             cod: operator.operator_code_id,
             operator: operator.operator_name,
@@ -59,14 +57,29 @@ const Operators = () => {
             type: operator.operator_type,
             active: operator.operator_active,
           });
+        } else {
+          setFormTerm({
+            cod: "",
+            operator: "",
+            password: "",
+            type: "",
+            active: false,
+          });
         }
       } catch (error) {
-        console.error("Erro: ", error.message);
+        if (!cancelled) {
+          console.error("Erro: ", error.message);
+          toast.error(error?.message || "Erro ao carregar operadores.");
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
     };
-    operators();
-    setIsLoading(false);
-  }, [modalShow === false, modalConfirmOpen === false, active]);
+    loadOperators();
+    return () => {
+      cancelled = true;
+    };
+  }, [active, modalShow, modalConfirmOpen]);
 
   const handleInputChange = (e, operator) => {
     const { name, value, type, checked } = e.target;
@@ -118,9 +131,13 @@ const Operators = () => {
           password: operatorToUpdate.operator_password,
         };
 
-        const data = await editOperator(operatorData);
-        if (data === "success") {
-          toast.success("Dados atualizados com sucesso!");
+        try {
+          const data = await editOperator(operatorData);
+          if (data === "success") {
+            toast.success("Dados atualizados com sucesso!");
+          }
+        } catch (err) {
+          toast.error(err?.message || "Erro ao salvar operador.");
         }
 
         setTableOperators((prevOperators) =>
@@ -135,9 +152,14 @@ const Operators = () => {
           title: "Deletar Usuario",
           message: "Tem certeza que desejas deletar este usuário?",
           onConfirm: async () => {
-            await deleteOperator(operatorId).then(resolve);
             setModalConfirmOpen(false);
-            toast.success("Usuário deletado com sucesso!");
+            const r = await deleteOperator(operatorId);
+            if (r?.success) {
+              toast.success("Usuário deletado com sucesso!");
+            } else {
+              toast.error(r?.error || "Não foi possível excluir o usuário.");
+            }
+            resolve(r);
           },
         });
         setModalConfirmOpen(true);

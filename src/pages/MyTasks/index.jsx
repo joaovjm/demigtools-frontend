@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from "react";
 import styles from "./mytasks.module.css";
-import supabase from "../../helper/superBaseClient";
 import { toast } from "react-toastify";
 import { UserContext } from "../../context/UserContext";
+import { fetchMyTasks as fetchMyTasksApi } from "../../api/taskManagerApi.js";
 import {
   FaTasks,
   FaUser,
@@ -36,24 +36,13 @@ const MyTasks = () => {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("task_manager")
-        .select(
-          `
-          *,
-          operator_required_info:operator_required(operator_name, operator_code_id),
-          operator_conclude_info:operator_activity_conclude(operator_name, operator_code_id),
-          donor:donor_id(donor_id, donor_name)
-        `
-        )
-        .eq("operator_required", operatorData.operator_code_id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
+      const data = await fetchMyTasksApi({
+        operatorCodeId: operatorData.operator_code_id,
+      });
       setTasks(data || []);
     } catch (error) {
       console.error("Erro ao buscar tarefas:", error);
-      toast.error("Erro ao carregar suas tarefas");
+      toast.error(error?.message || "Erro ao carregar suas tarefas");
     } finally {
       setLoading(false);
     }

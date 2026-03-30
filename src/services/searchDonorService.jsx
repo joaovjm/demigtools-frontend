@@ -1,12 +1,13 @@
-import searchDonor from "../helper/searchDonor"
+import { searchDonorsRequest } from "../api/donorApi";
 
 const fetchDonors = async (searchTerm, selectedValue, setLoading, setDonor) => {
   try {
     setLoading(true);
-    const data = await searchDonor(searchTerm, selectedValue);
-    setDonor(data);
+    const data = await searchDonorsRequest({ q: searchTerm, donorType: selectedValue });
+    setDonor(data || []);
   } catch (error) {
-    console.log("Falha ao encontrar doador: ", error.message);
+    setDonor([]);
+    throw error;
   } finally {
     setLoading(false);
   }

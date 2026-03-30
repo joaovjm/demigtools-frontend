@@ -1,18 +1,22 @@
 import React, { useEffect, useState, useContext } from "react";
 import styles from "./modalscheduled.module.css";
 import { DataNow } from "../DataTime";
-import updateLeads from "../../helper/updateLeads";
 import { toast } from "react-toastify";
-import newDonorAndDonation from "../../helper/newDonorAndDonation";
-import { getCampains } from "../../helper/getCampains";
-import updateRequestSelected from "../../helper/updateRequestSelected";
-import { insertDonation } from "../../helper/insertDonation";
-import { fetchMaxAndMedDonations } from "../../services/worklistService";
+import { fetchActiveCampains } from "../../api/campainsApi";
+import { fetchDonorDonationStats } from "../../api/donationsApi";
 import { useNavigate } from "react-router";
-import supabase from "../../helper/superBaseClient";
 import { UserContext } from "../../context/UserContext";
 import { registerOperatorActivity, ACTIVITY_TYPES } from "../../services/operatorActivityService";
 import { navigateWithNewTab } from "../../utils/navigationUtils";
+import {
+  clearDonationConfirmationSchedule,
+  createDonorAndDonationFromScheduledLead,
+  createDonation,
+  scheduledDonationCannotHelp,
+  scheduledDonationComplete,
+  updateLeadStatus,
+  updateRequestStatus,
+} from "../../api/modalScheduledApi";
 import {
   FaUser,
   FaMapMarkerAlt,
@@ -54,28 +58,39 @@ const ModalScheduled = ({
   const [campains, setCampains] = useState([]);
   const [lastThreeDonations, setLastThreeDonations] = useState([]);
 
-  console.log(scheduledOpen);
-
-  const fetchCampain = async () => {
-    const response = await getCampains();
-    setCampains(response);
-  };
-
-  const fetchDonations = async () => {
-    if (scheduledOpen.typeScheduled !== "lead" && scheduledOpen.donor_id) {
-      const { lastThreeDonations } = await fetchMaxAndMedDonations(
-        scheduledOpen.donor_id,
-        null
-      );
-      setLastThreeDonations(lastThreeDonations || []);
-    }
-  };
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await fetchActiveCampains();
+        if (!cancelled) setCampains(response || []);
+      } catch {
+        if (!cancelled) setCampains([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
-    fetchCampain();
-    fetchDonations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    let cancelled = false;
+    if (scheduledOpen?.typeScheduled === "lead" || !scheduledOpen?.donor_id) {
+      setLastThreeDonations([]);
+      return undefined;
+    }
+    (async () => {
+      try {
+        const stats = await fetchDonorDonationStats(scheduledOpen.donor_id, null);
+        if (!cancelled) setLastThreeDonations(stats?.lastThreeDonations || []);
+      } catch {
+        if (!cancelled) setLastThreeDonations([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [scheduledOpen?.donor_id, scheduledOpen?.typeScheduled]);
 
   const handleNewDonation = () => {
     setName(scheduledOpen.name);
@@ -94,11 +109,11 @@ const ModalScheduled = ({
   const handleCancel = async () => {
     if (window.confirm("Você tem certeza que deseja cancelar a ficha?")) {
       if (scheduledOpen.typeScheduled === "lead") {
-        const response = await updateLeads(
-          "Não pode Ajudar",
-          scheduledOpen.operator_code_id,
-          scheduledOpen.id
-        );
+        const response = await updateLeadStatus({
+          leads_id: scheduledOpen.id,
+          leads_status: "Não pode Ajudar",
+          operator_code_id: scheduledOpen.operator_code_id,
+        });
         if (response) {
           // Registra atividade de lead agendado que não pode ajudar
           await registerOperatorActivity({
@@ -116,7 +131,7 @@ const ModalScheduled = ({
         }
       } else if (scheduledOpen.typeScheduled === "scheduled_donation") {
         // Processar cancelamento de agendamento da nova tabela
-        const response = await markScheduledAsCannotHelp(scheduledOpen.id);
+        const response = await scheduledDonationCannotHelp({ id: scheduledOpen.id });
         if (response) {
           toast.success("Agendamento marcado como 'Não pode ajudar'");
           onClose();
@@ -124,16 +139,9 @@ const ModalScheduled = ({
       } else if (scheduledOpen.typeScheduled === "donation_agendada") {
         // Processar cancelamento de doação agendada da tabela donation
         try {
-          const { error } = await supabase
-            .from("donation")
-            .update({
-              confirmation_status: null,
-              confirmation_scheduled: null,
-              confirmation_observation: null,
-            })
-            .eq("receipt_donation_id", scheduledOpen.donationId || scheduledOpen.id);
-          
-          if (error) throw error;
+          await clearDonationConfirmationSchedule({
+            receiptDonationId: scheduledOpen.donationId || scheduledOpen.id,
+          });
           
           toast.success("Agendamento cancelado com sucesso");
           if (setStatus) setStatus("Update OK");
@@ -143,12 +151,10 @@ const ModalScheduled = ({
           toast.error("Erro ao cancelar agendamento");
         }
       } else {
-        const response = await updateRequestSelected(
-          "NP",
-          scheduledOpen.donor_id,
-          onClose,
-          ""
-        );
+        const response = await updateRequestStatus({
+          id: scheduledOpen.donor_id,
+          status: "NP",
+        });
         if (response) {
           toast.success("Processo concluído com sucesso");
           onClose();
@@ -182,25 +188,43 @@ const ModalScheduled = ({
       return;
     }
 
-    const response = await newDonorAndDonation({
-      id: scheduledOpen.id,
-      name: scheduledOpen.name,
-      address: address,
-      neighborhood: neighborhood || "",
-      city: city || "RIO DE JANEIRO",
-      telSuccess: telSuccess || "",
-      tel2: tel2 || "",
-      tel3: tel3 || "",
-      icpf: scheduledOpen.leads_icpf || "",
-      valueDonation: valueDonation || "",
-      date: dateScheduling || "",
-      campain: campain || "",
-      observation: observation || "",
-      operatorID: scheduledOpen.operator_code_id,
-      operatorName: operatorData?.operator_name,
-      nowScheduled: nowScheduled,
-    });
-    if (response) onClose();
+    try {
+      const out = await createDonorAndDonationFromScheduledLead({
+        lead_id: scheduledOpen.id,
+        lead_cpf: scheduledOpen.leads_icpf || "",
+        name: scheduledOpen.name,
+        address,
+        neighborhood: neighborhood || "",
+        city: city || "RIO DE JANEIRO",
+        tel1: tel1,
+        tel2: tel2 || "",
+        tel3: tel3 || "",
+        valor: valueDonation || "",
+        data_receber: dateScheduling || "",
+        campain: campain || "",
+        descricao: observation || "",
+        operator_code_id: scheduledOpen.operator_code_id,
+      });
+
+      if (out?.status === "OK") {
+        await registerOperatorActivity({
+          operatorId: scheduledOpen.operator_code_id,
+          operatorName: operatorData?.operator_name,
+          activityType: ACTIVITY_TYPES.LEAD_DONATION_FROM_SCHEDULED,
+          donorId: out?.donor_id,
+          donorName: scheduledOpen.name,
+          metadata: {
+            leadId: scheduledOpen.id,
+            source: "leads_from_scheduled",
+            donationValue: valueDonation,
+          },
+        });
+        toast.success("Operação completada com sucesso!");
+        onClose();
+      }
+    } catch (e) {
+      toast.error(e.message || "Erro ao criar doador/doação");
+    }
   };
 
   const handleNewRequestDonation = async () => {
@@ -212,25 +236,21 @@ const ModalScheduled = ({
       toast.warning("Preencha todos os campos");
       return;
     }
-    const response = await insertDonation(
-      scheduledOpen.donor_id,
-      scheduledOpen.operator_code_id,
-      valueDonation,
-      null,
-      DataNow("noformated"),
-      dateScheduling,
-      false,
-      false,
-      observation,
-      null,
-      campain
-    );
+    const response = await createDonation({
+      donor_id: scheduledOpen.donor_id,
+      operator_code_id: scheduledOpen.operator_code_id,
+      valor: valueDonation,
+      comissao: null,
+      data_receber: dateScheduling,
+      descricao: observation,
+      mesref: null,
+      campain,
+      collector_code_id: null,
+      request_name: null,
+      requestRowId: null,
+    });
     if (response && scheduledOpen.entity_type !== "doação") {
-      const response = await updateRequestSelected(
-        "Sucesso",
-        scheduledOpen.id,
-        onClose
-      );
+      const response = await updateRequestStatus({ id: scheduledOpen.id, status: "Sucesso" });
       if (response) {
         onClose();
       }
@@ -249,29 +269,24 @@ const ModalScheduled = ({
       // Se for doação agendada da tabela donation, atualizar a doação existente
 
       if (scheduledOpen.typeScheduled === "donation_agendada") {
-        const { error } = await supabase
-          .from("donation")
-          .insert({
-            donation_value: valueDonation,
-            donation_day_to_receive: dateScheduling,
-            donation_description: observation || null,
-            donation_campain: campain,
-            donation_day_contact: DataNow("noformated"),
-            operator_code_id: scheduledOpen.operator_code_id,
-          })
-          //.eq("receipt_donation_id", scheduledOpen.donationId || scheduledOpen.id);
-        
-        if (error) throw error;
+        await createDonation({
+          donor_id: scheduledOpen.donor_id,
+          operator_code_id: scheduledOpen.operator_code_id,
+          valor: valueDonation,
+          comissao: null,
+          data_receber: dateScheduling,
+          descricao: observation,
+          mesref: null,
+          campain,
+          collector_code_id: null,
+          request_name: null,
+          requestRowId: null,
+        });
 
-        const { error: updateScheduled } = await supabase
-          .from("donation")
-          .update({
-            confirmation_status: "Concluído",
-            confirmation_scheduled: dateScheduling,
-            confirmation_observation: observation,
-          })
-          .eq("receipt_donation_id", scheduledOpen.donationId || scheduledOpen.id);
-        if (updateScheduled) throw updateScheduled;
+        // Conclui o agendamento da doação existente (limpa marcação)
+        await clearDonationConfirmationSchedule({
+          receiptDonationId: scheduledOpen.donationId || scheduledOpen.id,
+        });
         
         toast.success("Criação de doação concluído com sucesso!");
         if (setStatus) setStatus("Update OK");
@@ -279,27 +294,28 @@ const ModalScheduled = ({
       } else {
 
         // Criar a doação (para scheduled_donations)
-        const donationResponse = await insertDonation(
-          scheduledOpen.donor_id,
-          scheduledOpen.operator_code_id,
-          valueDonation,
-          null,
-          DataNow("noformated"),
-          dateScheduling,
-          false,
-          false,
-          observation,
-          null,
-          campain
-        );
+        const donationResponse = await createDonation({
+          donor_id: scheduledOpen.donor_id,
+          operator_code_id: scheduledOpen.operator_code_id,
+          valor: valueDonation,
+          comissao: null,
+          data_receber: dateScheduling,
+          descricao: observation,
+          mesref: null,
+          campain,
+          collector_code_id: null,
+          request_name: null,
+          requestRowId: null,
+        });
 
 
-        if (donationResponse && donationResponse.length > 0) {
+        const created = donationResponse?.donation?.[0];
+        if (created?.receipt_donation_id) {
           // Marcar agendamento como concluído e vincular à doação criada
-          await completeScheduledDonation(
-            scheduledOpen.id,
-            donationResponse[0].receipt_donation_id
-          );
+          await scheduledDonationComplete({
+            id: scheduledOpen.id,
+            donation_id: created.receipt_donation_id,
+          });
           toast.success("Doação criada e agendamento concluído com sucesso!");
           onClose();
         }

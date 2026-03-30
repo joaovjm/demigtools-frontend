@@ -56,7 +56,9 @@ const ModalNewOperator = ({ setModalShow }) => {
       }
     } catch (error) {
       console.error("Erro: ", error.message);
-      toast.error("Erro ao criar operador. Tente novamente.");
+      toast.error(
+        error?.message || "Erro ao criar operador. Tente novamente."
+      );
     }
   };
 

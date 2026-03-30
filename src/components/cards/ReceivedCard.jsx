@@ -34,7 +34,7 @@ const ReceivedCard = ({ operatorCount, setDonationFilterPerId }) => {
     setOperators(operatorInfo);
     setCount(counting);
     setAdd(countingValue);
-  }, []);
+  }, [operatorCount]);
 
   const handleClick = (id) => {
     setDonationFilterPerId(id);

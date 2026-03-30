@@ -21,8 +21,9 @@ const DonationTable = ({ unassigned, setSelected, selected, createPackage, setCr
       item.donor_tel_1?.includes(filterText) ||
       item.receipt_donation_id?.toString().includes(filterText);
     
-    const matchesValue = !filterValue || 
-      item.donation_value >= parseFloat(filterValue);
+    const matchesValue =
+      !filterValue ||
+      (Number(item.donation_value) || 0) >= parseFloat(filterValue);
     
     return matchesText && matchesValue;
   });
@@ -33,7 +34,8 @@ const DonationTable = ({ unassigned, setSelected, selected, createPackage, setCr
   useEffect(() => {
     const countPackage = () => {
       const count = filteredUnassigned?.reduce((acc, item) => {
-        return acc + item.donation_value;
+        const n = Number(item.donation_value);
+        return acc + (Number.isFinite(n) ? n : 0);
       }, 0);
 
       setPackageCount(count);
@@ -149,7 +151,7 @@ const DonationTable = ({ unassigned, setSelected, selected, createPackage, setCr
                     >
                       <td className="donation-table-cell">
                         <span className="value-amount">
-                          {cp.donation_value.toLocaleString("pt-BR", {
+                          {(Number(cp.donation_value) || 0).toLocaleString("pt-BR", {
                             style: "currency",
                             currency: "BRL",
                           })}

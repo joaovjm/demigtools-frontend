@@ -29,7 +29,6 @@ import Home from "./pages/Home";
 import Request from "./pages/Request";
 import DashboardAdmin from "./pages/DashboardAdmin";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Chat from "./pages/Chat";
 import Tasks from "./pages/Tasks";
 import MyTasks from "./pages/MyTasks";
 import MonthHistory from "./pages/MonthHistory";
@@ -107,15 +106,6 @@ const AppRoutesContent = () => {
           element={
             <Wrapper>
               <OperatorReport />
-            </Wrapper>
-          }
-        />
-
-        <Route
-          path="/chat"
-          element={
-            <Wrapper>
-              <Chat />
             </Wrapper>
           }
         />

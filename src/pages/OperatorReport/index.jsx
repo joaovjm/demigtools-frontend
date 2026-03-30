@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import styles from "./operatorreport.module.css";
 import { UserContext } from "../../context/UserContext";
-import getOperatorDonationsReceived from "../../helper/getOperatorDonationsReceived";
+import { fetchOperatorReportDonations } from "../../api/operatorReportApi.js";
 import { toast } from "react-toastify";
 import { FaSearch, FaDownload } from "react-icons/fa";
 
@@ -16,6 +16,10 @@ const OperatorReport = () => {
   const [hasSearched, setHasSearched] = useState(false);
 
   const handleSearch = async () => {
+    if (!operatorData?.operator_code_id) {
+      toast.warning("Operador não identificado. Faça login novamente.");
+      return;
+    }
     // Validações
     if (!startDate || !endDate) {
       toast.warning("Selecione as datas de início e fim!");
@@ -31,11 +35,12 @@ const OperatorReport = () => {
     setHasSearched(true);
     
     try {
-      const result = await getOperatorDonationsReceived({
+      const result = await fetchOperatorReportDonations({
         startDate,
         endDate,
-        operatorId: operatorData.operator_code_id,
-        searchType
+        operatorCodeId: operatorData.operator_code_id,
+        operatorType: operatorData.operator_type,
+        searchType,
       });
       
       setDonations(result.donation);
@@ -68,10 +73,19 @@ const OperatorReport = () => {
     }).format(value);
   };
 
+  const lineValue = (donation) =>
+    operatorData?.operator_type === "Operador Extra"
+      ? Number(donation.donation_extra) || 0
+      : Number(donation.donation_value) || 0;
+
   const formatDate = (dateString) => {
     if (!dateString) return "-";
-    const date = new Date(dateString + "T00:00:00");
-    return date.toLocaleDateString("pt-BR");
+    const raw = String(dateString).trim();
+    const d = /^\d{4}-\d{2}-\d{2}$/.test(raw)
+      ? new Date(`${raw}T12:00:00`)
+      : new Date(raw);
+    if (Number.isNaN(d.getTime())) return "-";
+    return d.toLocaleDateString("pt-BR");
   };
 
   const getDateField = (donation) => {
@@ -107,11 +121,16 @@ const OperatorReport = () => {
     }
 
     // Criar CSV
-    const headers = [getDateLabel(), "Doador", "Valor", "Operador"];
+    const headers = [
+      getDateLabel(),
+      "Doador",
+      operatorData?.operator_type === "Operador Extra" ? "Valor Extra" : "Valor",
+      "Operador",
+    ];
     const rows = donations.map(donation => [
       formatDate(getDateField(donation)),
       donation.donor?.donor_name || "N/A",
-      donation.donation_value,
+      lineValue(donation),
       donation.operator_name?.operator_name || "N/A"
     ]);
 
@@ -226,7 +245,11 @@ const OperatorReport = () => {
                     <tr>
                       <th>{getDateLabel()}</th>
                       <th>Doador</th>
-                      <th>Valor</th>
+                      <th>
+                        {operatorData?.operator_type === "Operador Extra"
+                          ? "Valor Extra"
+                          : "Valor"}
+                      </th>
                       <th>Operador</th>
                     </tr>
                   </thead>
@@ -236,7 +259,7 @@ const OperatorReport = () => {
                         <td>{formatDate(getDateField(donation))}</td>
                         <td>{donation.donor?.donor_name || "N/A"}</td>
                         <td className={styles.valueCell}>
-                          {formatCurrency(donation.donation_value)}
+                          {formatCurrency(lineValue(donation))}
                         </td>
                         <td>{donation.operator_name?.operator_name || "N/A"}</td>
                       </tr>

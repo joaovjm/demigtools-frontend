@@ -8,8 +8,7 @@ import { UserContext } from "../../context/UserContext";
 import { DataSelect } from "../../components/DataTime";
 import ModalWorklist from "../../components/ModalWorklist";
 import { useLocation, useNavigate } from "react-router";
-import { toast } from "react-toastify";
-import supabase from "../../helper/superBaseClient";
+import { touchWorklistRequestAccessed } from "../../api/worklistApi.js";
 import getWorklistRequestById from "../../helper/getWorklistRequestById";
 import { registerOperatorActivity, ACTIVITY_TYPES } from "../../services/operatorActivityService";
 import { 
@@ -145,7 +144,7 @@ const WorkList = () => {
       setSortConfig({ key: sortKey, direction: sortDirection });
     }
 
-    if (pkg) {
+    if (pkg && operatorData?.operator_code_id) {
       setWorkSelect(pkg);
       const fetchData = async () => {
         const listRequest = await worklistRequests(
@@ -168,23 +167,17 @@ const WorkList = () => {
 
       fetchData();
     }
-  }, [location.search]);
+  }, [location.search, operatorData?.operator_code_id]);
 
-  const getWorklist = async () => {
-    let tempList = [];
-    const worklistName = await fetchWorklist();
-    for (const list of worklistName) {
-      const { data, error } = await supabase
-        .from("request")
-        .select()
-        .eq("operator_code_id", operatorData.operator_code_id)
-        .eq("request_name", list.name);
-      if (error) throw error;
-      if (data.length > 0) {
-        tempList.push(list);
-      }
+  const loadWorklistNames = async () => {
+    if (!operatorData?.operator_code_id) return;
+    try {
+      const names = await fetchWorklist(operatorData.operator_code_id);
+      setWorklist(names || []);
+    } catch (e) {
+      console.error(e);
+      setWorklist([]);
     }
-    setWorklist(tempList);
   };
   const request = async () => {
     if (workSelect) {
@@ -199,16 +192,17 @@ const WorkList = () => {
   };
 
   useEffect(() => {
-    getWorklist();
-  }, []);
+    loadWorklistNames();
+  }, [operatorData?.operator_code_id]);
 
   useEffect(() => {
     // Não recarregar se acabamos de restaurar o estado
     if (hasRestoredState.current && worklistRequest) {
       return;
     }
+    if (!operatorData?.operator_code_id || !workSelect) return;
     request();
-  }, [workSelect]);
+  }, [workSelect, operatorData?.operator_code_id]);
 
   // Efeito para restaurar scroll quando os dados são carregados
   useEffect(() => {
@@ -321,16 +315,9 @@ const WorkList = () => {
     // Salvar estado antes de abrir o modal (agora inclui lastClickedItem)
     setTimeout(() => savePageState(), 0);
     
-    const nowDate = new Date();
     try {
-      const { data, error } = await supabase
-        .from("request")
-        .update({ request_date_accessed: nowDate })
-        .eq("id", list.id)
-        .select();
+      await touchWorklistRequestAccessed(list.id, operatorData.operator_code_id);
 
-      if (error) throw error;
-      
       // Registrar atividade de clique no item da worklist
       await registerOperatorActivity({
         operatorId: operatorData.operator_code_id,
@@ -520,7 +507,7 @@ const WorkList = () => {
                       {(getFilteredAndSortedData() || [])
                         .reduce(
                           (sum, item) =>
-                            sum + (item.donation.donation_value || 0),
+                            sum + Number(item.donation.donation_value || 0),
                           0
                         )
                         .toLocaleString("pt-BR", {
@@ -617,7 +604,7 @@ const WorkList = () => {
                         </td>
                         <td className={styles.worklistTableCell}>
                           <span className={styles.valueAmount}>
-                            {list.donation.donation_value.toLocaleString(
+                            {Number(list.donation.donation_value).toLocaleString(
                               "pt-BR",
                               {
                                 style: "currency",

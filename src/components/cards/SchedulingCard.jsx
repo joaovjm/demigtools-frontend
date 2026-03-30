@@ -8,13 +8,16 @@ const SchedulingCard = ({ operatorCount, setDonationFilterPerId }) => {
   const [active, setActive] = useState(""); // Todos
   const operatorInfo = [
     ...new Map(
-      operatorCount?.map((operators) => [
-        operators.operator_code_id,
-        { id: operators.operator_code_id, name: operators.operator_name.operator_name },
-      ])
-      
+      operatorCount?.map((row) => {
+        const id = row?.operator_code_id;
+        const name =
+          row?.operator_name?.operator_name ||
+          row?.operator_name ||
+          (id != null ? `Operador ${id}` : "Sem operador");
+        return [id, { id, name }];
+      })
     ).values(),
-  ];
+  ].filter((x) => x.id != null);
 
   const counting = operatorCount?.reduce((acc, count) => {
     acc[count.operator_code_id] = (acc[count.operator_code_id] || 0) + 1;
@@ -36,18 +39,32 @@ const SchedulingCard = ({ operatorCount, setDonationFilterPerId }) => {
   
   return (
     operators?.length > 0 ? (
-      operators.map((operator) => (
-      <div
-        onClick={() => handleClick(operator.id)}
-        className={`${styles.sectionOperatorsCard} ${active === operator.id ? styles.active : ""}`}
-        key={operator.id}
-      >
-        <div>{operator.name}</div>
-        <div className={styles.sectionOperatorsCardValue}>
-          <label>{count[operator.id]}</label>
+      <>
+        <div
+          className={`${styles.sectionOperatorsCard} ${
+            active === "" ? styles.active : ""
+          }`}
+          onClick={() => handleClick("")}
+        >
+          <div>Todos</div>
+          <div className={styles.sectionOperatorsCardValue}>
+            <label>{Object.values(count).reduce((acc, curr) => acc + curr, 0)}</label>
+          </div>
         </div>
-      </div>
-    ))) : <></>
+        {operators.map((operator) => (
+          <div
+            onClick={() => handleClick(operator.id)}
+            className={`${styles.sectionOperatorsCard} ${active === operator.id ? styles.active : ""}`}
+            key={operator.id}
+          >
+            <div>{operator.name}</div>
+            <div className={styles.sectionOperatorsCardValue}>
+              <label>{count[operator.id]}</label>
+            </div>
+          </div>
+        ))}
+      </>
+    ) : <></>
     
     
   )

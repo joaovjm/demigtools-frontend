@@ -4,15 +4,12 @@ import GetLeadsWithPagination from "../../helper/getLeadsWithPagination";
 
 import { ICONS } from "../../constants/constants";
 import { toast, ToastContainer } from "react-toastify";
-import supabase from "../../helper/superBaseClient";
 import { DataNow, DataSelect } from "../../components/DataTime";
 import {
-  insertDonor,
-  insertDonor_cpf,
-  insertDonor_reference,
-  insertDonor_tel_2,
-  insertDonor_tel_3,
-} from "../../helper/insertDonor";
+  fetchLeadNeighborhoods,
+  scheduleLead,
+  createDonationFromLead,
+} from "../../api/leadsApi.js";
 import getSession from "../../auth/getSession";
 import Loader from "../../components/Loader";
 import updateLeads from "../../helper/updateLeads";
@@ -48,20 +45,9 @@ const Leads = () => {
 
   const fetchAvailableNeighborhoods = async () => {
     try {
-      const { data, error } = await supabase
-        .from("leads")
-        .select("leads_neighborhood")
-        .not("leads_neighborhood", "is", null)
-        .neq("leads_neighborhood", "");
-
-      if (error) throw error;
-
-      // Extrair bairros únicos e ordenar
-      const uniqueNeighborhoods = [...new Set(data.map(item => item.leads_neighborhood))]
-        .filter(neighborhood => neighborhood && neighborhood.trim() !== "")
-        .sort();
-
-      setAvailableNeighborhoods(uniqueNeighborhoods);
+      const resp = await fetchLeadNeighborhoods();
+      const neighborhoods = resp?.data ?? [];
+      setAvailableNeighborhoods(neighborhoods);
     } catch (error) {
       console.error("Erro ao buscar bairros:", error.message);
     }
@@ -189,47 +175,37 @@ const Leads = () => {
   };
 
   const handleSchedulingSave = async (formData) => {
-    if(!formData.dateScheduling || !formData.telScheduling) {
-      toast.warning("Preencha data e telefone usado para contato...")
+    if (!formData.dateScheduling || !formData.telScheduling) {
+      toast.warning("Preencha data e telefone usado para contato...");
       return;
     }
     try {
-      const { data, error } = await supabase
-        .from("leads")
-        .update([
-          {
-            leads_date_accessed: DataNow("noformated"),
-            leads_scheduling_date: formData.dateScheduling,
-            leads_status: "agendado",
-            leads_observation: formData.observationScheduling,
-            leads_tel_success: formData.telScheduling
-          },
-        ])
-        .eq("leads_id", currentLead.leads_id)
-        .select();
+      await scheduleLead({
+        leads_id: currentLead.leads_id,
+        dateScheduling: formData.dateScheduling,
+        telScheduling: formData.telScheduling,
+        observationScheduling: formData.observationScheduling,
+      });
 
-      if (error) throw error;
+      // Registra atividade de lead agendado
+      await registerOperatorActivity({
+        operatorId: operatorData.operator_code_id,
+        operatorName: operatorData.operator_name,
+        activityType: ACTIVITY_TYPES.LEAD_SCHEDULED,
+        donorName: currentLead.leads_name,
+        metadata: {
+          leadId: currentLead.leads_id,
+          source: "leads",
+          scheduledDate: formData.dateScheduling,
+        },
+      });
 
-      if (!error) {
-        // Registra atividade de lead agendado
-        await registerOperatorActivity({
-          operatorId: operatorData.operator_code_id,
-          operatorName: operatorData.operator_name,
-          activityType: ACTIVITY_TYPES.LEAD_SCHEDULED,
-          donorName: currentLead.leads_name,
-          metadata: { 
-            leadId: currentLead.leads_id, 
-            source: "leads",
-            scheduledDate: formData.dateScheduling,
-          },
-        });
-        toast.success("Agendado com sucesso!");
-        setIsModalSchedulingOpen(false);
-        // Recarregar leads após processar
-        await reloadAfterProcess();
-      }
+      toast.success("Agendado com sucesso!");
+      setIsModalSchedulingOpen(false);
+      await reloadAfterProcess();
     } catch (error) {
-      console.error("Erro: ", error.message);
+      console.error("Erro: ", error?.message || error);
+      toast.error("Erro ao agendar lead");
     }
   };
 
@@ -248,96 +224,21 @@ const Leads = () => {
       toast.promise(
         (async () => {
           try {
-            const data = await insertDonor(
-              currentLead.leads_name,
-              "Lista",
-              formData.address,
-              formData.city,
-              formData.neighborhood,
-              formData.telSuccess
-            );
+            const resp = await createDonationFromLead({
+              leads_id: currentLead.leads_id,
+              operator_code_id: operatorData.operator_code_id,
+              formData,
+            });
 
-            if (data.length > 0) {
-              console.log("Doador Criado com Sucesso");
-            }
-
-            const cpf = await insertDonor_cpf(
-              data[0].donor_id,
-              currentLead.leads_icpf
-            );
-
-            if (formData.newTel2 !== "") {
-              await insertDonor_tel_2(data[0].donor_id, formData.newTel2);
-            }
-            if (formData.newTel3 !== "") {
-              await insertDonor_tel_3(data[0].donor_id, formData.newTel3);
-            }
-            if (formData.reference !== "") {
-              await insertDonor_reference(data[0].donor_id, formData.reference);
-            }
-
-            let successMessage = "Operação concluída com sucesso!";
-
-            if (formData.valueDonation !== "" && formData.dateDonation !== "") {
-              const { data: donation, error: donationError } = await supabase
-                .from("donation")
-                .insert([
-                  {
-                    donor_id: data[0].donor_id,
-                    operator_code_id: operatorData.operator_code_id,
-                    donation_value: formData.valueDonation,
-                    donation_day_contact: DataNow("noformated"),
-                    donation_day_to_receive: formData.dateDonation,
-                    donation_print: "Não",
-                    donation_received: "Não",
-                    donation_description: formData.observation,
-                    donation_campain: formData.campain,
-                  },
-                ])
-                .select();
-
-              if (donationError) throw donationError;
-            }
-
-            const { data: update, error } = await supabase
-              .from("leads")
-              .update({ leads_status: "Sucesso" })
-              .eq("leads_id", currentLead.leads_id);
-            if (error) throw error;
-
-            // Verificar se o lead estava agendado e marcar na tabela scheduled como concluído
-            if (currentLead.leads_status === "agendado") {
-              // Buscar e atualizar agendamentos pendentes relacionados a este lead
-              const { error: scheduledError } = await supabase
-                .from("scheduled")
-                .update({ status: "concluído" })
-                .eq("entity_type", "lead")
-                .eq("entity_id", currentLead.leads_id)
-                .eq("status", "pendente");
-
-              if (scheduledError) {
-                console.log("Erro ao atualizar agendamento:", scheduledError.message);
-              }
-            }
-
-            // Verificar se existe doação agendada (confirmation_status = "Agendado") para o novo doador
-            // e marcar como Concluído
-            const { error: updateScheduledDonationsError } = await supabase
-              .from("donation")
-              .update({ confirmation_status: "Concluído" })
-              .eq("donor_id", data[0].donor_id)
-              .eq("confirmation_status", "Agendado");
-
-            if (updateScheduledDonationsError) {
-              console.log("Erro ao atualizar doações agendadas:", updateScheduledDonationsError.message);
-            }
+            const out = resp?.data ?? {};
+            const donorId = out?.donor_id;
 
             // Registra atividade de lead sucesso (nova doação)
             await registerOperatorActivity({
               operatorId: operatorData.operator_code_id,
               operatorName: operatorData.operator_name,
               activityType: ACTIVITY_TYPES.LEAD_SUCCESS,
-              donorId: data[0].donor_id,
+              donorId,
               donorName: currentLead.leads_name,
               metadata: { 
                 leadId: currentLead.leads_id, 

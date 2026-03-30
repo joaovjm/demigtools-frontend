@@ -14,7 +14,6 @@ import {
 import { getOperators } from "../../helper/getOperators";
 import insertRequest from "../../helper/insertRequest";
 import { toast } from "react-toastify";
-import PackagesRequest from "../../components/Request/PackagesRequest";
 import { DataNow } from "../../components/DataTime";
 import ExportToExcel from "../../components/XLSX";
 import { ICONS } from "../../constants/constants";
@@ -42,6 +41,7 @@ const Request = () => {
   const [showCreatePackage, setShowCreatePackage] = useState(false);
   const [showAddOperator, setShowAddOperator] = useState(false);
   const [selectedOperatorToAdd, setSelectedOperatorToAdd] = useState("");
+  const [requestsListVersion, setRequestsListVersion] = useState(0);
 
   const divRef = useRef();
 
@@ -171,6 +171,7 @@ const Request = () => {
         error: "Não fio possível criar o pacote! Contacte o administrador!",
       });
 
+      setRequestsListVersion((v) => v + 1);
       handleCancel();
     } catch (error) {
       console.error(error.message);
@@ -400,7 +401,10 @@ const Request = () => {
 
         {/* Tabela de Requisições Criadas */}
         {!showCreatePackage && !showEditRequestCreated && (
-            <RequestsTable setRequestId={setRequestId} />
+            <RequestsTable
+              setRequestId={setRequestId}
+              listVersion={requestsListVersion}
+            />
         )}
 
         {showEditRequestCreated && (
@@ -409,6 +413,7 @@ const Request = () => {
             onClose={() => {
               setShowEditRequestCreated(false);
               setRequestId(null);
+              setRequestsListVersion((v) => v + 1);
             }} 
           />
         )}

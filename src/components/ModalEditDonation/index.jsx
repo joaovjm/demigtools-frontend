@@ -1,8 +1,13 @@
 import { useContext, useEffect, useState } from "react";
 import styles from "./modaleditdonation.module.css";
-import supabase from "../../helper/superBaseClient";
 import { toast } from "react-toastify";
-import { getCampains } from "../../helper/getCampains";
+import { fetchActiveCampains } from "../../api/campainsApi";
+import {
+  fetchDonorActiveRequest,
+  updateDonationByReceiptRequest,
+  deleteDonationByReceiptRequest,
+  fetchDonationConfirmationReason as apiFetchDonationConfirmationReason,
+} from "../../api/donorApi";
 import { getOperators } from "../../helper/getOperators";
 import { getCollector } from "../../helper/getCollector";
 import { UserContext } from "../../context/UserContext";
@@ -23,7 +28,7 @@ const ModalEditDonation = ({ donation, setModalEdit, donorData, idDonor }) => {
     donation.donation_monthref
   );
   const [observation, setObservation] = useState(donation.donation_description);
-  const [campaign, setCampaign] = useState(donation.campaign_id);
+  const [campaign, setCampaign] = useState(donation.donation_campain ?? "");
   const [campaigns, setCampaigns] = useState([]);
   const [operator, setOperator] = useState(donation.operator_code_id);
   const [impresso, setImpresso] = useState(
@@ -56,15 +61,15 @@ const ModalEditDonation = ({ donation, setModalEdit, donorData, idDonor }) => {
     donation_day_to_receive: donation.donation_day_to_receive,
     donation_monthref: donation.donation_monthref,
     donation_description: donation.donation_description,
-    campaign_id: donation.campaign_id,
+    donation_campain: donation.donation_campain,
     operator_code_id: donation.operator_code_id,
     collector_code_id: donation.collector_code_id,
     donation_extra: donation.donation_extra,
   });
   useEffect(() => {
     const fetchCampaigns = async () => {
-      const response = await getCampains();
-      setCampaigns(response);
+      const response = await fetchActiveCampains();
+      setCampaigns(response || []);
     };
     fetchCampaigns();
   }, []);
@@ -91,24 +96,15 @@ const ModalEditDonation = ({ donation, setModalEdit, donorData, idDonor }) => {
   useEffect(() => {
     const fetchRequest = async () => {
       try {
-        const { data, error } = await supabase
-          .from("request")
-          .select("*, operator: operator_code_id(operator_name)")
-          .eq("donor_id", idDonor)
-          .eq("request_active", "True")
-          .order("request_start_date", { ascending: false })
-          .limit(1);
-        if (error) throw error;
-        if (data) {
-          console.log(data);
-          setRequest(data);
-        }
+        const data = await fetchDonorActiveRequest(idDonor);
+        setRequest(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Erro ao buscar requisição:", error.message);
+        setRequest([]);
       }
     };
     fetchRequest();
-  }, []);
+  }, [idDonor]);
 
   useEffect(() => {
     const fetchCollectors = async () => {
@@ -130,18 +126,16 @@ const ModalEditDonation = ({ donation, setModalEdit, donorData, idDonor }) => {
   }, []);
 
   useEffect(() => {
-    const fetchDonationConfirmationReason = async () => {
-      const { data, error } = await supabase
-        .from("donor_confirmation_reason")
-        .select("donor_confirmation_reason")
-        .eq("receipt_donation_id", donation.receipt_donation_id);
-      if (error) throw error;
-      if (data) {
-        setDonorConfirmationReason(data[0]?.donor_confirmation_reason || "");
+    const loadConfirmationReason = async () => {
+      try {
+        const text = await apiFetchDonationConfirmationReason(donation.receipt_donation_id);
+        setDonorConfirmationReason(text || "");
+      } catch {
+        setDonorConfirmationReason("");
       }
     };
-    fetchDonationConfirmationReason();
-  }, []);
+    loadConfirmationReason();
+  }, [donation.receipt_donation_id]);
 
   const handleConfirm = async () => {
     if (operator === "") {
@@ -174,29 +168,23 @@ const ModalEditDonation = ({ donation, setModalEdit, donorData, idDonor }) => {
 
     setLoadingSave(true);
     try {
-      const { data, error } = await supabase
-        .from("donation")
-        .update([
-          {
-            donation_value: value,
-            donation_extra: extraValue,
-            donation_day_to_receive: date,
-            donation_day_received: dateReceived,
-            donation_description: observation,
-            operator_code_id: operator,
-            donation_print: impresso ? "Sim" : "Não",
-            donation_received: recebido ? "Sim" : "Não",
-            donation_monthref: monthReferent,
-            collector_code_id: collector,
-            donation_campain: campaign,
-          },
-        ])
-        .eq("receipt_donation_id", donation.receipt_donation_id)
-        .select();
+      const res = await updateDonationByReceiptRequest(donation.receipt_donation_id, {
+        donation_value: value,
+        donation_extra: extraValue,
+        donation_day_to_receive: date,
+        donation_day_received: dateReceived,
+        donation_description: observation,
+        operator_code_id: operator,
+        donation_print: impresso ? "Sim" : "Não",
+        donation_received: recebido ? "Sim" : "Não",
+        donation_monthref: monthReferent,
+        collector_code_id: collector,
+        donation_campain: campaign,
+      });
 
-      if (error) throw error;
+      const data = res?.data;
 
-      if (data.length > 0) {
+      if (data && data.length > 0) {
         // Registrar edição de doação no histórico
         logDonorActivity({
           donor_id: idDonor,
@@ -232,35 +220,31 @@ const ModalEditDonation = ({ donation, setModalEdit, donorData, idDonor }) => {
 
   const handleDelete = async () => {
     console.log({ donation, donorData });
-    if (window.confirm("Deseja deletar a doação?")) {
-      const { error } = await supabase
-        .from("donation")
-        .delete()
-        .eq("receipt_donation_id", donation.receipt_donation_id);
-      if (error) throw error;
-      if (!error) {
-        // Registrar deleção de doação no histórico
-        logDonorActivity({
-          donor_id: idDonor,
-          operator_code_id: operatorData.operator_code_id,
-          action_type: "donation_delete",
-          action_description: `Deletou uma doação no valor de R$ ${donation.donation_value}`,
-          old_values: {
-            donation_value: donation.donation_value,
-            donation_day_to_receive: donation.donation_day_to_receive,
-            donation_description: donation.donation_description,
-            operator_code_id: donation.operator_code_id,
-            donation_monthref: donation.donation_monthref,
-            donation_extra: donation.donation_extra,
-            donation_campain: donation.donation_campain,
-            receipt_donation_id: donation.receipt_donation_id,
-          },
-          related_donation_id: donation.donation_code_id || null,
-        });
+    if (!window.confirm("Deseja deletar a doação?")) return;
+    try {
+      await deleteDonationByReceiptRequest(donation.receipt_donation_id);
+      logDonorActivity({
+        donor_id: idDonor,
+        operator_code_id: operatorData.operator_code_id,
+        action_type: "donation_delete",
+        action_description: `Deletou uma doação no valor de R$ ${donation.donation_value}`,
+        old_values: {
+          donation_value: donation.donation_value,
+          donation_day_to_receive: donation.donation_day_to_receive,
+          donation_description: donation.donation_description,
+          operator_code_id: donation.operator_code_id,
+          donation_monthref: donation.donation_monthref,
+          donation_extra: donation.donation_extra,
+          donation_campain: donation.donation_campain,
+          receipt_donation_id: donation.receipt_donation_id,
+        },
+        related_donation_id: donation.donation_code_id || null,
+      });
 
-        toast.success("Doação deletada com sucesso!");
-        setModalEdit(false);
-      }
+      toast.success("Doação deletada com sucesso!");
+      setModalEdit(false);
+    } catch (err) {
+      toast.error("Erro ao excluir doação: " + (err.message || ""));
     }
   };
 

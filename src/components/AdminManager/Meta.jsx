@@ -1,9 +1,13 @@
-import React, { useState } from "react";
-import supabase from "../../helper/superBaseClient";
+import React, { Fragment, useState } from "react";
 import { toast } from "react-toastify";
 import styles from "../../pages/AdminManager/adminmanager.module.css";
 import { FaAngleDown, FaAngleRight, FaTrash } from "react-icons/fa";
 import Loader from "../Loader";
+import {
+  deleteOperatorMeta,
+  fetchOperatorMetaHistory,
+  postOperatorMeta,
+} from "../../api/adminManagerApi";
 
 const Meta = ({ operators, inputs, setInputs, read, setRead }) => {
   const [historyOpen, setHistoryOpen] = useState("");
@@ -31,78 +35,38 @@ const Meta = ({ operators, inputs, setInputs, read, setRead }) => {
   const handleUpdateMeta = async (id) => {
     setLoading(true);
     const { total, date, percent, value } = inputs[id];
-    
-    // Verificar se existem metas anteriores ativas e atualizá-las para "Finalizado"
-    const { data: activeMetas, error: checkError } = await supabase
-      .from("operator_meta")
-      .select("id")
-      .eq("operator_code_id", id)
-      .eq("status", "Ativo");
 
-    if (checkError) {
-      console.log("error ao verificar metas ativas: ", checkError.message);
-      toast.error("Erro ao verificar metas anteriores");
-      setLoading(false);
-      return;
-    }
-
-    // Se existirem metas ativas, atualizar para "Finalizado"
-    if (activeMetas && activeMetas.length > 0) {
-      const { error: updateError } = await supabase
-        .from("operator_meta")
-        .update({ status: "Finalizado" })
-        .eq("operator_code_id", id)
-        .eq("status", "Ativo");
-
-      if (updateError) {
-        console.log("error ao finalizar metas anteriores: ", updateError.message);
-        toast.error("Erro ao finalizar metas anteriores");
-        setLoading(false);
-        return;
-      }
-    }
-
-    // Inserir nova meta
-    const { data, error } = await supabase
-      .from("operator_meta")
-      .insert({
+    try {
+      const response = await postOperatorMeta({
         operator_code_id: id,
         base: value,
-        meta: total,
+        meta: Number(total),
         start_date: date,
         percent: percent,
-        status: "Ativo",
-      })
-      .select();
-
-    if (error) {
-      console.log("error: ", error.message);
+      });
+      if (!response?.success) {
+        toast.error(response?.message || "Erro ao salvar meta");
+        return;
+      }
+      setInputs((prev) => {
+        const updated = { total: "", date: "", percent: "", value: "" };
+        return { ...prev, [id]: updated };
+      });
+      toast.success("Atualizado com sucesso...");
+    } catch (e) {
       toast.error("Erro ao salvar meta");
+    } finally {
       setLoading(false);
-      return;
     }
-    
-    setInputs((prev) => {
-      const updated = {  total: "", date: "", percent: "", value: "" };
-      return { ...prev, [id]: updated };
-    });
-    toast.success("Atualizado com sucesso...");
-    setLoading(false);
   };
   const handleHistory = async (id) => {
     if (historyOpen === "") {
       setHistoryOpen(id);
-      const { data, error } = await supabase
-        .from("operator_meta")
-        .select()
-        .eq("operator_code_id", id)
-        .order("id", { ascending: false })
-        .limit(5)
-      if (error) {
-        console.log("error: ", error.message);
-      } else {
-        setHistoryData(data);
-
+      try {
+        const response = await fetchOperatorMetaHistory(id, 5);
+        setHistoryData(response?.data || []);
+      } catch (e) {
+        toast.error("Erro ao carregar histórico");
       }
     } else {
       setHistoryOpen("");
@@ -113,18 +77,13 @@ const Meta = ({ operators, inputs, setInputs, read, setRead }) => {
   const handleDeleteHistory = async (id) => {
     if (window.confirm("Deseja mesmo deletar este histórico?")) {
       try {
-        const { data, error } = await supabase
-          .from("operator_meta")
-          .delete()
-          .eq("id", id);
-        if (error) {
-          console.log("error: ", error.message);
-        } else {
+        const response = await deleteOperatorMeta(id);
+        if (response?.success) {
           toast.success("Excluído com sucesso...");
           setHistoryData(historyData.filter((item) => item.id !== id));
         }
       } catch (error) { 
-        console.log("error: ", error.message);
+        toast.error("Erro ao excluir histórico");
       }
     }
   };
@@ -137,9 +96,8 @@ const Meta = ({ operators, inputs, setInputs, read, setRead }) => {
             op.operator_type !== "Admin"
         )
         .map((operator) => (
-          <>
+          <Fragment key={operator.operator_code_id}>
             <div
-              key={operator.operator_code_id}
               className={styles.adminManagerContentOperator}
             >
               <div className="input-field">
@@ -201,7 +159,11 @@ const Meta = ({ operators, inputs, setInputs, read, setRead }) => {
               </div>
               <div className={styles.adminManagerContentOperatorBtns}>
                 <button
-                  className={styles.adminManagerContentOperatorBtnSave}
+                  className={`${styles.adminManagerContentOperatorBtnSave} ${
+                    read?.[operator.operator_code_id]?.only === false
+                      ? styles.metaActionBtnSave
+                      : styles.metaActionBtnEdit
+                  }`}
                   disabled={loading}
                   onClick={() => {
                     if (read?.[operator.operator_code_id]?.only === false) {
@@ -212,7 +174,7 @@ const Meta = ({ operators, inputs, setInputs, read, setRead }) => {
                 >
                   {read?.[operator.operator_code_id]?.only === false
                     ? loading ? <Loader /> : "Salvar"
-                    : "Adicionar"}
+                    : "Editar"}
                 </button>
                 <button
                   className={styles.adminManagerContentOperatorBtnHistory}
@@ -264,7 +226,7 @@ const Meta = ({ operators, inputs, setInputs, read, setRead }) => {
                 ))}
               </div>
             )}
-          </>
+          </Fragment>
         ))}
     </>
   );

@@ -1,13 +1,13 @@
 import styles from "./modalworklist.module.css";
 import updateRequestSelected from "../../helper/updateRequestSelected";
-import { fetchMaxAndMedDonations } from "../../services/worklistService";
+import { fetchDonorDonationStats } from "../../api/donationsApi";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { DataNow, DataSelect } from "../DataTime";
-import { getCampains } from "../../helper/getCampains";
+import { DataSelect } from "../DataTime";
+import { fetchActiveCampains } from "../../api/campainsApi";
 import { UserContext } from "../../context/UserContext";
 import { toast } from "react-toastify";
-import { insertDonation } from "../../helper/insertDonation";
+import { createDonationRequest } from "../../api/donationsApi.js";
 import { updateRequestList } from "../../helper/updateRequestList";
 import { registerOperatorActivity, ACTIVITY_TYPES } from "../../services/operatorActivityService";
 import { navigateWithNewTab } from "../../utils/navigationUtils";
@@ -55,39 +55,52 @@ const ModalWorklist = ({
   const donor_monthly_fee =
     workListSelected?.donor_mensal?.donor_mensal?.donor_mensal_monthly_fee;
   const navigate = useNavigate();
-  const MaxAndMedDonations = async () => {
-    const {
-      maxGeneral,
-      maxPeriod,
-      penultimate,
-      countNotReceived,
-      lastThreeDonations,
-    } = await fetchMaxAndMedDonations(
-      workListSelected.donor_id,
-      workListSelected.request_name
-    );
-    if ([maxGeneral, maxPeriod, penultimate, countNotReceived].some((v) => v)) {
-      setPenultimate(penultimate);
-      setMaxDonation(maxGeneral);
-      setMaxPeriod(maxPeriod);
-      setCountNotReceived(countNotReceived);
-      setLastThreeDonations(lastThreeDonations || []);
-    }
-  };
-
-  const fetchCampains = async () => {
-    const response = await getCampains();
-    setCampains(response);
-  };
-
   useEffect(() => {
-    MaxAndMedDonations();
-    fetchCampains();
-    
-    // Inicializar status selecionados
-    const currentStatuses = normalizeStatus(workListSelected?.request_status);
-    setSelectedStatuses(currentStatuses);
-  }, []);
+    let cancelled = false;
+    const donorId = workListSelected.donor_id;
+    const requestName = workListSelected.request_name;
+
+    (async () => {
+      try {
+        const stats = await fetchDonorDonationStats(donorId, requestName);
+        if (cancelled) return;
+        const {
+          maxGeneral,
+          maxPeriod,
+          penultimate,
+          countNotReceived,
+          lastThreeDonations,
+        } = stats;
+        if ([maxGeneral, maxPeriod, penultimate, countNotReceived].some((v) => v)) {
+          setPenultimate(penultimate);
+          setMaxDonation(maxGeneral);
+          setMaxPeriod(maxPeriod);
+          setCountNotReceived(countNotReceived);
+          setLastThreeDonations(lastThreeDonations || []);
+        }
+      } catch {
+        if (!cancelled) {
+          setPenultimate(undefined);
+          setMaxDonation([]);
+          setMaxPeriod([]);
+          setCountNotReceived(0);
+          setLastThreeDonations([]);
+        }
+      }
+      try {
+        const camps = await fetchActiveCampains();
+        if (!cancelled) setCampains(camps || []);
+      } catch {
+        if (!cancelled) setCampains([]);
+      }
+    })();
+
+    setSelectedStatuses(normalizeStatus(workListSelected?.request_status));
+
+    return () => {
+      cancelled = true;
+    };
+  }, [workListSelected?.donor_id, workListSelected?.request_name, workListSelected?.request_status, workListSelected?.id]);
 
   const handleClose = async () => {
     // Atualizar o item na lista para refletir possíveis mudanças (como request_date_accessed)
@@ -164,6 +177,7 @@ const ModalWorklist = ({
     }
     const response = await updateRequestList({
       id: id,
+      operatorCodeId: operatorData.operator_code_id,
       observationScheduling: observationScheduling,
       dateScheduling: dateScheduling,
       telScheduling: telScheduling,
@@ -202,24 +216,23 @@ const ModalWorklist = ({
       toast.warning("Preencha todos os campos corretamente");
       return;
     }
-    const response = await insertDonation(
+    const response = await createDonationRequest({
       donor_id,
-      operatorData.operator_code_id,
-      value,
-      extraValue,
-      DataNow("noformated"),
-      date,
-      false,
-      false,
-      observation,
-      null,
-      campainSelected,
-      null,
+      operator_code_id: operatorData.operator_code_id,
+      valor: value,
+      comissao: extraValue || null,
+      data_receber: date,
+      descricao: observation || null,
+      mesref: null,
+      campain: campainSelected,
+      collector_code_id: null,
       request_name,
-      id
-    );
+      requestRowId: id,
+      impresso: false,
+      recebido: false,
+    });
 
-    if (response.length > 0) {
+    if (response?.donation?.length > 0) {
       toast.success("Doação registrada e status atualizado na lista.");
       if (updateWorklistItem) {
         await updateWorklistItem(id);

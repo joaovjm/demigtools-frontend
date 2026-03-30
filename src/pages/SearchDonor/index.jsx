@@ -1,6 +1,7 @@
 // React and Hooks
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "react-toastify";
 
 //Components and Helpers
 import fetchDonors from "../../services/searchDonorService"
@@ -25,7 +26,11 @@ const SearchDonor = () => {
 
   const handleSearchDonor = async (e) => {
     e.preventDefault();
-    await fetchDonors(searchTerm, selectedValue, setLoading, setDonor);
+    try {
+      await fetchDonors(searchTerm, selectedValue, setLoading, setDonor);
+    } catch (error) {
+      toast.error(error?.message || "Falha ao encontrar doador");
+    }
   };
 
   const handleDonorClick = (id, isLead = false, event) => {

@@ -1,48 +1,32 @@
-import React, { useEffect, useState } from "react";
-import supabase from "../../helper/superBaseClient";
+import React, { useState } from "react";
 import Loader from "../Loader";
 import styles from "../../pages/AdminManager/adminmanager.module.css";
+import { fetchLeadsOptions } from "../../api/adminManagerApi";
+import { toast } from "react-toastify";
 
 const LeadsManager = () => {
   const [searchSelected, setSearchSelected] = useState("");
   const [searchOptions, setSearchOptions] = useState();
   const [searchOptionSelected, setSearchOptionSelected] = useState();
   const [statusSelected, setStatusSelected] = useState();
-  const [leadsSearched, setLeadsSearched] = useState();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSearchSelected = async (e) => {
     try {
       setIsLoading(true);
-      setSearchSelected(e)
-      const { data, error } = await supabase.from("leads").select("");
-      if (error) throw error;
-      if (data) {
-        const result = new Set(
-          data.map((item) =>
-            e === "bairro"
-              ? item.leads_neighborhood
-              : item.leads_city
-          )
-        );
-        setSearchOptions(Array.from(result));
-      }
+      setSearchSelected(e);
+      const response = await fetchLeadsOptions(e === "bairro" ? "bairro" : "cidade");
+      setSearchOptions(response?.data || []);
+      setSearchOptionSelected("");
     } catch (error) {
-      console.log(error);
+      toast.error("Erro ao carregar opções de leads.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSearch = async () => {
-    const resultOne = searchOptions?.filter((option) =>{
-      if(searchSelected === "bairro"){
-        return option === searchOptionSelected;
-      } else {
-        return option === searchOptionSelected;
-      }
-    });
-
+    toast.info("Busca detalhada ainda está em desenvolvimento.");
   };
 
   return (

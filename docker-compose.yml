@@ -5,3 +5,8 @@ services:
     build: .
     ports:
       - "8080:80"
+    networks:
+      - demigtools_default
+networks:
+  demigtools_default:
+    external: true

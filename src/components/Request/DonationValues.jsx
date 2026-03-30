@@ -10,7 +10,8 @@ const DonationValues = ({ createPackage, onComplete, onCancel }) => {
   useEffect(() => {
     const countPackage = () => {
       const count = createPackage?.reduce((acc, item) => {
-        return acc + item.donation_value;
+        const n = Number(item.donation_value);
+        return acc + (Number.isFinite(n) ? n : 0);
       }, 0);
 
       setPackageCount(count);

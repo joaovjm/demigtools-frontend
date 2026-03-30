@@ -1,19 +1,9 @@
-import supabase from "./superBaseClient";
+import { fetchLeadById } from "../api/leadsApi.js";
 
 const getLeadById = async (leadId) => {
   try {
-    const { data, error } = await supabase
-      .from("leads")
-      .select("*")
-      .eq("leads_id", leadId)
-      .single();
-
-    if (error) {
-      console.error("Erro ao buscar lead:", error.message);
-      throw error;
-    }
-
-    return data;
+    const resp = await fetchLeadById(leadId);
+    return resp?.data ?? null;
   } catch (error) {
     console.error("Erro na função getLeadById:", error);
     throw error;

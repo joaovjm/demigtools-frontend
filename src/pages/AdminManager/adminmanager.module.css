@@ -290,6 +290,26 @@
   color: #faf5e9;
 }
 
+.metaActionBtnEdit {
+  background-color: #1f6feb;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.metaActionBtnEdit:hover:not(:disabled) {
+  background-color: #2f81f7;
+}
+
+.metaActionBtnSave {
+  background-color: #0b5ed7;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.metaActionBtnSave:hover:not(:disabled) {
+  background-color: #0a58ca;
+}
+
   .whatsappmanagerContainer {
   display: flex;
   gap: 2px;
@@ -2205,6 +2225,52 @@
   border-radius: 6px;
   padding: 16px;
   transition: all 0.3s ease;
+}
+
+.textCardSkeleton {
+  pointer-events: none;
+}
+
+.skeletonLineTitle,
+.skeletonLineMeta,
+.skeletonLineBody,
+.skeletonLineBodyShort {
+  border-radius: 6px;
+  background: linear-gradient(90deg, #2f2d2d 25%, #3c3f42 50%, #2f2d2d 75%);
+  background-size: 200% 100%;
+  animation: skeletonLoading 1.2s ease-in-out infinite;
+}
+
+.skeletonLineTitle {
+  width: 45%;
+  height: 22px;
+  margin-bottom: 14px;
+}
+
+.skeletonLineMeta {
+  width: 70%;
+  height: 14px;
+  margin-bottom: 18px;
+}
+
+.skeletonLineBody {
+  width: 100%;
+  height: 54px;
+  margin-bottom: 10px;
+}
+
+.skeletonLineBodyShort {
+  width: 75%;
+  height: 18px;
+}
+
+@keyframes skeletonLoading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .textCard:hover {

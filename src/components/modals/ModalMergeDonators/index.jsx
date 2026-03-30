@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react";
 import styles from "./modalmergedonators.module.css";
-import supabase from "../../../helper/superBaseClient";
 import { FaExchangeAlt, FaTimes, FaCheckCircle, FaExclamationTriangle, FaCalendarAlt, FaSave } from "react-icons/fa";
 import { toast } from "react-toastify";
+import {
+  fetchDonorMergePreview,
+  postDonorMergeTransfer,
+  patchDonorMergeRequest,
+} from "../../../api/donorApi";
 
 export const ModalMergeDonators = ({ isOpen, onClose, donors = [] }) => {
   const [donorsData, setDonorsData] = useState([]);
@@ -32,75 +36,15 @@ export const ModalMergeDonators = ({ isOpen, onClose, donors = [] }) => {
     setLoading(true);
     setTransferCompleted(false);
     try {
-      // Buscar dados completos dos doadores
-      const donorIds = donors.map(d => d.donor_id);
-      
-      const { data: fullDonorsData, error: donorsError } = await supabase
-        .from("donor")
-        .select(`
-          donor_id,
-          donor_name,
-          donor_type,
-          donor_cpf (donor_cpf),
-          donor_email (donor_email),
-          donor_tel_1,
-          donor_tel_2 (donor_tel_2),
-          donor_tel_3 (donor_tel_3),
-          donor_observation (donor_observation),
-          donor_reference (donor_reference)
-        `)
-        .in("donor_id", donorIds);
-
-      if (donorsError) throw donorsError;
-      setDonorsData(fullDonorsData);
-
-      // Buscar doações de cada doador
-      const donationsObj = {};
-      for (const donorId of donorIds) {
-        const { data: donationsData, error: donationsError } = await supabase
-          .from("donation")
-          .select("*")
-          .eq("donor_id", donorId)
-          .order("donation_day_contact", { ascending: false });
-
-        if (donationsError) throw donationsError;
-        donationsObj[donorId] = donationsData || [];
-      }
-      setDonationsData(donationsObj);
-
-      // Determinar qual doador tem doações mais recentes
-      let latestDate = null;
-      let latestDonorId = null;
-      let oldestDonorId = null;
-
-      for (const [donorId, donations] of Object.entries(donationsObj)) {
-        if (donations.length > 0) {
-          const mostRecentDonation = donations[0];
-          const donationDate = new Date(mostRecentDonation.donation_day_contact);
-          
-          if (!latestDate || donationDate > latestDate) {
-            latestDate = donationDate;
-            oldestDonorId = latestDonorId;
-            latestDonorId = parseInt(donorId);
-          } else if (!oldestDonorId) {
-            oldestDonorId = parseInt(donorId);
-          }
-        }
-      }
-
-      // Se um doador não tem doações, ele é considerado o mais antigo
-      if (!latestDonorId && donorIds.length >= 2) {
-        latestDonorId = donorIds[0];
-        oldestDonorId = donorIds[1];
-      } else if (!oldestDonorId && donorIds.length >= 2) {
-        oldestDonorId = donorIds.find(id => id !== latestDonorId);
-      }
-
-      setNewerDonorId(latestDonorId);
-      setOlderDonorId(oldestDonorId);
+      const donorIds = donors.map((d) => d.donor_id);
+      const preview = await fetchDonorMergePreview(donorIds);
+      setDonorsData(preview?.donors || []);
+      setDonationsData(preview?.donationsByDonor || {});
+      setNewerDonorId(preview?.newerDonorId ?? null);
+      setOlderDonorId(preview?.olderDonorId ?? null);
     } catch (error) {
       console.error("Erro ao buscar dados dos doadores:", error);
-      toast.error("Erro ao carregar dados dos doadores");
+      toast.error(error?.message || "Erro ao carregar dados dos doadores");
     } finally {
       setLoading(false);
     }
@@ -117,29 +61,7 @@ export const ModalMergeDonators = ({ isOpen, onClose, donors = [] }) => {
   const handleConfirmTransfer = async () => {
     setTransferring(true);
     try {
-      // Atualizar todas as doações do doador antigo para o mais novo
-      const { error } = await supabase
-        .from("donation")
-        .update({ donor_id: newerDonorId })
-        .eq("donor_id", olderDonorId);
-
-      if (error) throw error;
-
-      // Atualizar também scheduled_donations se existir
-      await supabase
-        .from("scheduled_donations")
-        .update({ donor_id: newerDonorId })
-        .eq("donor_id", olderDonorId);
-
-      // Atualizar o tipo do doador antigo para "Excluso"
-      const { error: updateTypeError } = await supabase
-        .from("donor")
-        .update({ donor_type: "Excluso" })
-        .eq("donor_id", olderDonorId);
-
-      if (updateTypeError) {
-        console.error("Erro ao atualizar tipo do doador:", updateTypeError);
-      }
+      await postDonorMergeTransfer({ olderDonorId, newerDonorId });
 
       toast.success("Doações transferidas com sucesso! Doador antigo marcado como Excluso.");
       setShowConfirmModal(false);
@@ -179,82 +101,7 @@ export const ModalMergeDonators = ({ isOpen, onClose, donors = [] }) => {
     
     setSaving(true);
     try {
-      // Preparar dados para atualização
-      const updateData = {};
-      
-      // Campos diretos na tabela donor
-      if (editedFields.donor_name !== undefined) updateData.donor_name = editedFields.donor_name;
-      if (editedFields.donor_tel_1 !== undefined) updateData.donor_tel_1 = editedFields.donor_tel_1;
-
-      // Atualizar tabela donor
-      if (Object.keys(updateData).length > 0) {
-        const { error } = await supabase
-          .from("donor")
-          .update(updateData)
-          .eq("donor_id", newerDonorId);
-        if (error) throw error;
-      }
-
-      // Atualizar campos em tabelas relacionadas usando upsert
-      if (editedFields.donor_cpf !== undefined) {
-        const { error } = await supabase
-          .from("donor_cpf")
-          .upsert(
-            [{ donor_id: newerDonorId, donor_cpf: editedFields.donor_cpf }],
-            { onConflict: ["donor_id"] }
-          );
-        if (error) console.log("Erro ao salvar CPF:", error.message);
-      }
-
-      if (editedFields.donor_email !== undefined) {
-        const { error } = await supabase
-          .from("donor_email")
-          .upsert(
-            [{ donor_id: newerDonorId, donor_email: editedFields.donor_email }],
-            { onConflict: ["donor_id"] }
-          );
-        if (error) console.log("Erro ao salvar Email:", error.message);
-      }
-
-      if (editedFields.donor_tel_2 !== undefined) {
-        const { error } = await supabase
-          .from("donor_tel_2")
-          .upsert(
-            [{ donor_id: newerDonorId, donor_tel_2: editedFields.donor_tel_2 }],
-            { onConflict: ["donor_id"] }
-          );
-        if (error) console.log("Erro ao salvar Telefone 2:", error.message);
-      }
-
-      if (editedFields.donor_tel_3 !== undefined) {
-        const { error } = await supabase
-          .from("donor_tel_3")
-          .upsert(
-            [{ donor_id: newerDonorId, donor_tel_3: editedFields.donor_tel_3 }],
-            { onConflict: ["donor_id"] }
-          );
-        if (error) console.log("Erro ao salvar Telefone 3:", error.message);
-      }
-
-      if (editedFields.donor_observation !== undefined) {
-        const { error } = await supabase
-          .from("donor_observation")
-          .upsert(
-            [{ donor_id: newerDonorId, donor_observation: editedFields.donor_observation }],
-            { onConflict: ["donor_id"] }
-          );
-        if (error) console.log("Erro ao salvar Observação:", error.message);
-      }
-
-      if (editedFields.donor_reference !== undefined) {
-        const { error } = await supabase
-          .from("donor_reference")
-          .upsert(
-            [{ donor_id: newerDonorId, donor_reference: editedFields.donor_reference }],
-            { onConflict: ["donor_id"] }
-          );
-        if (error) console.log("Erro ao salvar Referência:", error.message);
-      }
+      await patchDonorMergeRequest(newerDonorId, editedFields);
 
       toast.success("Alterações salvas com sucesso!");
       setHasChanges(false);
