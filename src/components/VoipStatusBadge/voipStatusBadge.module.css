@@ -1,0 +1,28 @@
+.badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.good {
+  background: rgba(45, 138, 78, 0.25);
+  color: #a8e6bf;
+  border: 1px solid rgba(45, 138, 78, 0.5);
+}
+
+.bad {
+  background: rgba(180, 60, 60, 0.25);
+  color: #f0b0b0;
+  border: 1px solid rgba(180, 60, 60, 0.45);
+}
+
+.neutral {
+  background: rgba(120, 120, 120, 0.25);
+  color: #ddd;
+  border: 1px solid rgba(160, 160, 160, 0.35);
+}

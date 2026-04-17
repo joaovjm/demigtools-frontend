@@ -28,7 +28,8 @@ import { logDonorActivity } from "../../helper/logDonorActivity";
 import ActionDropdown from "../../components/ActionDropdown";
 import ModalScheduleDonor from "../../components/ModalScheduleDonor";
 import ModalCreateTask from "../../components/ModalCreateTask";
-import { CallComponent } from "../../components/CallComponent";
+import { PhoneCallField } from "../../components/PhoneCallField";
+import { VoipStatusBadge } from "../../components/VoipStatusBadge";
 import { fetchDonorActiveRequest, deactivateDonorMensalRequest } from "../../api/donorApi";
 const Donor = () => {
   const { id } = useParams();
@@ -238,6 +239,9 @@ const Donor = () => {
         <header className={styles.donorHeader}>
           <h2 className={styles.donorTitle}>{ICONS.MONEY} Doador</h2>
           <div className={styles.donorActions}>
+            {operatorData?.operator_code_id ? (
+              <VoipStatusBadge operatorCodeId={operatorData.operator_code_id} />
+            ) : null}
             {workListRequest.length > 0 && workListRequest[0].operator?.operator_name && (
               <span className={styles.workListBadge}>
                 Está na requisição de {workListRequest[0].operator.operator_name}
@@ -324,7 +328,7 @@ const Donor = () => {
                   }
                   readOnly={uiState.edit}
                 />
-
+                  
                 <FormDonorInput
                   label={FORM_LABELS.CITY}
                   value={donorData.cidade}
@@ -338,41 +342,29 @@ const Donor = () => {
                   onChange={(e) => handleInputChange("bairro", e.target.value)}
                   readOnly={uiState.edit}
                 />
-                <div className={styles.inputField}>
-                  <label>{FORM_LABELS.PHONE1}</label>
-                  <input
-                    type="text"
-                    value={donorData.telefone1}
-                    onChange={(e) =>
-                      handleInputChange("telefone1", e.target.value)
-                    }
-                    readOnly={uiState.edit}
-                  />
-                </div>
+                <PhoneCallField
+                  label={FORM_LABELS.PHONE1}
+                  value={donorData.telefone1}
+                  onChange={(e) => handleInputChange("telefone1", e.target.value)}
+                  readOnly={uiState.edit}
+                  operatorCodeId={operatorData?.operator_code_id}
+                />
 
-                <div className={styles.inputField}>
-                  <label>{FORM_LABELS.PHONE2}</label>
-                  <input
-                    type="text"
-                    value={donorData.telefone2}
-                    onChange={(e) =>
-                      handleInputChange("telefone2", e.target.value)
-                    }
-                    readOnly={uiState.edit}
-                  />
-                </div>
+                <PhoneCallField
+                  label={FORM_LABELS.PHONE2}
+                  value={donorData.telefone2 ?? ""}
+                  onChange={(e) => handleInputChange("telefone2", e.target.value)}
+                  readOnly={uiState.edit}
+                  operatorCodeId={operatorData?.operator_code_id}
+                />
 
-                <div className={styles.inputField}>
-                  <label>{FORM_LABELS.PHONE3}</label>
-                  <input
-                    type="text"
-                    value={donorData.telefone3}
-                    onChange={(e) =>
-                      handleInputChange("telefone3", e.target.value)
-                    }
-                    readOnly={uiState.edit}
-                  />
-                </div>
+                <PhoneCallField
+                  label={FORM_LABELS.PHONE3}
+                  value={donorData.telefone3 ?? ""}
+                  onChange={(e) => handleInputChange("telefone3", e.target.value)}
+                  readOnly={uiState.edit}
+                  operatorCodeId={operatorData?.operator_code_id}
+                />
               </div>
             </div>
 
@@ -435,7 +427,6 @@ const Donor = () => {
                 readOnly={uiState.edit}
                 name="referencia"
                 />
-                <CallComponent/>
               </div>
 
               

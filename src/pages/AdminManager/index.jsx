@@ -38,7 +38,7 @@ const AdminManager = () => {
     { id: "campain", label: "Campanha", icon: "📢" },
     { id: "receipt", label: "Config. Recibo", icon: "🧾" },
     { id: "leads", label: "Ger. Leads", icon: "👥" },
-    { id: "voip", label: "Configurações do Voip", icon: "📞" },
+    { id: "voip", label: "Configurações do VoIP (FreePBX)", icon: "📞" },
   ];
 
   return (

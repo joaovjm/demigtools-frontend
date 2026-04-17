@@ -310,6 +310,7 @@ const Dashboard = () => {
         onCardClick={handleClickCard}
         receivedCardRef={receivedCardRef}
         onReceivedContextMenu={handleReceivedCardContextMenu}
+        operatorCodeId={operatorCodeId}
         data={cardData}
         totalActivities={cards?.activitiesTotal ?? 0}
       />

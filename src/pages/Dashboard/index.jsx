@@ -22,7 +22,7 @@ import {
   fetchDashboardOpenTable,
   fetchDashboardScheduledTable,
 } from "../../api/dashboardApi.js";
-import apiClient from "../../services/apiClient.js";
+import { VoipStatusBadge } from "../../components/VoipStatusBadge";
 
 const Dashboard = () => {
   const [confirmations, setConfirmations] = useState(null); //Quantidade de fichas na confirmação
@@ -213,6 +213,11 @@ const Dashboard = () => {
     <main className="mainDashboard">
       <>
         <section className="sectionHeader">
+          {sessionOperatorCodeId ? (
+            <div style={{ flexBasis: "100%", display: "flex", justifyContent: "center" }}>
+              <VoipStatusBadge operatorCodeId={sessionOperatorCodeId} />
+            </div>
+          ) : null}
           {/* Card Agendados */}
           <div
             id="inScheduled"

@@ -637,6 +637,30 @@
   cursor: not-allowed;
 }
 
+/* Alias para uso em JSX quando o modificador .primary não está exportado separadamente */
+.receiptConfigBtnPrimary {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  height: 32px;
+  background-color: #faa01c;
+  color: #1f1d1d;
+}
+
+.receiptConfigBtnPrimary:hover:not(:disabled) {
+  background-color: #e8901a;
+  box-shadow: 0 4px 12px rgba(250, 160, 28, 0.4);
+  transform: translateY(-1px);
+}
+
 .receiptConfigActions {
   display: flex;
   justify-content: center;
