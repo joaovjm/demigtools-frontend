@@ -1,7 +1,6 @@
 import { forwardRef } from "react";
 import styles from "../dashboardadmin.module.css";
 import { CARD_IDS } from "../constants";
-import { VoipStatusBadge } from "../../../components/VoipStatusBadge";
 
 /**
  * Card individual do dashboard
@@ -40,7 +39,6 @@ const DashboardCards = ({
   onCardClick,
   receivedCardRef,
   onReceivedContextMenu,
-  operatorCodeId,
   totalActivities = 0,
   data: {
     valueReceived = 0,
@@ -52,18 +50,6 @@ const DashboardCards = ({
 }) => {
   return (
     <section className={styles.sectionHeader}>
-      {operatorCodeId ? (
-        <div
-          style={{
-            width: "100%",
-            display: "flex",
-            justifyContent: "center",
-            marginBottom: 8,
-          }}
-        >
-          <VoipStatusBadge operatorCodeId={operatorCodeId} />
-        </div>
-      ) : null}
       <div className={styles.sectionHeaderItem}>
         {/* Card Recebido */}
         <DashboardCard

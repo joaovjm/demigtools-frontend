@@ -91,10 +91,23 @@ export async function searchDonorsRequest({ q, donorType }) {
   const { data: envelope } = await apiClient.get("/donors/search", {
     params: { q, donor_type: donorType },
   });
-  if (!envelope?.success || !Array.isArray(envelope.data)) {
-    throw new Error(envelope?.message || "Resposta inválida na busca de doadores");
+  if (envelope == null || typeof envelope !== "object") {
+    throw new Error(
+      "Resposta inválida na busca de doadores (corpo não é JSON). Confirme se /api no nginx aponta para o backend e não só para o frontend."
+    );
   }
-  return envelope.data;
+  if (envelope.success) {
+    if (envelope.data == null) return [];
+    if (Array.isArray(envelope.data)) return envelope.data;
+    throw new Error(
+      envelope.message ||
+        "Resposta inválida: o backend devolveu `data` que não é uma lista. Atualize a imagem do backend ou verifique outro serviço respondendo em /api."
+    );
+  }
+  throw new Error(
+    envelope.message ||
+      "Resposta inválida na busca de doadores (`success` ausente ou falso). Verifique logs do backend e o proxy /api."
+  );
 }
 
 export async function fetchDonorMergePreview(donorIds) {

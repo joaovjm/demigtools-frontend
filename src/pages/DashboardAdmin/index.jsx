@@ -17,6 +17,7 @@ import {
 } from "../../hooks/useDashboardTableQueries";
 
 import "../Dashboard/index.css";
+import apiClient from "../../services/apiClient.js";
 
 /**
  * Dashboard Admin — dados via GET /api/dashboard (React Query).
@@ -56,6 +57,7 @@ const Dashboard = () => {
   const [donationOpen, setDonationOpen] = useState([]);
   const [scheduledOpen, setScheduledOpen] = useState([]);
   const [nowScheduled, setNowScheduled] = useState(null);
+  const [backendReachable, setBackendReachable] = useState(null);
 
   const {
     data: cards,
@@ -139,6 +141,35 @@ const Dashboard = () => {
       toast.error(error.message);
     }
   }, [isError, error]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const pingBackend = async () => {
+      try {
+        const { data, status } = await apiClient.get("/health", {
+          timeout: 8000,
+          headers: { "Cache-Control": "no-store", Pragma: "no-cache" },
+        });
+        // Só conta como OK se for o JSON do Express; HTML do SPA (proxy errado) ou 200 vazio não passam.
+        const reachable =
+          status === 200 &&
+          data !== null &&
+          typeof data === "object" &&
+          data.ok === true;
+        if (!cancelled) setBackendReachable(reachable);
+      } catch {
+        if (!cancelled) setBackendReachable(false);
+      }
+    };
+
+    pingBackend();
+    const intervalId = setInterval(pingBackend, 20000);
+    return () => {
+      cancelled = true;
+      clearInterval(intervalId);
+    };
+  }, []);
 
   useEffect(() => {
     if (!status) return;
@@ -310,7 +341,6 @@ const Dashboard = () => {
         onCardClick={handleClickCard}
         receivedCardRef={receivedCardRef}
         onReceivedContextMenu={handleReceivedCardContextMenu}
-        operatorCodeId={operatorCodeId}
         data={cardData}
         totalActivities={cards?.activitiesTotal ?? 0}
       />
@@ -356,6 +386,25 @@ const Dashboard = () => {
         setStatus={setStatus}
         onClose={handleCloseModal}
       />
+
+      <footer className={styles.backendStatusFooter} aria-live="polite">
+        <span className={styles.backendStatusLabel}>API</span>
+        <span
+          className={
+            backendReachable === null
+              ? styles.backendStatusDotChecking
+              : backendReachable
+                ? styles.backendStatusDotOk
+                : styles.backendStatusDotError
+          }
+          aria-hidden
+        />
+        <span className={styles.backendStatusText}>
+          {backendReachable === null && "Verificando conexão com o backend…"}
+          {backendReachable === true && "Frontend conectado ao backend"}
+          {backendReachable === false && "Sem conexão com o backend"}
+        </span>
+      </footer>
     </main>
   );
 };

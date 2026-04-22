@@ -27,7 +27,7 @@
     "file-saver": "^2.0.5",
     "formidable": "^3.5.4",
     "jodit-react": "^5.2.38",
-    "jssip": "^3.10.1",
+    "jssip": "^3.13.6",
     "ngrok": "^5.0.0-beta.2",
     "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.5",

@@ -5,7 +5,7 @@ import Meta from "../../components/AdminManager/Meta";
 import Campain from "../../components/AdminManager/Campain";
 import ReceiptConfig from "../../components/AdminManager/ReceiptConfig";
 import LeadsManager from "../../components/AdminManager/LeadsManager";
-import VoipConfig from "../../components/AdminManager/VoipConfig";
+import VoipSettings from "../../components/AdminManager/VoipSettings";
 import { DataNow } from "../../components/DataTime";
 
 const AdminManager = () => {
@@ -38,7 +38,7 @@ const AdminManager = () => {
     { id: "campain", label: "Campanha", icon: "📢" },
     { id: "receipt", label: "Config. Recibo", icon: "🧾" },
     { id: "leads", label: "Ger. Leads", icon: "👥" },
-    { id: "voip", label: "Configurações do VoIP (FreePBX)", icon: "📞" },
+    { id: "voip", label: "VoIP", icon: "📞" },
   ];
 
   return (
@@ -76,7 +76,7 @@ const AdminManager = () => {
         ) : active === "leads" ? (
           <LeadsManager />
         ) : active === "voip" ? (
-          <VoipConfig />
+          <VoipSettings />
         ) : (
           <div className={styles.welcomeScreen}>
             <div className={styles.welcomeContent}>
@@ -104,6 +104,11 @@ const AdminManager = () => {
                   <span className={styles.featureIcon}>👥</span>
                   <h4>Leads</h4>
                   <p>Gerencie leads e contatos</p>
+                </div>
+                <div className={styles.featureCard}>
+                  <span className={styles.featureIcon}>📞</span>
+                  <h4>VoIP</h4>
+                  <p>ARI / Asterisk para chamadas</p>
                 </div>
               </div>
             </div>

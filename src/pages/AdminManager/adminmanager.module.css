@@ -504,6 +504,380 @@
   text-align: center;
 }
 
+.voipIntro {
+  color: #c8c4b8;
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 0 0 12px;
+  text-align: left;
+}
+
+.voipIntro code {
+  color: #faa01c;
+  font-size: 12px;
+}
+
+.voipHint {
+  color: #a8a49a;
+  font-size: 12px;
+  margin: 0 0 12px;
+  line-height: 1.4;
+}
+
+.voipHint code {
+  color: #faa01c;
+}
+
+.voipCheck {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #faf5e9;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.voipCheck input {
+  width: 18px;
+  height: 18px;
+  accent-color: #faa01c;
+}
+
+.voipRamaisWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.voipNewExtForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.voipNewExtForm .receiptConfigInput {
+  min-width: 160px;
+  flex: 1;
+}
+
+.voipTableScroll {
+  overflow-x: auto;
+  max-height: min(55vh, 480px);
+  overflow-y: auto;
+}
+
+.voipTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  color: #faf5e9;
+}
+
+.voipTable th,
+.voipTable td {
+  border: 1px solid #464a4d;
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.voipTable th {
+  background: #2f2d2d;
+  color: #faa01c;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.voipTableActions {
+  white-space: nowrap;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.voipProvisionSteps {
+  margin: 10px 0 0;
+  padding-left: 1.25rem;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #e8e4d8;
+}
+
+.voipProvisionStep {
+  margin-bottom: 8px;
+}
+
+.voipProvisionStepTitle {
+  font-weight: 600;
+}
+
+.voipProvisionStepStatus {
+  color: #a8a49a;
+  font-weight: 400;
+}
+
+.voipProvisionStepMsg {
+  margin-top: 4px;
+  color: #c8c4b8;
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.voipProvisionRunning {
+  color: #faa01c;
+}
+
+.voipProvisionDone {
+  color: #7dcea0;
+}
+
+.voipProvisionError {
+  color: #f1948a;
+}
+
+.voipProvisionSkipped {
+  color: #85929e;
+}
+
+.voipProvisionStepsWithIcons {
+  margin: 14px 0 0;
+  padding-left: 0;
+  list-style: none;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #e8e4d8;
+}
+
+.voipProvisionStepRow {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.voipProvisionStepIconCell {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.voipProvisionStepText {
+  flex: 1;
+  min-width: 0;
+}
+
+.voipStepSpinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #464a4d;
+  border-top-color: #faa01c;
+  border-radius: 50%;
+  animation: voipTrunkSpin 0.75s linear infinite;
+}
+
+@keyframes voipTrunkSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.voipStepIconDone {
+  color: #7dcea0;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.voipStepIconError {
+  color: #f1948a;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.voipStepIconSkipped {
+  color: #85929e;
+  font-size: 13px;
+}
+
+.voipStepIconNeutral {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #5d5d5d;
+}
+
+.voipModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.voipModalPanel {
+  background: #363a3d;
+  border: 2px solid #2f2d2d;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 460px;
+  max-height: min(92vh, 640px);
+  overflow: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+
+.voipModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #464a4d;
+}
+
+.voipModalHeader h4 {
+  margin: 0;
+  color: #faa01c;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.voipModalClose {
+  background: transparent;
+  border: none;
+  color: #c8c4b8;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  border-radius: 4px;
+}
+
+.voipModalClose:hover:not(:disabled) {
+  color: #faa01c;
+}
+
+.voipModalClose:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.voipModalBody {
+  padding: 14px;
+}
+
+.voipModalBody .formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.voipModalBody .formRow:last-of-type {
+  margin-bottom: 0;
+}
+
+.voipModalBody .formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.voipModalBody .formGroup label {
+  color: #faf5e9;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.voipModalFooter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 14px;
+  border-top: 1px solid #464a4d;
+}
+
+.voipRecordingDeleteLead {
+  margin: 0 0 10px;
+  line-height: 1.5;
+  color: #e8e4d8;
+}
+
+.voipRecordingDeleteMeta {
+  margin: 0;
+  font-size: 12px;
+  color: #a8a49a;
+}
+
+.voipRecordingDeleteFilename {
+  word-break: break-all;
+}
+
+.voipRecordingsToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.voipRecordingsToolbar .receiptConfigInput {
+  min-width: 140px;
+  flex: 1 1 160px;
+}
+
+.voipRecordingsError {
+  background: rgba(241, 148, 138, 0.12);
+  border: 2px solid #c0392b;
+  border-radius: 8px;
+  padding: 16px;
+  color: #fadbd8;
+}
+
+.voipRecordingsError p {
+  margin: 0 0 12px;
+}
+
+.voipRecordingPlayerRow td {
+  background: #2a2828;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.voipRecordingAudio {
+  width: 100%;
+  max-width: 560px;
+  vertical-align: middle;
+}
+
+.voipPagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.voipPaginationInfo {
+  color: #c8c4b8;
+  font-size: 13px;
+}
+
 .receiptConfigForm {
   display: flex;
   flex-direction: column;

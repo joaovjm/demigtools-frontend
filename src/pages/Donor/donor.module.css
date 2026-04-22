@@ -115,6 +115,166 @@
     transform: translateY(-2px);
 }
 
+.donorPhoneFieldRow {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    flex: 1;
+    min-width: 180px;
+}
+
+.donorPhoneFieldRow :global(.input-field) {
+    flex: 1;
+    min-width: 0;
+}
+
+.donorCallBtn {
+    flex-shrink: 0;
+    width: 42px;
+    height: 38px;
+    margin-bottom: 2px;
+    border-radius: 8px;
+    border: 2px solid #464a4d;
+    background: linear-gradient(135deg, #2a7d3f 0%, #1e5c2e 100%);
+    color: #faf5e9;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+}
+
+.donorCallBtn:hover:not(:disabled) {
+    border-color: #faa01c;
+    box-shadow: 0 4px 12px rgba(42, 125, 63, 0.45);
+    transform: translateY(-1px);
+}
+
+.donorCallBtn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.voipErrorBox {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 92, 92, 0.5);
+    background: rgba(255, 92, 92, 0.1);
+    color: #ffd2d2;
+    font-size: 12px;
+    grid-column: 1 / -1;
+}
+
+.voipStatusBox {
+    margin-top: 6px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(250, 160, 28, 0.35);
+    background: rgba(250, 160, 28, 0.08);
+    color: #ffe8c0;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    grid-column: 1 / -1;
+}
+
+.voipStatusPill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+    border: 1px solid transparent;
+}
+
+.voipStatus_idle,
+.voipStatus_configured {
+    background: rgba(136, 136, 136, 0.18);
+    border-color: rgba(136, 136, 136, 0.4);
+    color: #dedede;
+}
+
+.voipStatus_connecting,
+.voipStatus_connected {
+    background: rgba(250, 160, 28, 0.2);
+    border-color: rgba(250, 160, 28, 0.45);
+    color: #ffdfad;
+}
+
+.voipStatus_registered {
+    background: rgba(42, 125, 63, 0.2);
+    border-color: rgba(42, 125, 63, 0.45);
+    color: #c8f2d0;
+}
+
+.voipStatus_registration_failed,
+.voipStatus_disconnected,
+.voipStatus_not_configured,
+.voipStatus_error {
+    background: rgba(255, 92, 92, 0.16);
+    border-color: rgba(255, 92, 92, 0.45);
+    color: #ffd2d2;
+}
+
+.voipCallStatusBox {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+    color: #f3f3f3;
+    font-size: 12px;
+}
+
+.voipCallDurationRow {
+    margin: 0 0 8px 0;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(250, 160, 28, 0.35);
+    background: rgba(250, 160, 28, 0.1);
+    color: #ffdfad;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.voipCallDurationValue {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.voipModalActions {
+    margin-top: 12px;
+    display: flex;
+    justify-content: center;
+}
+
+.voipHangupBtn {
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 92, 92, 0.55);
+    background: linear-gradient(135deg, #8b2a2a 0%, #5c1c1c 100%);
+    color: #ffecec;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.voipHangupBtn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    opacity: 0.95;
+}
+
+.voipHangupBtn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
 .donorBtn:disabled {
     opacity: 0.5;
     cursor: not-allowed;

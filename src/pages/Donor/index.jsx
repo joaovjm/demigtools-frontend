@@ -28,9 +28,72 @@ import { logDonorActivity } from "../../helper/logDonorActivity";
 import ActionDropdown from "../../components/ActionDropdown";
 import ModalScheduleDonor from "../../components/ModalScheduleDonor";
 import ModalCreateTask from "../../components/ModalCreateTask";
-import { PhoneCallField } from "../../components/PhoneCallField";
-import { VoipStatusBadge } from "../../components/VoipStatusBadge";
 import { fetchDonorActiveRequest, deactivateDonorMensalRequest } from "../../api/donorApi";
+import { fetchVoipWebrtcConfig } from "../../api/voipApi";
+import { FaPhone } from "react-icons/fa";
+import {
+  attachJssipRemoteAudioToElement,
+  callWithWebrtcUa,
+  ensureWebrtcUa,
+  getWebrtcUaState,
+} from "../../services/webrtcJssipService";
+import { normalizeBrWebRtcDial } from "../../utils/normalizeBrWebRtcDial.js";
+
+function sipResponseSummary(sipMsg) {
+  if (!sipMsg || typeof sipMsg !== "object") return "";
+  const code = sipMsg.status_code;
+  if (code == null || code === "") return "";
+  const phrase = sipMsg.reason_phrase != null ? String(sipMsg.reason_phrase).trim() : "";
+  return phrase ? `SIP ${code} ${phrase}` : `SIP ${code}`;
+}
+
+function getVoipErrorMessage(eventOrError) {
+  if (!eventOrError) return "Erro desconhecido";
+  if (typeof eventOrError === "string") return eventOrError;
+  if (eventOrError instanceof Error) {
+    return eventOrError.message || "Erro desconhecido";
+  }
+
+  const cause = eventOrError.cause != null ? String(eventOrError.cause) : "";
+  // JsSIP session "failed": { originator, message, cause } — resposta SIP vem em `message`.
+  const fromMessage = sipResponseSummary(eventOrError.message);
+  const fromResponse = sipResponseSummary(eventOrError.response);
+  const sipPart = fromMessage || fromResponse;
+
+  if (cause && sipPart) return `${cause} (${sipPart})`;
+  if (cause) return cause;
+  if (sipPart) return sipPart;
+
+  const plainMsg = eventOrError.message;
+  if (typeof plainMsg === "string" && plainMsg.trim()) return plainMsg.trim();
+
+  return eventOrError?.data?.cause || "Erro desconhecido";
+}
+
+function formatVoipClockTime(d = new Date()) {
+  return d.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+}
+
+function formatVoipDuration(totalSeconds) {
+  const sec = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  if (h > 0) {
+    return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+function voipCallStatusWithTimestamp(text) {
+  return `[${formatVoipClockTime()}] ${text}`;
+}
+
 const Donor = () => {
   const { id } = useParams();
   const { operatorData, setOperatorData } = useContext(UserContext);
@@ -69,9 +132,436 @@ const Donor = () => {
   const [activeTab, setActiveTab] = useState("donations");
   const [originalDonorData, setOriginalDonorData] = useState({});
   const accessLoggedRef = useRef(false);
+  const [voipCallLoadingKey, setVoipCallLoadingKey] = useState(null);
+  const [voipWebrtcConfig, setVoipWebrtcConfig] = useState(null);
+  const [voipLastError, setVoipLastError] = useState("");
+  const [voipUaStatus, setVoipUaStatus] = useState("idle");
+  const [voipModal, setVoipModal] = useState({ open: false, phone: "" });
+  const [voipCallStatus, setVoipCallStatus] = useState("Aguardando chamada...");
+  const [voipCallDurationSec, setVoipCallDurationSec] = useState(0);
+  const [voipDurationActive, setVoipDurationActive] = useState(false);
+  const voipCallFlowRef = useRef({ id: 0, rank: 0, terminal: false });
+  const voipDurationTimerRef = useRef(null);
+  const voipAnsweredAtRef = useRef(null);
+  const voipSessionRef = useRef(null);
+  const voipRemoteAudioRef = useRef(null);
+  const voipRemoteAudioDetachRef = useRef(null);
+  const voipAutoCloseTimerRef = useRef(null);
+  const [voipCanHangup, setVoipCanHangup] = useState(false);
+  const voipIceListenerRef = useRef(null);
+  const voipIceWatchdogRef = useRef(null);
+  const voipMediaAnsweredRef = useRef(false);
+
+  const VOIP_CALL_STAGE_RANK = {
+    idle: 0,
+    starting: 10,
+    config_loaded: 20,
+    ua_connecting: 30,
+    dialing: 40,
+    ringing: 50,
+    media_pending: 57,
+    answered: 60,
+    ended: 100,
+    failed: 100,
+    error: 100,
+  };
+
+  const beginVoipCallFlow = () => {
+    const nextId = voipCallFlowRef.current.id + 1;
+    voipCallFlowRef.current = { id: nextId, rank: 0, terminal: false };
+    return nextId;
+  };
+
+  const updateVoipCallStatus = (flowId, stage, text) => {
+    if (flowId !== voipCallFlowRef.current.id) return;
+    const nextRank = VOIP_CALL_STAGE_RANK[stage] ?? 0;
+    const current = voipCallFlowRef.current;
+    if (current.terminal && nextRank < 100) return;
+    if (nextRank < current.rank) return;
+    voipCallFlowRef.current = {
+      ...current,
+      rank: nextRank,
+      terminal: nextRank >= 100,
+    };
+    setVoipCallStatus(voipCallStatusWithTimestamp(text));
+  };
+
+  const stopVoipCallDuration = () => {
+    if (voipDurationTimerRef.current) {
+      clearInterval(voipDurationTimerRef.current);
+      voipDurationTimerRef.current = null;
+    }
+    setVoipDurationActive(false);
+    voipAnsweredAtRef.current = null;
+  };
+
+  const startVoipCallDuration = (flowId) => {
+    stopVoipCallDuration();
+    if (flowId !== voipCallFlowRef.current.id) return;
+    voipAnsweredAtRef.current = Date.now();
+    setVoipCallDurationSec(0);
+    setVoipDurationActive(true);
+    voipDurationTimerRef.current = setInterval(() => {
+      if (flowId !== voipCallFlowRef.current.id) {
+        if (voipDurationTimerRef.current) clearInterval(voipDurationTimerRef.current);
+        voipDurationTimerRef.current = null;
+        return;
+      }
+      const start = voipAnsweredAtRef.current;
+      if (!start) return;
+      setVoipCallDurationSec(Math.floor((Date.now() - start) / 1000));
+    }, 250);
+  };
+
+  const finalizeVoipCallDuration = () => {
+    const start = voipAnsweredAtRef.current;
+    if (voipDurationTimerRef.current) {
+      clearInterval(voipDurationTimerRef.current);
+      voipDurationTimerRef.current = null;
+    }
+    setVoipDurationActive(false);
+    if (start) {
+      const sec = Math.floor((Date.now() - start) / 1000);
+      setVoipCallDurationSec(sec);
+    }
+    voipAnsweredAtRef.current = null;
+  };
+
+  const clearVoipAutoCloseTimer = () => {
+    if (voipAutoCloseTimerRef.current) {
+      clearTimeout(voipAutoCloseTimerRef.current);
+      voipAutoCloseTimerRef.current = null;
+    }
+  };
+
+  const scheduleVoipModalClose = (flowId, delayMs) => {
+    clearVoipAutoCloseTimer();
+    voipAutoCloseTimerRef.current = setTimeout(() => {
+      voipAutoCloseTimerRef.current = null;
+      if (flowId !== voipCallFlowRef.current.id) return;
+      stopVoipCallDuration();
+      voipSessionRef.current = null;
+      setVoipCanHangup(false);
+      setVoipModal({ open: false, phone: "" });
+    }, delayMs);
+  };
+
+  const detachVoipRemoteAudio = () => {
+    const detach = voipRemoteAudioDetachRef.current;
+    voipRemoteAudioDetachRef.current = null;
+    if (typeof detach === "function") {
+      try {
+        detach();
+      } catch {
+        // ignora
+      }
+    }
+  };
+
+  const terminateVoipSession = () => {
+    detachVoipRemoteAudio();
+    const s = voipSessionRef.current;
+    if (!s) return;
+    try {
+      if (typeof s.terminate === "function") s.terminate();
+    } catch {
+      // ignora
+    }
+  };
+
+  const clearVoipMediaWatch = () => {
+    if (voipIceWatchdogRef.current) {
+      clearTimeout(voipIceWatchdogRef.current);
+      voipIceWatchdogRef.current = null;
+    }
+    const li = voipIceListenerRef.current;
+    if (li?.removers?.length) {
+      li.removers.forEach((fn) => {
+        try {
+          fn();
+        } catch {
+          // ignora
+        }
+      });
+    }
+    voipIceListenerRef.current = null;
+  };
+
+  const markVoipMediaAnswered = (fid) => {
+    if (fid !== voipCallFlowRef.current.id || voipMediaAnsweredRef.current) return;
+    voipMediaAnsweredRef.current = true;
+    clearVoipMediaWatch();
+    startVoipCallDuration(fid);
+    updateVoipCallStatus(fid, "answered", "Chamada atendida.");
+  };
+
+  useEffect(() => {
+    return () => {
+      if (voipDurationTimerRef.current) clearInterval(voipDurationTimerRef.current);
+      clearVoipAutoCloseTimer();
+    };
+  }, []);
 
   const params = {};
   if (id) params.id = id;
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetchVoipWebrtcConfig(operatorData?.operator_code_id);
+        if (!cancelled && res?.success && res.data?.enabled && res.data?.configured) {
+          setVoipWebrtcConfig(res.data);
+          setVoipUaStatus("configured");
+        } else if (!cancelled) {
+          setVoipWebrtcConfig(null);
+          setVoipUaStatus("not_configured");
+        }
+      } catch {
+        if (!cancelled) {
+          setVoipWebrtcConfig(null);
+          setVoipUaStatus("error");
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [operatorData?.operator_code_id]);
+
+  useEffect(() => {
+    if (!voipWebrtcConfig?.sip_user || !voipWebrtcConfig?.sip_password || !operatorData) return;
+    ensureWebrtcUa(voipWebrtcConfig, operatorData).catch(() => {});
+    // Só re-disparar quando a config ou o operador (id) mudarem — evita re-registrar
+    // a cada re-render se `operatorData` trocar de referência com os mesmos dados.
+  }, [voipWebrtcConfig, operatorData?.operator_code_id]);
+
+  const handleVoipCall = async (phoneValue, key) => {
+    const flowId = beginVoipCallFlow();
+    clearVoipAutoCloseTimer();
+    clearVoipMediaWatch();
+    voipMediaAnsweredRef.current = false;
+    terminateVoipSession();
+    voipSessionRef.current = null;
+    setVoipCanHangup(false);
+    stopVoipCallDuration();
+    setVoipCallDurationSec(0);
+    const rawQuick = String(phoneValue || "").replace(/\D/g, "");
+    if (!rawQuick) {
+      setVoipLastError("Informe um número de telefone para discar.");
+      updateVoipCallStatus(flowId, "error", "Informe um número de telefone para discar.");
+      return;
+    }
+    setVoipCallLoadingKey(key);
+    try {
+      setVoipUaStatus("connecting");
+      updateVoipCallStatus(flowId, "starting", "Iniciando chamada via navegador...");
+      let config = voipWebrtcConfig;
+      if (!config) {
+        const res = await fetchVoipWebrtcConfig(operatorData?.operator_code_id);
+        if (res?.success && res.data?.enabled && res.data?.configured) {
+          config = res.data;
+          setVoipWebrtcConfig(res.data);
+          setVoipUaStatus("configured");
+          updateVoipCallStatus(flowId, "config_loaded", "Configuração WebRTC carregada.");
+        }
+      }
+      if (!config) {
+        setVoipUaStatus("not_configured");
+        throw new Error(
+          "WebRTC não configurado para este operador. Verifique VoIP > WebRTC e vínculo de ramal."
+        );
+      }
+
+      const normalized = normalizeBrWebRtcDial(phoneValue, config.default_ddd || "");
+      if (!normalized) {
+        throw new Error(
+          "Não foi possível normalizar o número. Configure o DDD padrão em Admin > VoIP > WebRTC (2 dígitos) ou inclua DDD/código 55 no cadastro."
+        );
+      }
+      if (normalized.length < 12) {
+        throw new Error("Número incompleto após normalização (mínimo 12 dígitos com 55 + DDD + número).");
+      }
+
+      setVoipModal((prev) => ({ ...prev, open: true, phone: normalized }));
+
+      const dialConfig = { ...config, dial_prefix: "" };
+      const micPromise = navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      const session = await callWithWebrtcUa(
+        dialConfig,
+        normalized,
+        operatorData,
+        {
+        onProgress: () => updateVoipCallStatus(flowId, "ringing", "Chamando..."),
+        onAccepted: () => {
+          if (flowId !== voipCallFlowRef.current.id) return;
+          markVoipMediaAnswered(flowId);
+        },
+        onConfirmed: (_ev, sess) => {
+          if (flowId !== voipCallFlowRef.current.id) return;
+          if (voipMediaAnsweredRef.current) {
+            clearVoipMediaWatch();
+            return;
+          }
+          updateVoipCallStatus(
+            flowId,
+            "media_pending",
+            "SIP confirmado (ACK); aguardando mídia estável para considerar atendida..."
+          );
+          const pc = sess?.connection;
+          const mediaReady = () => {
+            const ice = pc?.iceConnectionState;
+            const conn = pc?.connectionState;
+            const iceOk = ice === "connected" || ice === "completed";
+            const connOk = conn === "connected" || conn === "completed";
+            return iceOk && connOk;
+          };
+          if (!pc || typeof pc.addEventListener !== "function") {
+            markVoipMediaAnswered(flowId);
+            return;
+          }
+          if (mediaReady()) {
+            markVoipMediaAnswered(flowId);
+            return;
+          }
+          const tryMark = () => {
+            if (flowId !== voipCallFlowRef.current.id) return;
+            if (mediaReady()) markVoipMediaAnswered(flowId);
+          };
+          const removers = [];
+          pc.addEventListener("iceconnectionstatechange", tryMark);
+          removers.push(() => pc.removeEventListener("iceconnectionstatechange", tryMark));
+          pc.addEventListener("connectionstatechange", tryMark);
+          removers.push(() => pc.removeEventListener("connectionstatechange", tryMark));
+          voipIceListenerRef.current = { removers };
+          voipIceWatchdogRef.current = setTimeout(() => {
+            voipIceWatchdogRef.current = null;
+            if (flowId !== voipCallFlowRef.current.id || voipMediaAnsweredRef.current) return;
+            updateVoipCallStatus(
+              flowId,
+              "media_pending",
+              "Mídia ainda não estabilizou; em caso de recusa no celular, a chamada deve cair em seguida..."
+            );
+          }, 12000);
+        },
+        onEnded: (event) => {
+          clearVoipMediaWatch();
+          detachVoipRemoteAudio();
+          const originator = event?.originator;
+          const start = voipAnsweredAtRef.current;
+          finalizeVoipCallDuration();
+          const durSec = start ? Math.floor((Date.now() - start) / 1000) : 0;
+          const durText = start ? ` Duração: ${formatVoipDuration(durSec)}.` : "";
+          const who =
+            originator === "local"
+              ? " Encerrada pelo operador."
+              : originator === "remote"
+                ? " Encerrada pela outra parte."
+                : "";
+          updateVoipCallStatus(flowId, "ended", `Chamada encerrada.${who}${durText}`);
+          voipSessionRef.current = null;
+          setVoipCanHangup(false);
+          const delayMs = originator === "local" ? 600 : 900;
+          scheduleVoipModalClose(flowId, delayMs);
+        },
+        onFailed: (event) => {
+          clearVoipMediaWatch();
+          detachVoipRemoteAudio();
+          const reason = getVoipErrorMessage(event);
+          const start = voipAnsweredAtRef.current;
+          finalizeVoipCallDuration();
+          const durSec = start ? Math.floor((Date.now() - start) / 1000) : 0;
+          const durText = start ? ` Duração: ${formatVoipDuration(durSec)}.` : "";
+          const text = `Falha na chamada: ${reason}${durText}`;
+          setVoipLastError(text);
+          updateVoipCallStatus(flowId, "failed", text);
+          voipSessionRef.current = null;
+          setVoipCanHangup(false);
+          console.error("VoIP session failed:", reason, event);
+        },
+        onUaRegistrationFailed: (event) => {
+          clearVoipMediaWatch();
+          detachVoipRemoteAudio();
+          finalizeVoipCallDuration();
+          const reason = getVoipErrorMessage(event);
+          const text = `Falha no registro SIP: ${reason}`;
+          setVoipUaStatus("registration_failed");
+          setVoipLastError(text);
+          updateVoipCallStatus(flowId, "error", "Falha ao conectar SIP.");
+          voipSessionRef.current = null;
+          setVoipCanHangup(false);
+          console.error("VoIP registration failed", event);
+        },
+        onUaDisconnected: (event) => {
+          const reason = getVoipErrorMessage(event);
+          if (!reason || reason === "Erro desconhecido") return;
+          clearVoipMediaWatch();
+          detachVoipRemoteAudio();
+          finalizeVoipCallDuration();
+          const text = `SIP desconectado: ${reason}`;
+          setVoipUaStatus("disconnected");
+          setVoipLastError(text);
+          updateVoipCallStatus(flowId, "error", "SIP desconectado.");
+          voipSessionRef.current = null;
+          setVoipCanHangup(false);
+          console.warn("VoIP UA disconnected", event);
+        },
+        onUaState: (state) => {
+          if (state) setVoipUaStatus(state);
+        },
+      },
+      { mediaStreamPromise: micPromise }
+      );
+      voipSessionRef.current = session;
+      voipRemoteAudioDetachRef.current = attachJssipRemoteAudioToElement(
+        session,
+        voipRemoteAudioRef.current
+      );
+      setVoipCanHangup(true);
+      const state = getWebrtcUaState();
+      if (state === "registered" || state === "connected") {
+        if (state === "registered") setVoipUaStatus("registered");
+        if (state === "connected") setVoipUaStatus("connected");
+        updateVoipCallStatus(flowId, "dialing", "Discando pelo navegador...");
+      } else {
+        updateVoipCallStatus(
+          flowId,
+          "ua_connecting",
+          "Conectando ramal WebRTC e iniciando chamada..."
+        );
+      }
+    } catch (e) {
+      clearVoipMediaWatch();
+      detachVoipRemoteAudio();
+      finalizeVoipCallDuration();
+      voipSessionRef.current = null;
+      setVoipCanHangup(false);
+      const reason = getVoipErrorMessage(e);
+      const text = `Erro ao iniciar chamada WebRTC: ${reason}`;
+      setVoipUaStatus("error");
+      setVoipLastError(text);
+      updateVoipCallStatus(flowId, "error", text);
+      console.error("VoIP start call error", e);
+    } finally {
+      setVoipCallLoadingKey(null);
+    }
+  };
+
+  const handleVoipHangupClick = () => {
+    terminateVoipSession();
+  };
+
+  const openVoipModalAndCall = (phoneValue, key) => {
+    clearVoipAutoCloseTimer();
+    clearVoipMediaWatch();
+    voipMediaAnsweredRef.current = false;
+    stopVoipCallDuration();
+    setVoipCallDurationSec(0);
+    setVoipLastError("");
+    setVoipCallStatus(voipCallStatusWithTimestamp("Aguardando chamada..."));
+    setVoipModal({ open: true, phone: String(phoneValue || "") });
+    handleVoipCall(phoneValue, key);
+  };
 
   useEffect(() => {
     // Resetar a flag quando o ID do doador mudar
@@ -232,16 +722,26 @@ const Donor = () => {
   };
 
   const handleBack = () => window.history.back();
+  const voipStatusLabel = {
+    idle: "Idle",
+    configured: "Configurado",
+    not_configured: "Nao configurado",
+    connecting: "Conectando",
+    connected: "Conectado",
+    registered: "Registrado",
+    registration_failed: "Falha de registro",
+    disconnected: "Desconectado",
+    error: "Erro",
+  }[voipUaStatus] || voipUaStatus;
+
   return (
     <main className={styles.containerDonor}>
+      <audio ref={voipRemoteAudioRef} autoPlay playsInline hidden aria-hidden="true" />
       <div className={styles.donorContent}>
         {/* Cabeçalho com botões */}
         <header className={styles.donorHeader}>
           <h2 className={styles.donorTitle}>{ICONS.MONEY} Doador</h2>
           <div className={styles.donorActions}>
-            {operatorData?.operator_code_id ? (
-              <VoipStatusBadge operatorCodeId={operatorData.operator_code_id} />
-            ) : null}
             {workListRequest.length > 0 && workListRequest[0].operator?.operator_name && (
               <span className={styles.workListBadge}>
                 Está na requisição de {workListRequest[0].operator.operator_name}
@@ -342,29 +842,68 @@ const Donor = () => {
                   onChange={(e) => handleInputChange("bairro", e.target.value)}
                   readOnly={uiState.edit}
                 />
-                <PhoneCallField
-                  label={FORM_LABELS.PHONE1}
-                  value={donorData.telefone1}
-                  onChange={(e) => handleInputChange("telefone1", e.target.value)}
-                  readOnly={uiState.edit}
-                  operatorCodeId={operatorData?.operator_code_id}
-                />
+                <div className={styles.donorPhoneFieldRow}>
+                  <FormDonorInput
+                    label={FORM_LABELS.PHONE1}
+                    value={donorData.telefone1}
+                    onChange={(e) => handleInputChange("telefone1", e.target.value)}
+                    readOnly={uiState.edit}
+                  />
+                  {donorData.telefone1 && (
+                    <button
+                      type="button"
+                      className={styles.donorCallBtn}
+                      title="Ligar via WebRTC (navegador)"
+                      disabled={voipCallLoadingKey !== null}
+                      onClick={() => openVoipModalAndCall(donorData.telefone1, "t1")}
+                      aria-label="Ligar para telefone 1"
+                    >
+                      {voipCallLoadingKey === "t1" ? "…" : <FaPhone size={14} />}
+                    </button>
+                  )}
+                </div>
 
-                <PhoneCallField
-                  label={FORM_LABELS.PHONE2}
-                  value={donorData.telefone2 ?? ""}
-                  onChange={(e) => handleInputChange("telefone2", e.target.value)}
-                  readOnly={uiState.edit}
-                  operatorCodeId={operatorData?.operator_code_id}
-                />
+                <div className={styles.donorPhoneFieldRow}>
+                  <FormDonorInput
+                    label={FORM_LABELS.PHONE2}
+                    value={donorData.telefone2 ?? ""}
+                    onChange={(e) => handleInputChange("telefone2", e.target.value)}
+                    readOnly={uiState.edit}
+                  />
+                  {donorData.telefone2 && (
+                    <button
+                      type="button"
+                      className={styles.donorCallBtn}
+                      title="Ligar via WebRTC (navegador)"
+                      disabled={voipCallLoadingKey !== null}
+                      onClick={() => openVoipModalAndCall(donorData.telefone2, "t2")}
+                      aria-label="Ligar para telefone 2"
+                    >
+                      {voipCallLoadingKey === "t2" ? "…" : <FaPhone size={14} />}
+                    </button>
+                  )}
+                </div>
 
-                <PhoneCallField
-                  label={FORM_LABELS.PHONE3}
-                  value={donorData.telefone3 ?? ""}
-                  onChange={(e) => handleInputChange("telefone3", e.target.value)}
-                  readOnly={uiState.edit}
-                  operatorCodeId={operatorData?.operator_code_id}
-                />
+                <div className={styles.donorPhoneFieldRow}>
+                  <FormDonorInput
+                    label={FORM_LABELS.PHONE3}
+                    value={donorData.telefone3 ?? ""}
+                    onChange={(e) => handleInputChange("telefone3", e.target.value)}
+                    readOnly={uiState.edit}
+                  />
+                  {donorData.telefone3 && (
+                    <button
+                      type="button"
+                      className={styles.donorCallBtn}
+                      title="Ligar via WebRTC (navegador)"
+                      disabled={voipCallLoadingKey !== null}
+                      onClick={() => openVoipModalAndCall(donorData.telefone3, "t3")}
+                      aria-label="Ligar para telefone 3"
+                    >
+                      {voipCallLoadingKey === "t3" ? "…" : <FaPhone size={14} />}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -513,6 +1052,65 @@ const Donor = () => {
           donorId={id}
           donorName={donorData.nome}
         />
+      )}
+      {voipModal.open && (
+        <div className={styles.callPopupOverlay}>
+          <div className={styles.callPopup}>
+            <div className={styles.callPopupHeader}>
+              <h3>Ligação WebRTC</h3>
+              <button
+                type="button"
+                className={styles.callPopupClose}
+                onClick={() => {
+                  clearVoipAutoCloseTimer();
+                  terminateVoipSession();
+                  voipSessionRef.current = null;
+                  setVoipCanHangup(false);
+                  stopVoipCallDuration();
+                  setVoipModal({ open: false, phone: "" });
+                }}
+                aria-label="Fechar modal de ligação"
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.callPopupContent}>
+              <p className={styles.callPopupPhone}>Número: {voipModal.phone || "—"}</p>
+              <div className={styles.voipCallDurationRow}>
+                <strong>Duração:</strong>{" "}
+                <span className={styles.voipCallDurationValue}>
+                  {voipDurationActive || voipCallDurationSec > 0
+                    ? formatVoipDuration(voipCallDurationSec)
+                    : "—"}
+                </span>
+              </div>
+              <div className={styles.voipStatusBox}>
+                <strong>Status SIP/WebRTC:</strong>{" "}
+                <span className={`${styles.voipStatusPill} ${styles[`voipStatus_${voipUaStatus}`]}`}>
+                  {voipStatusLabel}
+                </span>
+              </div>
+              {voipLastError && (
+                <div className={styles.voipErrorBox}>
+                  <strong>Ultimo erro VoIP:</strong> {voipLastError}
+                </div>
+              )}
+              <div className={styles.voipCallStatusBox}>
+                <strong>Status da chamada:</strong> {voipCallStatus}
+              </div>
+              <div className={styles.voipModalActions}>
+                <button
+                  type="button"
+                  className={styles.voipHangupBtn}
+                  onClick={handleVoipHangupClick}
+                  disabled={!voipCanHangup || voipCallLoadingKey !== null}
+                >
+                  Encerrar ou cancelar chamada
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );
