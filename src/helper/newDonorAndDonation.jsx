@@ -1,12 +1,7 @@
 import { toast } from "react-toastify";
 import { DataNow } from "../components/DataTime";
 import { insertDonation } from "./insertDonation";
-import {
-  insertDonor,
-  insertDonor_cpf,
-  insertDonor_tel_2,
-  insertDonor_tel_3,
-} from "./insertDonor";
+import { createDonorRequest } from "../api/donorApi";
 import supabase from "./superBaseClient";
 import { registerOperatorActivity, ACTIVITY_TYPES } from "../services/operatorActivityService";
 
@@ -29,20 +24,21 @@ const newDonorAndDonation = async ({
   nowScheduled,
 }) => {
   const handleDonorCreation = async () => {
-    const response = await insertDonor(
-      name,
-      "Lista",
-      address,
-      city,
-      neighborhood,
-      telSuccess
-    );
-    if (response.length === 0)
-      throw new Error("Erro ao criar o doador: " + response.error?.message);
-    const { donor_id } = response[0];
-    if (tel2) await insertDonor_tel_2(donor_id, tel2);
-    if (tel3) await insertDonor_tel_3(donor_id, tel3);
-    if (icpf) await insertDonor_cpf(donor_id, icpf);
+    const payload = {
+      nome: name,
+      tipo: "Lista",
+      endereco: address,
+      cidade: city,
+      bairro: neighborhood,
+      telefone1: telSuccess,
+    };
+    if (tel2) payload.telefone2 = tel2;
+    if (tel3) payload.telefone3 = tel3;
+    if (icpf) payload.cpf = icpf;
+
+    const response = await createDonorRequest(payload);
+    const donor_id = response?.[0]?.donor_id;
+    if (!donor_id) throw new Error("Erro ao criar o doador: resposta sem donor_id");
     return donor_id;
   };
 

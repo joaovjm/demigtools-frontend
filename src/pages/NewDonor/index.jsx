@@ -2,16 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./index.css";
 import { FaMoneyCheckDollar } from "react-icons/fa6";
 import { useNavigate } from "react-router";
-import {
-  insertDonor,
-  insertDonor_cpf,
-  insertDonor_email,
-  insertDonor_mensal,
-  insertDonor_observation,
-  insertDonor_reference,
-  insertDonor_tel_2,
-  insertDonor_tel_3,
-} from "../../helper/insertDonor";
+import { createDonorRequest } from "../../api/donorApi";
 import { toast } from "react-toastify";
 
 const index = () => {
@@ -49,38 +40,34 @@ const index = () => {
         return;
       }
       try {
-        const data = await insertDonor(
+        const payload = {
           nome,
           tipo,
           endereco,
           cidade,
           bairro,
           telefone1,
-          dia,
-          mensalidade
-        );
-        if (cpf !== "") {
-          insertDonor_cpf(data[0].donor_id, cpf);
-        }
-        if (email !== "") insertDonor_email(data[0].donor_id, email);
-        if (telefone2 !== "") {
-          insertDonor_tel_2(data[0].donor_id, telefone2);
-        }
-        if (telefone3 !== "") {
-          insertDonor_tel_3(data[0].donor_id, telefone3);
-        }
+        };
+        if (String(cpf).trim() !== "") payload.cpf = cpf;
+        if (String(email).trim() !== "") payload.email = email;
+        if (String(telefone2).trim() !== "") payload.telefone2 = telefone2;
+        if (String(telefone3).trim() !== "") payload.telefone3 = telefone3;
+        if (String(observacao).trim() !== "") payload.observacao = observacao;
+        if (String(referencia).trim() !== "") payload.referencia = referencia;
         if (tipo === "Mensal") {
-          insertDonor_mensal(data[0].donor_id, dia, mensalidade);
+          payload.dia = dia;
+          payload.mensalidade = mensalidade;
         }
-        if (observacao !== "") {
-          insertDonor_observation(data[0].donor_id, observacao);
+
+        const data = await createDonorRequest(payload);
+        const donorId = data?.[0]?.donor_id;
+        if (!donorId) {
+          throw new Error("Resposta inválida ao criar doador");
         }
-        if (referencia !== "") {
-          insertDonor_reference(data[0].donor_id, referencia);
-        }
-        navigate("/donor/" + data[0].donor_id);
+        toast.success("Doador criado com sucesso!");
+        navigate("/donor/" + donorId);
       } catch (error) {
-        toast.warning("Erro ao criar doador: ", error);
+        toast.error(error?.message || "Erro ao criar doador");
       }
     } else {
       toast.warning(

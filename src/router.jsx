@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router";
+import { ToastContainer } from "react-toastify";
 //import Navbar from "./components/Navbar";
 import App from "./App";
 import Login from "./pages/Login";
@@ -32,6 +33,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Tasks from "./pages/Tasks";
 import MyTasks from "./pages/MyTasks";
 import MonthHistory from "./pages/MonthHistory";
+import Discador from "./pages/Discador";
 import BulkEmailSend from "./pages/BulkEmailSend";
 import TaskDevelopment from "./pages/TaskDevelopment";
 import TaskToDeveloper from "./pages/TaskToDeveloper";
@@ -115,6 +117,14 @@ const AppRoutesContent = () => {
           element={
             <Wrapper>
               <MyTasks />
+            </Wrapper>
+          }
+        />
+        <Route
+          path="/discador"
+          element={
+            <Wrapper>
+              <Discador />
             </Wrapper>
           }
         />
@@ -290,6 +300,8 @@ const AppRoutesContent = () => {
 const Approuter = () => {
   return (
     <BrowserRouter>
+      {/* Fora de Routes com key={pathname}: evita remontar o container e apagar toasts na navegação */}
+      <ToastContainer closeOnClick pauseOnFocusLoss={false} autoClose={3000} />
       <AppRoutesContent />
     </BrowserRouter>
   );

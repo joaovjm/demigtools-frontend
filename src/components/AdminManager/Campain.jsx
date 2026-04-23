@@ -61,9 +61,9 @@ const Campain = () => {
     () => ({
       readonly: false,
       placeholder: "Digite o conteúdo... Pode usar HTML e variáveis como {{nome_doador}}, {{valor_doacao}}, {{imagem}}",
-      height: 400,
+      height: 280,
       language: "pt_br",
-      toolbarButtonSize: "large",
+      toolbarButtonSize: "middle",
       buttons: [
         "bold",
         "italic",

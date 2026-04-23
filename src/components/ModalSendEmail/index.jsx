@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { toast } from 'react-toastify';
 import styles from './modalsendemail.module.css'
 import { FaEnvelope, FaTimes, FaPaperPlane, FaImage, FaTrash, FaVideo } from 'react-icons/fa';
 import { getCampainsSummary } from '../../helper/getCampains';
@@ -7,6 +8,55 @@ import {
   fetchCampainTextBodyById,
   fetchCampainTextMediaById,
 } from '../../api/campainsApi.js';
+
+/** Preview em `<img>` / `<video>` precisa de data URL se a API devolver só base64 puro. */
+function ensureDataUrlForPreview(mimeFallback, value) {
+  if (value == null || value === '') return null;
+  const s = typeof value === 'string' ? value.trim() : '';
+  if (!s) return null;
+  if (s.startsWith('data:')) return s;
+  return `data:${mimeFallback};base64,${s}`;
+}
+
+/** Igual ao backend: data URL ou base64 puro (sem vírgula). */
+function extractRawBase64ForEmail(value) {
+  if (value == null || value === '') return '';
+  if (typeof value !== 'string') return '';
+  const s = value.trim();
+  const dataMatch = /^data:[^;]+;base64,(.+)$/is.exec(s);
+  if (dataMatch) return dataMatch[1].replace(/\s+/g, '');
+  const idx = s.indexOf('base64,');
+  if (idx !== -1) return s.slice(idx + 7).replace(/\s+/g, '');
+  return s.replace(/\s+/g, '');
+}
+
+/** Mesma prioridade do botão "Exibir anexo": imagem, depois vídeo. */
+async function loadCampaignMediaForSend(textId, campainTextsList) {
+  const id = parseInt(textId, 10);
+  if (!Number.isFinite(id)) return null;
+  const meta = campainTextsList.find((t) => Number(t.id) === id);
+  if (!meta || (meta.has_image !== true && meta.has_video !== true)) return null;
+
+  const resMedia = await fetchCampainTextMediaById(id);
+  const mediaRow = resMedia?.success ? resMedia.data : resMedia?.data ?? resMedia;
+  if (!mediaRow) return null;
+
+  if (mediaRow.image) {
+    return {
+      mediaType: 'image',
+      media: { name: 'imagem_campanha.jpg', type: 'image/jpeg' },
+      mediaPreview: ensureDataUrlForPreview('image/jpeg', mediaRow.image),
+    };
+  }
+  if (mediaRow.video) {
+    return {
+      mediaType: 'video',
+      media: { name: 'video_campanha.mp4', type: 'video/mp4' },
+      mediaPreview: ensureDataUrlForPreview('video/mp4', mediaRow.video),
+    };
+  }
+  return null;
+}
 
 const ModalSendEmail = ({ donor_email, donor_name, setModalSendEmail }) => {
   const [emailTo, setEmailTo] = useState('');
@@ -131,7 +181,7 @@ const ModalSendEmail = ({ donor_email, donor_name, setModalSendEmail }) => {
         if (cancelled) return;
 
         if (mediaRow?.image) {
-          setMediaPreview(mediaRow.image);
+          setMediaPreview(ensureDataUrlForPreview('image/jpeg', mediaRow.image));
           setMediaType('image');
           setMedia({ name: 'imagem_campanha.jpg', type: 'image/jpeg' });
         } else {
@@ -160,11 +210,11 @@ const ModalSendEmail = ({ donor_email, donor_name, setModalSendEmail }) => {
       const mediaRow = resMedia?.success ? resMedia.data : resMedia?.data ?? resMedia;
 
       if (mediaRow?.image) {
-        setMediaPreview(mediaRow.image);
+        setMediaPreview(ensureDataUrlForPreview('image/jpeg', mediaRow.image));
         setMediaType('image');
         setMedia({ name: 'imagem_campanha.jpg', type: 'image/jpeg' });
       } else if (mediaRow?.video) {
-        setMediaPreview(mediaRow.video);
+        setMediaPreview(ensureDataUrlForPreview('video/mp4', mediaRow.video));
         setMediaType('video');
         setMedia({ name: 'video_campanha.mp4', type: 'video/mp4' });
       } else {
@@ -250,11 +300,44 @@ const ModalSendEmail = ({ donor_email, donor_name, setModalSendEmail }) => {
         processedMessage = processedMessage.replace(/\{\{nome_doador\}\}/gi, donor_name);
       }
 
+      let sendMedia = media;
+      let sendMediaPreview = mediaPreview;
+      let sendMediaType = mediaType;
+
+      // Campanha com vídeo/imagem em modo lazy: busca na API na hora do envio (não exige "Exibir anexo")
+      if (deferCampaignMedia && selectedTextId) {
+        const meta = campainTexts.find((t) => Number(t.id) === parseInt(selectedTextId, 10));
+        try {
+          const snap = await loadCampaignMediaForSend(selectedTextId, campainTexts);
+          if ((meta?.has_video || meta?.has_image) && !snap) {
+            setStatus({
+              type: 'error',
+              message:
+                'Não foi possível carregar o anexo desta campanha. Use "Exibir anexo" ou verifique se o vídeo/imagem está salvo no texto da campanha.',
+            });
+            setLoading(false);
+            return;
+          }
+          if (snap) {
+            sendMedia = snap.media;
+            sendMediaPreview = snap.mediaPreview;
+            sendMediaType = snap.mediaType;
+          }
+        } catch (_err) {
+          setStatus({
+            type: 'error',
+            message: 'Erro ao carregar o anexo da campanha. Tente de novo ou use "Exibir anexo".',
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
       // Usar FormData se houver arquivo anexado, caso contrário JSON
       let requestBody;
       let headers = {};
 
-      if (media && media instanceof File) {
+      if (sendMedia && sendMedia instanceof File) {
         // Usar FormData para arquivos - mais eficiente, sem conversão base64
         const formData = new FormData();
         formData.append('emailTo', emailTo);
@@ -262,15 +345,15 @@ const ModalSendEmail = ({ donor_email, donor_name, setModalSendEmail }) => {
         formData.append('text', processedMessage);
         
         // Anexar o arquivo com o nome correto do campo
-        if (mediaType === 'video') {
-          formData.append('video', media);
+        if (sendMediaType === 'video') {
+          formData.append('video', sendMedia);
         } else {
-          formData.append('image', media);
+          formData.append('image', sendMedia);
         }
         
         requestBody = formData;
         // Não definir Content-Type, o browser faz isso automaticamente com boundary correto
-      } else if (media && mediaPreview) {
+      } else if (sendMedia && sendMediaPreview) {
         // Caso seja mídia de campanha (base64), usar JSON como antes
         const emailData = {
           emailTo,
@@ -278,13 +361,23 @@ const ModalSendEmail = ({ donor_email, donor_name, setModalSendEmail }) => {
           text: processedMessage,
         };
 
+        const rawB64 = extractRawBase64ForEmail(sendMediaPreview);
+        if (!rawB64) {
+          setStatus({
+            type: 'error',
+            message: 'Não foi possível ler o anexo (vídeo/imagem). Tente anexar o arquivo de novo ou reabra o anexo da campanha.',
+          });
+          setLoading(false);
+          return;
+        }
+
         const mediaData = {
-          filename: media.name,
-          content: mediaPreview.split(',')[1], // Remove o prefixo "data:...;base64,"
-          contentType: media.type,
+          filename: sendMedia.name,
+          content: rawB64,
+          contentType: sendMedia.type,
         };
         
-        if (mediaType === 'video') {
+        if (sendMediaType === 'video') {
           emailData.video = mediaData;
         } else {
           emailData.image = mediaData;
@@ -323,7 +416,9 @@ const ModalSendEmail = ({ donor_email, donor_name, setModalSendEmail }) => {
       }
 
       if (response.ok) {
-        setStatus({ type: 'success', message: 'Email enviado com sucesso!' });
+        const okMsg = data.message || 'E-mail enviado com sucesso!';
+        toast.success(okMsg);
+        setStatus({ type: 'success', message: okMsg });
         // Limpa os campos após 2 segundos
         setTimeout(() => {
           setSubject('');

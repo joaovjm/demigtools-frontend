@@ -1,0 +1,391 @@
+/* Altura útil abaixo da navbar (70px em navbar.css) */
+.page {
+  --nav-h: 70px;
+  height: calc(100vh - var(--nav-h));
+  max-height: calc(100vh - var(--nav-h));
+  height: calc(100svh - var(--nav-h));
+  max-height: calc(100svh - var(--nav-h));
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 4px 8px max(2px, env(safe-area-inset-bottom, 0px));
+  max-width: min(100%, 420px);
+  margin: 0 auto;
+  box-sizing: border-box;
+  gap: 4px;
+}
+
+.title {
+  font-size: clamp(0.85rem, 2.8vw, 1rem);
+  font-weight: 700;
+  color: #faf5e9;
+  margin: 0;
+  padding: 2px 0 0;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+  flex-shrink: 0;
+}
+
+.displayFrame {
+  flex-shrink: 0;
+  border-radius: 8px;
+  padding: 6px 8px 6px;
+  background: linear-gradient(180deg, #1a1d22 0%, #121418 100%);
+  border: 1px solid rgba(250, 160, 28, 0.35);
+  box-shadow: inset 0 1px 6px rgba(0, 0, 0, 0.4);
+}
+
+.displayLabel {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(250, 160, 28, 0.75);
+  margin-bottom: 4px;
+}
+
+.digitRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 3px;
+  justify-content: center;
+  align-items: center;
+  min-height: clamp(22px, 6vw, 28px);
+  max-height: 44px;
+  overflow: hidden;
+}
+
+.digitTile {
+  width: clamp(16px, 4.2vw, 20px);
+  height: clamp(22px, 5.5vw, 28px);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.7rem, 3.2vw, 0.9rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #c8f0ff;
+  text-shadow: 0 0 6px rgba(100, 200, 255, 0.4);
+  background: linear-gradient(180deg, #0d1118 0%, #05070a 100%);
+  border: 1px solid rgba(80, 140, 180, 0.35);
+}
+
+.digitTileMuted {
+  opacity: 0.35;
+  font-size: clamp(0.65rem, 3vw, 0.8rem);
+}
+
+.durationRow {
+  margin-top: 4px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(250, 160, 28, 0.35);
+  background: rgba(250, 160, 28, 0.1);
+  color: #ffdfad;
+  font-size: clamp(10px, 2.8vw, 12px);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.durationValue {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-size: clamp(11px, 3.2vw, 13px);
+}
+
+.padWrap {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(4px, 1.2vh, 8px);
+}
+
+.padGrid {
+  display: grid;
+  grid-template-columns: repeat(3, clamp(48px, 14vw, 58px));
+  gap: clamp(4px, 1vh, 7px);
+  justify-content: center;
+}
+
+.padKey {
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: clamp(44px, 11vw, 52px);
+  border-radius: 50%;
+  border: 1px solid #3a3f46;
+  background: linear-gradient(160deg, #3d434c 0%, #2a2e35 100%);
+  color: #faf5e9;
+  font-size: clamp(0.95rem, 3.8vw, 1.1rem);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition:
+    transform 0.12s ease,
+    border-color 0.15s ease;
+}
+
+.padKey:hover:not(:disabled) {
+  border-color: rgba(250, 160, 28, 0.65);
+  transform: translateY(-1px);
+}
+
+.padKey:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.padKey:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.padKeySub {
+  display: block;
+  font-size: clamp(6px, 1.8vw, 7px);
+  font-weight: 500;
+  opacity: 0.55;
+  margin-top: 1px;
+  line-height: 1;
+}
+
+.actionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(16px, 6vw, 24px);
+}
+
+.callBtn,
+.hangupBtn {
+  width: clamp(44px, 12vw, 52px);
+  height: clamp(44px, 12vw, 52px);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-width: 2px;
+  border-style: solid;
+  transition: transform 0.12s ease;
+}
+
+.callBtn svg,
+.hangupBtn svg {
+  width: clamp(16px, 4.5vw, 20px);
+  height: clamp(16px, 4.5vw, 20px);
+}
+
+.callBtn {
+  border-color: #2d6b3d;
+  background: linear-gradient(145deg, #2a9d4f 0%, #1d6b36 100%);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(29, 107, 54, 0.35);
+}
+
+.callBtn:hover:not(:disabled) {
+  transform: scale(1.03);
+}
+
+.callBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.hangupBtn {
+  border-color: rgba(180, 50, 50, 0.85);
+  background: linear-gradient(145deg, #c0392b 0%, #7b1e16 100%);
+  color: #ffecec;
+  box-shadow: 0 3px 10px rgba(123, 30, 22, 0.35);
+}
+
+.hangupBtn:hover:not(:disabled) {
+  transform: scale(1.03);
+}
+
+.hangupBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.auxKeys {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.auxBtn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #464a4d;
+  background: linear-gradient(135deg, #363a3d 0%, #2f2d2d 100%);
+  color: #faf5e9;
+  font-size: clamp(10px, 2.8vw, 12px);
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.auxBtn:hover:not(:disabled) {
+  border-color: #faa01c;
+}
+
+.auxBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.statusSection {
+  flex-shrink: 0;
+  margin-top: 2px;
+  padding: 5px 6px 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-height: 0;
+}
+
+.voipErrorBox {
+  margin-top: 4px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 92, 92, 0.5);
+  background: rgba(255, 92, 92, 0.1);
+  color: #ffd2d2;
+  font-size: clamp(9px, 2.5vw, 11px);
+  line-height: 1.25;
+  max-height: 2.6em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.voipStatusBox {
+  margin-top: 0;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(250, 160, 28, 0.35);
+  background: rgba(250, 160, 28, 0.08);
+  color: #ffe8c0;
+  font-size: clamp(9px, 2.5vw, 11px);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.voipStatusPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: clamp(8px, 2.2vw, 10px);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border: 1px solid transparent;
+}
+
+.voipStatus_idle,
+.voipStatus_configured {
+  background: rgba(136, 136, 136, 0.18);
+  border-color: rgba(136, 136, 136, 0.4);
+  color: #dedede;
+}
+
+.voipStatus_connecting,
+.voipStatus_connected {
+  background: rgba(250, 160, 28, 0.2);
+  border-color: rgba(250, 160, 28, 0.45);
+  color: #ffdfad;
+}
+
+.voipStatus_registered {
+  background: rgba(42, 125, 63, 0.2);
+  border-color: rgba(42, 125, 63, 0.45);
+  color: #c8f2d0;
+}
+
+.voipStatus_registration_failed,
+.voipStatus_disconnected,
+.voipStatus_not_configured,
+.voipStatus_error {
+  background: rgba(255, 92, 92, 0.16);
+  border-color: rgba(255, 92, 92, 0.45);
+  color: #ffd2d2;
+}
+
+.voipCallStatusBox {
+  margin-top: 4px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f3f3f3;
+  font-size: clamp(9px, 2.5vw, 11px);
+  line-height: 1.25;
+  max-height: 2.8em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+
+/* Telas muito baixas (ex.: landscape em celular) */
+@media (max-height: 520px) {
+  .page {
+    gap: 2px;
+    padding-top: 2px;
+  }
+
+  .title {
+    font-size: 0.8rem;
+    padding-top: 0;
+  }
+
+  .displayFrame {
+    padding: 4px 6px;
+  }
+
+  .digitRow {
+    min-height: 20px;
+    max-height: 34px;
+  }
+
+  .padGrid {
+    grid-template-columns: repeat(3, clamp(42px, 12vw, 50px));
+    gap: 3px;
+  }
+
+  .padKey {
+    max-height: 44px;
+  }
+
+  .padWrap {
+    gap: 3px;
+  }
+
+  .statusSection {
+    padding: 3px 5px;
+  }
+
+  .voipCallStatusBox {
+    -webkit-line-clamp: 1;
+    max-height: 1.35em;
+  }
+}

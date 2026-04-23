@@ -143,5 +143,11 @@ export const OperadorMenu = [
         title: "Minhas Tarefas",
         path: "./mytasks",
         cName: "submenu-itens",
+    },
+    {
+        id: 6,
+        title: "Discador",
+        path: "./discador",
+        cName: "submenu-itens",
     }
 ];

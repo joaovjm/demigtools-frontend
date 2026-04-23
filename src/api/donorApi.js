@@ -5,6 +5,17 @@ export async function fetchDonorById(donorId) {
   return data;
 }
 
+/** Corpo no mesmo formato de edição: nome, tipo, endereco, cidade, bairro, telefone1, opcionais cpf, email, telefone2, telefone3, dia, mensalidade, observacao, referencia */
+export async function createDonorRequest(body) {
+  try {
+    const { data } = await apiClient.post("/donors", body);
+    return data;
+  } catch (e) {
+    const msg = e?.response?.data?.message || e?.message || "Erro ao criar doador";
+    throw new Error(msg);
+  }
+}
+
 export async function updateDonorRequest(donorId, body) {
   const { data } = await apiClient.put(`/donors/${donorId}`, body);
   return data;

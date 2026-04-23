@@ -1,5 +1,30 @@
 import apiClient from "../services/apiClient.js";
 
+/** Resposta de GET /campain-texts/:id/media — evita baixar vídeo/imagem repetidas vezes. */
+const CAMPAIN_TEXT_MEDIA_TTL_MS = 60 * 60 * 1000;
+const CAMPAIN_TEXT_MEDIA_MAX_ENTRIES = 40;
+const campainTextMediaCache = new Map();
+
+function invalidateCampainTextMediaCacheEntry(id) {
+  const k = Number(id);
+  if (Number.isFinite(k)) campainTextMediaCache.delete(k);
+}
+
+function evictOldestCampainTextMediaWhileOverLimit() {
+  while (campainTextMediaCache.size > CAMPAIN_TEXT_MEDIA_MAX_ENTRIES) {
+    let oldestKey = null;
+    let oldestTs = Infinity;
+    for (const [key, entry] of campainTextMediaCache) {
+      if (entry.ts < oldestTs) {
+        oldestTs = entry.ts;
+        oldestKey = key;
+      }
+    }
+    if (oldestKey == null) break;
+    campainTextMediaCache.delete(oldestKey);
+  }
+}
+
 export function fetchActiveCampains() {
   return apiClient.get("/campains/active").then((r) => r.data?.data ?? r.data);
 }
@@ -40,11 +65,30 @@ export function fetchCampainTextBodyById(id) {
     .then((r) => r.data);
 }
 
-/** Só image e video, após saber que existem (has_image / has_video na lista). */
+/** Só image e video, após saber que existem (has_image / has_video na lista). Usa cache em memória (TTL + limite de entradas). */
 export function fetchCampainTextMediaById(id) {
+  const key = Number(id);
+  if (!Number.isFinite(key)) {
+    return apiClient
+      .get(`/campain-texts/${encodeURIComponent(id)}/media`)
+      .then((r) => r.data);
+  }
+  const now = Date.now();
+  const hit = campainTextMediaCache.get(key);
+  if (hit && now - hit.ts < CAMPAIN_TEXT_MEDIA_TTL_MS) {
+    return Promise.resolve(hit.payload);
+  }
   return apiClient
     .get(`/campain-texts/${encodeURIComponent(id)}/media`)
-    .then((r) => r.data);
+    .then((r) => {
+      const payload = r.data;
+      const failed = payload && payload.success === false;
+      if (!failed) {
+        campainTextMediaCache.set(key, { payload, ts: Date.now() });
+        evictOldestCampainTextMediaWhileOverLimit();
+      }
+      return payload;
+    });
 }
 
 export function createCampainTextRequest(payload) {
@@ -52,11 +96,17 @@ export function createCampainTextRequest(payload) {
 }
 
 export function patchCampainTextRequest(id, payload) {
-  return apiClient.patch(`/campain-texts/${id}`, payload).then((r) => r.data);
+  return apiClient.patch(`/campain-texts/${id}`, payload).then((r) => {
+    invalidateCampainTextMediaCacheEntry(id);
+    return r.data;
+  });
 }
 
 export function deleteCampainTextRequest(id, hardDelete = false) {
   return apiClient
     .delete(`/campain-texts/${id}`, { params: { hardDelete } })
-    .then((r) => r.data);
+    .then((r) => {
+      invalidateCampainTextMediaCacheEntry(id);
+      return r.data;
+    });
 }
