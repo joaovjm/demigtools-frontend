@@ -445,6 +445,17 @@ export function useVoipWebRtcCall({
     terminateVoipSession();
   };
 
+  const closeVoipCallUi = () => {
+    clearVoipAutoCloseTimer();
+    clearVoipMediaWatch();
+    voipMediaAnsweredRef.current = false;
+    terminateVoipSession();
+    voipSessionRef.current = null;
+    setVoipCanHangup(false);
+    stopVoipCallDuration();
+    setVoipModal({ open: false, phone: "" });
+  };
+
   const openVoipModalAndCall = (phoneValue, key) => {
     clearVoipAutoCloseTimer();
     clearVoipMediaWatch();
@@ -474,6 +485,7 @@ export function useVoipWebRtcCall({
     voipCanHangup,
     openVoipModalAndCall,
     handleVoipHangupClick,
+    closeVoipCallUi,
     terminateVoipSession,
     voipSessionRef,
     stopVoipCallDuration,

@@ -85,10 +85,7 @@ const Donor = () => {
     voipCanHangup,
     openVoipModalAndCall,
     handleVoipHangupClick,
-    terminateVoipSession,
-    voipSessionRef,
-    stopVoipCallDuration,
-    setVoipCanHangup,
+    closeVoipCallUi,
     formatVoipDuration,
   } = useVoipWebRtcCall({ operatorData });
 
@@ -596,14 +593,7 @@ const Donor = () => {
               <button
                 type="button"
                 className={styles.callPopupClose}
-                onClick={() => {
-                  clearVoipAutoCloseTimer();
-                  terminateVoipSession();
-                  voipSessionRef.current = null;
-                  setVoipCanHangup(false);
-                  stopVoipCallDuration();
-                  setVoipModal({ open: false, phone: "" });
-                }}
+                onClick={closeVoipCallUi}
                 aria-label="Fechar modal de ligação"
               >
                 ×

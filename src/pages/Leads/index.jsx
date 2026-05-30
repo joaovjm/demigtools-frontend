@@ -1,6 +1,7 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import "./index.css";
 import GetLeadsWithPagination from "../../helper/getLeadsWithPagination";
+import { io } from "socket.io-client";
 
 import { ICONS } from "../../constants/constants";
 import { toast, ToastContainer } from "react-toastify";
@@ -9,6 +10,8 @@ import {
   fetchLeadNeighborhoods,
   scheduleLead,
   createDonationFromLead,
+  postPredictiveDialStart,
+  postPredictiveDialStop,
 } from "../../api/leadsApi.js";
 import getSession from "../../auth/getSession";
 import Loader from "../../components/Loader";
@@ -34,6 +37,13 @@ const Leads = () => {
   const [availableNeighborhoods, setAvailableNeighborhoods] = useState([]);
   const { operatorData } = useContext(UserContext);
 
+  /** Discagem preditiva: estado do painel e Socket.IO */
+  const [predictiveActive, setPredictiveActive] = useState(false);
+  const [predictiveStatus, setPredictiveStatus] = useState("Parado");
+  const [predictiveGroup, setPredictiveGroup] = useState(null);
+  const [predictiveGroupsDone, setPredictiveGroupsDone] = useState(0);
+  const socketRef = useRef(null);
+
   useEffect(() => {
     const GetSession = async () => {
       const session = await getSession();
@@ -58,6 +68,91 @@ const Leads = () => {
       fetchAvailableNeighborhoods();
     }
   }, [operatorData.operator_code_id]);
+
+  /**
+   * Conecta ao namespace padrão do Socket.IO na mesma origem (proxy Vite → API).
+   * Entra na sala `op:<operator_code_id>` para eventos de discagem preditiva.
+   */
+  useEffect(() => {
+    const opId = operatorData?.operator_code_id;
+    if (!opId) return;
+
+    const socket = io({
+      auth: { operatorCodeId: String(opId) },
+      transports: ["websocket", "polling"],
+    });
+    socketRef.current = socket;
+
+    const sameOp = (payload) =>
+      payload &&
+      Number(payload.operator_code_id) === Number(opId);
+
+    socket.on("dialing:group-started", (p) => {
+      if (!sameOp(p)) return;
+      setPredictiveStatus("Discando…");
+      setPredictiveGroup({
+        group_id: p.group_id,
+        leads: (p.leads || []).map((l) => ({
+          leads_id: l.leads_id,
+          leads_name: l.leads_name,
+          phone: l.phone,
+          uiStatus: "calling",
+        })),
+      });
+    });
+
+    socket.on("dialing:answered", (p) => {
+      if (!sameOp(p)) return;
+      const answeredId = p.answered_lead_id;
+      const cancelled = new Set(p.cancelled_lead_ids || []);
+      setPredictiveGroup((prev) => {
+        if (!prev || prev.group_id !== p.group_id) return prev;
+        const leads = prev.leads.map((row) => {
+          if (row.leads_id === answeredId) {
+            return { ...row, uiStatus: "answered" };
+          }
+          if (cancelled.has(row.leads_id)) {
+            return { ...row, uiStatus: "cancelled" };
+          }
+          return row;
+        });
+        return { ...prev, leads };
+      });
+      setPredictiveGroupsDone((n) => n + 1);
+    });
+
+    socket.on("dialing:no-answer", (p) => {
+      if (!sameOp(p)) return;
+      setPredictiveGroup((prev) => {
+        if (!prev || prev.group_id !== p.group_id) return prev;
+        return {
+          ...prev,
+          leads: prev.leads.map((row) => ({
+            ...row,
+            uiStatus: "no_answer",
+          })),
+        };
+      });
+      setPredictiveGroupsDone((n) => n + 1);
+    });
+
+    socket.on("dialing:next-group", () => {
+      setPredictiveStatus("Discando…");
+    });
+
+    socket.on("dialing:exhausted", (p) => {
+      if (!sameOp(p)) return;
+      setPredictiveActive(false);
+      setPredictiveStatus("Sem leads disponíveis");
+      setPredictiveGroup(null);
+      toast.info("Discagem preditiva: não há mais leads na fila.");
+    });
+
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  }, [operatorData?.operator_code_id]);
 
   const fetchLeads = async () => {
     setIsLoading(true);
@@ -85,6 +180,39 @@ const Leads = () => {
 
     setIsLoading(false);
     return lead;
+  };
+
+  const handlePredictiveStart = async () => {
+    try {
+      await postPredictiveDialStart({
+        operator_code_id: operatorData.operator_code_id,
+        operator_id: idSession || undefined,
+      });
+      setPredictiveActive(true);
+      setPredictiveStatus("Discando…");
+      setPredictiveGroupsDone(0);
+      toast.success("Discagem preditiva iniciada.");
+    } catch (e) {
+      console.error(e);
+      toast.error(e?.response?.data?.message || e?.message || "Não foi possível iniciar.");
+    }
+  };
+
+  const handlePredictiveStop = async () => {
+    try {
+      await postPredictiveDialStop({
+        operator_code_id: operatorData.operator_code_id,
+        operator_id: idSession || undefined,
+      });
+      setPredictiveActive(false);
+      setPredictiveStatus("Parado");
+      setPredictiveGroup(null);
+      toast.info("Discagem preditiva parada.");
+      await fetchLeads();
+    } catch (e) {
+      console.error(e);
+      toast.error(e?.response?.data?.message || e?.message || "Não foi possível parar.");
+    }
   };
 
   useEffect(() => {
@@ -296,6 +424,51 @@ const Leads = () => {
             <span className="leads-counter">Lead {currentItem} de {items}</span>
           </div>
         </header>
+
+        <section className="predictive-dial-bar" aria-label="Discagem preditiva">
+          <div className="predictive-dial-controls">
+            <span className="predictive-dial-status">{predictiveStatus}</span>
+            {!predictiveActive ? (
+              <button
+                type="button"
+                className="leads-btn primary"
+                onClick={handlePredictiveStart}
+                disabled={!operatorData?.operator_code_id}
+              >
+                Iniciar discagem
+              </button>
+            ) : (
+              <button type="button" className="leads-btn danger" onClick={handlePredictiveStop}>
+                Parar discagem
+              </button>
+            )}
+          </div>
+          {predictiveGroup?.leads?.length > 0 && (
+            <div className="predictive-dial-grid">
+              {predictiveGroup.leads.map((row) => (
+                <div
+                  key={row.leads_id}
+                  className={`predictive-dial-card predictive-dial-card--${row.uiStatus}`}
+                >
+                  <span className="predictive-dial-name">{row.leads_name || "—"}</span>
+                  <span className="predictive-dial-phone">{row.phone}</span>
+                  <span className="predictive-dial-badge">
+                    {row.uiStatus === "calling" && "Em chamada"}
+                    {row.uiStatus === "answered" && "Atendido"}
+                    {row.uiStatus === "cancelled" && "Encerrada"}
+                    {row.uiStatus === "no_answer" && "Sem resposta"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="predictive-dial-meta">
+            Grupos completados: {predictiveGroupsDone}
+            {predictiveActive && predictiveGroup ? (
+              <span> · até 4 chamadas neste grupo</span>
+            ) : null}
+          </div>
+        </section>
 
         {/* Main Content */}
         <div className="leads-main-content">

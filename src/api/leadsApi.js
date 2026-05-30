@@ -75,6 +75,26 @@ export async function postBulkImportLeads({ rows, typeLead }) {
 }
 
 /** Envia o .xlsx/.xls para o backend; o parse é feito no servidor. */
+/** Inicia discagem preditiva (4 chamadas simultâneas por grupo). */
+export function postPredictiveDialStart({ operator_code_id, operator_id }) {
+  return apiClient
+    .post("/leads/predictive-dial/start", {
+      operator_code_id,
+      operator_id: operator_id ?? undefined,
+    })
+    .then((r) => r.data);
+}
+
+/** Encerra o ciclo de discagem preditiva para a operadora. */
+export function postPredictiveDialStop({ operator_code_id, operator_id }) {
+  return apiClient
+    .post("/leads/predictive-dial/stop", {
+      operator_code_id,
+      operator_id: operator_id ?? undefined,
+    })
+    .then((r) => r.data);
+}
+
 export async function postParseLeadsXlsx(file) {
   const formData = new FormData();
   formData.append("file", file);

@@ -286,9 +286,16 @@
 
 .action-buttons {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 8px;
   width: 100%;
+}
+
+/* Os 5 botões de ação do lead: metade da largura da célula do grid */
+.action-buttons > .leads-btn {
+  width: 60%;
+  max-width: 70%;
+  justify-self: center;
 }
 
 /* Buttons */
@@ -663,4 +670,101 @@
 .leads-textarea:focus-visible {
   outline: 2px solid #faa01c;
   outline-offset: 2px;
+}
+
+/* Discagem preditiva */
+.predictive-dial-bar {
+  width: 100%;
+  flex-shrink: 0;
+  background: #363a3d;
+  border: 2px solid #2f2d2d;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.predictive-dial-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.predictive-dial-status {
+  font-size: 13px;
+  font-weight: 600;
+  color: #faa01c;
+}
+
+.predictive-dial-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.predictive-dial-card {
+  background: #2f2d2d;
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  border: 1px solid #464a4d;
+}
+
+.predictive-dial-card--calling {
+  animation: predictivePulse 1.2s ease-in-out infinite;
+}
+
+@keyframes predictivePulse {
+  0%,
+  100% {
+    border-color: #464a4d;
+    opacity: 1;
+  }
+  50% {
+    border-color: #faa01c;
+    opacity: 0.92;
+  }
+}
+
+.predictive-dial-card--answered {
+  border-color: #2e7d32;
+  background: rgba(46, 125, 50, 0.15);
+}
+
+.predictive-dial-card--cancelled,
+.predictive-dial-card--no_answer {
+  opacity: 0.75;
+  border-color: #5c5c5c;
+}
+
+.predictive-dial-name {
+  font-weight: 600;
+  color: #faf5e9;
+}
+
+.predictive-dial-phone {
+  color: #c9c9c9;
+  font-size: 11px;
+}
+
+.predictive-dial-badge {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #faa01c;
+}
+
+.predictive-dial-card--answered .predictive-dial-badge {
+  color: #81c784;
+}
+
+.predictive-dial-meta {
+  font-size: 11px;
+  color: #aaa;
 }
